@@ -55,17 +55,6 @@ struct PointQueryTestCase {
   const std::vector<const IntTree::KV> expect;
 };
 
-class TreeDumper : public testing::EmptyTestEventListener {
- private:
-  // Fired after the test ends.
-  void OnTestEnd(const testing::TestInfo& test_info) override {
-    const testing::TestResult* result = test_info.result();
-    if (result->Failed()) {
-      return;
-    }
-  }
-};
-
 class PointQueryTest : public testing::TestWithParam<PointQueryTestCase> {};
 
 TEST_P(PointQueryTest, PointQueryTest) {
@@ -73,7 +62,6 @@ TEST_P(PointQueryTest, PointQueryTest) {
   for (auto kv : GetParam().data) {
     tree.Insert(kv.first, kv.second);
   }
-  //   RecordProperty()
   std::vector<IntTree::KV> results;
   tree.Overlap(GetParam().point, results);
   EXPECT_THAT(results, testing::ElementsAreArray(GetParam().expect))
@@ -144,6 +132,76 @@ INSTANTIATE_TEST_SUITE_P(
             },
         }),
     [](const testing::TestParamInfo<PointQueryTest::ParamType>& tc) {
+      return tc.param.comment;
+    });
+
+struct DeleteTestCase {
+  const std::string comment;
+  const std::vector<const IntTree::KV> data;
+  const std::vector<const std::pair<const IntTree::KV, bool>> delete_calls;
+};
+
+class DeleteTest : public testing::TestWithParam<DeleteTestCase> {};
+
+TEST_P(DeleteTest, DeleteTest) {
+  IntTree tree;
+  for (auto kv : GetParam().data) {
+    tree.Insert(kv.first, kv.second);
+  }
+
+  for (auto delete_call : GetParam().delete_calls) {
+    bool found = tree.Delete(delete_call.first);
+    EXPECT_EQ(found, delete_call.second)
+        << "tree.Delete(" << delete_call.first << ") should return "
+        << delete_call.second << ". Tree printout follows: " << tree;
+  }
+}
+
+INSTANTIATE_TEST_SUITE_P(
+    DeleteTest, DeleteTest,
+    testing::Values(
+        DeleteTestCase{
+            "empty",
+            std::vector<const IntTree::KV>{},
+            std::vector<const std::pair<const IntTree::KV, bool>>{},
+        },
+        DeleteTestCase{
+            "tree_one",
+            kTreeOne,
+            std::vector<const std::pair<const IntTree::KV, bool>>{
+                std::make_pair(IntTree::KV(Interval{0, 1}, 2), false),
+                std::make_pair(IntTree::KV(Interval{0, 1}, 1), true),
+                std::make_pair(IntTree::KV(Interval{0, 1}, 1), false),
+            },
+        },
+        DeleteTestCase{
+            "tree_two",
+            kTreeTwo,
+            std::vector<const std::pair<const IntTree::KV, bool>>{
+                std::make_pair(IntTree::KV(Interval{0, 1}, 2), false),
+                std::make_pair(IntTree::KV(Interval{0, 1}, 1), true),
+                std::make_pair(IntTree::KV(Interval{0, 1}, 1), false),
+                std::make_pair(IntTree::KV(Interval{1, 2}, 2), true),
+            },
+        },
+        DeleteTestCase{
+            "tree_many",
+            kTreeMany,
+            std::vector<const std::pair<const IntTree::KV, bool>>{
+                std::make_pair(IntTree::KV(Interval{0, 3}, 0), true),
+                std::make_pair(IntTree::KV(Interval{2, 3}, 1), true),
+                std::make_pair(IntTree::KV(Interval{1, 4}, 2), true),
+                std::make_pair(IntTree::KV(Interval{0, 10}, 3), true),
+                std::make_pair(IntTree::KV(Interval{3, 8}, 4), true),
+                std::make_pair(IntTree::KV(Interval{3, 8}, 5), true),
+                std::make_pair(IntTree::KV(Interval{3, 8}, 6), true),
+                std::make_pair(IntTree::KV(Interval{3, 8}, 7), true),
+                std::make_pair(IntTree::KV(Interval{3, 8}, 7), false),
+                std::make_pair(IntTree::KV(Interval{0, 10}, 3), false),
+                std::make_pair(IntTree::KV(Interval{1, 2}, 9), true),
+            },
+        }),
+    [](const testing::TestParamInfo<DeleteTest::ParamType>& tc) {
       return tc.param.comment;
     });
 

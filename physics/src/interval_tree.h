@@ -26,11 +26,9 @@ std::ostream& operator<<(std::ostream& os, const Interval& interval);
 // might be surprising.
 //
 // 1) Nodes are kept in a dense vector and edges are stored as offsets into this
-//    vector. As long as Delete is only ever called on the last element, the
-//    nodes will be sorted in insertion order. It so happens, that we only ever
-//    need to delete the last element, so this allows for great data locality.
-//    As a bonus, shallow copies of the tree just work. Returning a subtree
-//    would require linear time, however.
+//    vector. As long as elements are inserted in increasing order and Delete is
+//    only ever called on the last-inserted element, the nodes remain sorted in
+//    insertion order.
 //
 // 2) The RBT algorithms favor clarity over micro-optimization, which makes them
 //    look considerably different from what people implement based on (I think)
@@ -73,8 +71,25 @@ class IntervalTree {
     return false;
   }
 
-  void Overlap(const int point, std::vector<KV>& hits) {
+  void Overlap(const int point, std::vector<KV>& hits) const {
     return SearchPoint(root_, point, hits);
+  }
+
+  bool Delete(const KV& interval_value) {
+    int n = root_;
+    while (n != kNil) {
+      KV node_iv(nodes_[n].interval, nodes_[n].value);
+      if (interval_value < node_iv) {
+        n = nodes_[n].children[kLeft];
+      } else if (interval_value > node_iv) {
+        n = nodes_[n].children[kRight];
+      } else {
+        DeleteNode(n);
+        return true;
+      }
+    }
+
+    return false;
   }
 
   friend std::ostream& operator<<(std::ostream& os,
@@ -95,7 +110,11 @@ class IntervalTree {
 
  private:
   static constexpr int kNil = -1;
-  enum Direction { kLeft = 0, kRight = 1 };
+
+  using Direction = int;
+  static constexpr int kLeft = 0;
+  static constexpr int kRight = 1;
+
   enum Color { kRed, kBlack };
 
   friend std::ostream& operator<<(std::ostream& os, const Color& color) {
@@ -134,7 +153,7 @@ class IntervalTree {
               << " value=" << node.value;
   }
 
-  void SearchPoint(int node, const int point, std::vector<KV>& hits) {
+  void SearchPoint(int node, const int point, std::vector<KV>& hits) const {
     if (node == kNil) {
       return;
     }
@@ -283,6 +302,163 @@ class IntervalTree {
     }
   }
 
+  int DeleteNode(const int n) {
+    int l = nodes_[n].children[kLeft];
+    int r = nodes_[n].children[kRight];
+
+    if (l != kNil && r != kNil) {
+      int successor = MinNode(r);
+      nodes_[n].interval = nodes_[successor].interval;
+      nodes_[n].value = nodes_[successor].value;
+      FixBranchMax(n);
+      return DeleteNode(successor);
+    } else if (l != kNil) {
+      // Invariant 4 states that every path from root of any subtree to a leaf
+      // passes through the same number of black nodes. Consequently, if a
+      // node has only one child, then it must be a red child. This also means
+      // that node n must be black, because red nodes are not allowed to have
+      // red children by invariant 2. We can replace n with its child, color
+      // the latter black and by so doing maintain all RBT invariants.
+      nodes_[l].color = kBlack;
+      Replace(n, l);
+      FixBranchMax(l);
+      return l;
+    } else if (r != kNil) {
+      nodes_[r].color = kBlack;
+      Replace(n, r);
+      FixBranchMax(r);
+      return r;
+    } else {
+      // This is the only tricky case: removing a black node without any
+      // children affects the black depth of this subtree, violating property
+      // 4.
+      int p = nodes_[n].parent;
+      // Fix up the max values up to the root, before the code below performs
+      // rotations.
+
+      // Pretend the node is already deleted.
+      nodes_[n].max = nodes_[p].interval.low;
+      FixBranchMax(p);
+      if (nodes_[n].color == kBlack) {
+        FixDoubleBlackNode(n);
+      }
+      Replace(n, kNil);
+      return kNil;
+    }
+  }
+
+  int MinNode(int n) const {
+    while (nodes_[n].children[kLeft] != kNil) {
+      n = nodes_[n].children[kLeft];
+    }
+    return n;
+  }
+
+  void Replace(const int node, const int newNode) {
+    int p = nodes_[node].parent;
+    if (p != kNil) {
+      if (node == nodes_[p].children[kLeft]) {
+        nodes_[p].children[kLeft] = newNode;
+      } else {
+        nodes_[p].children[kRight] = newNode;
+      }
+    } else {
+      // The node being replaced is the root.
+      root_ = newNode;
+    }
+    if (newNode != kNil) {
+      nodes_[newNode].parent = p;
+    }
+    DeleteStorage(node);
+  }
+
+  void FixDoubleBlackNode(const int n) {
+    int p = nodes_[n].parent;
+    if (p == kNil) {
+      return;
+    }
+    Direction d;
+    int s;
+    if (n == nodes_[p].children[kLeft]) {
+      d = kLeft;
+      s = nodes_[p].children[kRight];
+    } else {
+      d = kRight;
+      s = nodes_[p].children[kLeft];
+    }
+
+    // If the sibling is red then it must have two or zero black children. So a
+    // rotation about the parent will give n a black sibling (possibly the
+    // sibling will be nil, which is black).
+    if (nodes_[s].color == kRed) {
+      Rotate(d, p);
+      nodes_[s].color = kBlack;
+      nodes_[p].color = kRed;
+      s = nodes_[p].children[1 - d];
+    }
+
+    // The sibling is black.
+    int closeNephew = nodes_[s].children[d];
+    int distantNephew = nodes_[s].children[1 - d];
+
+    if (distantNephew != kNil && nodes_[distantNephew].color == kRed) {
+      // The distant child of the sibling node is red. After a rotation about
+      // the parent node, the sibling node becomes the new root of this
+      // subtree, and we keep it at the same color as the original parent.
+      // Other nodes are colored black. The subtree now looks topologically
+      // the same as before removal.
+      Rotate(d, p);
+      nodes_[s].color = nodes_[p].color;
+      nodes_[p].color = kBlack;
+      nodes_[distantNephew].color = kBlack;
+    } else if (closeNephew != kNil && nodes_[closeNephew].color == kRed) {
+      Rotate(1 - d, s);
+      nodes_[closeNephew].color = kBlack;
+      nodes_[s].color = kRed;
+      // This reduces to the case above - the close nephew is the new sibling
+      // node and its distant child is red.
+      s = closeNephew;
+      distantNephew = nodes_[s].children[1 - d];
+      Rotate(d, p);
+      nodes_[s].color = nodes_[p].color;
+      nodes_[p].color = kBlack;
+      nodes_[distantNephew].color = kBlack;
+    } else {  // Sibling node and both its children are black.
+      nodes_[s].color = kRed;
+      if (nodes_[p].color == kRed) {
+        nodes_[p].color = kBlack;
+      } else {
+        FixDoubleBlackNode(p);
+      }
+    }
+  }
+
+  void DeleteStorage(int n) {
+    int count = nodes_.size();
+    if (n != (count - 1)) {
+      nodes_[n] = nodes_[count - 1];
+      int p = nodes_[n].parent;
+      int l = nodes_[n].children[kLeft];
+      int r = nodes_[n].children[kRight];
+
+      if (p == kNil) {
+        root_ = n;
+      } else {
+        Direction d = NodeDirection(count - 1, p);
+        nodes_[p].children[d] = n;
+      }
+
+      if (l != kNil) {
+        nodes_[l].parent = n;
+      }
+
+      if (r != kNil) {
+        nodes_[r].parent = n;
+      }
+    }
+    nodes_.pop_back();
+  }
+
   // Rotates a subtree about N in the given direction, while maintaining the BST
   // invariant. One of N's children becomes the new root of this subtree and N
   // becomes its child.
@@ -375,6 +551,13 @@ class IntervalTree {
   // replaces it with the last element, which is then deleted instead.
   std::vector<Node> nodes_;
 };
+
+template <typename T>
+std::ostream& operator<<(std::ostream& os,
+                         const typename std::pair<Interval, T>& kv) {
+  return os << "<interval=" << kv.first << ", value=" << kv.second << ">";
+}
+
 }  // namespace vstr
 
 #endif
