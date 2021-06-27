@@ -3,6 +3,8 @@
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 
+#include <random>
+
 namespace vstr {
 namespace {
 
@@ -61,6 +63,9 @@ TEST_P(PointQueryTest, PointQueryTest) {
   IntTree tree;
   for (auto kv : GetParam().data) {
     tree.Insert(kv.first, kv.second);
+
+    auto status = tree.Validate();
+    EXPECT_TRUE(status.ok()) << status.message();
   }
   std::vector<IntTree::KV> results;
   tree.Overlap(GetParam().point, results);
@@ -154,6 +159,9 @@ TEST_P(DeleteTest, DeleteTest) {
     EXPECT_EQ(found, delete_call.second)
         << "tree.Delete(" << delete_call.first << ") should return "
         << delete_call.second << ". Tree printout follows: " << tree;
+
+    auto status = tree.Validate();
+    EXPECT_TRUE(status.ok()) << status.message();
   }
 }
 
@@ -204,6 +212,41 @@ INSTANTIATE_TEST_SUITE_P(
     [](const testing::TestParamInfo<DeleteTest::ParamType>& tc) {
       return tc.param.comment;
     });
+
+class TreeFuzzTest : public testing::TestWithParam<int> {};
+
+TEST_P(TreeFuzzTest, TreeFuzzTest) {
+  std::mt19937 random_generator;
+  random_generator.seed(GetParam());
+  IntTree tree;
+
+  std::vector<IntTree::KV> data;
+  constexpr int sz = 10000;
+  data.reserve(sz);
+
+  for (int i = 0; i < sz; ++i) {
+    int x = random_generator();
+    int y = random_generator();
+    if (x == y) {
+      ++y;
+    } else if (y < x) {
+      std::swap(x, y);
+    }
+
+    tree.Insert(Interval(x, y), i);
+  }
+
+  auto status = tree.Validate();
+  EXPECT_TRUE(status.ok()) << status.message();
+
+  std::shuffle(data.begin(), data.end(), random_generator);
+
+  for (auto kv : data) {
+    EXPECT_TRUE(tree.Delete(kv));
+  }
+}
+
+INSTANTIATE_TEST_SUITE_P(TreeFuzzTest, TreeFuzzTest, testing::Range(1, 10));
 
 }  // namespace
 }  // namespace vstr

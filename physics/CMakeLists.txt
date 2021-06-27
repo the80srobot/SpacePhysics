@@ -16,19 +16,26 @@ option(BUILD_TESTS "Build tests" ON)
 
 if(BUILD_TESTS)
     include(FetchContent)
+
     FetchContent_Declare(
         googletest
         URL https://github.com/google/googletest/archive/355d57d90d9744c41ac7c99f1e960778f1c63040.zip
     )
     FetchContent_MakeAvailable(googletest)
-
-    
     include(GoogleTest)
-
-    # target_link_libraries(mytest GTest::gtest GTest::gmock GTest::gmock_main)
-
-
     enable_testing()
+
+    FetchContent_Declare(
+        benchmark
+        URL https://github.com/google/benchmark/archive/1799e1b9ec02a111c9a1ce79b10c9233dd60db75.zip
+    )
+    FetchContent_MakeAvailable(benchmark)
+    
+    FetchContent_Declare(
+        absl
+        URL https://github.com/abseil/abseil-cpp/archive/a2419e63b8ae3b924152822f3c9f9da67ff6e215.zip
+    )
+    FetchContent_MakeAvailable(absl)
 
     add_executable(
         interval_tree_test
@@ -36,10 +43,25 @@ if(BUILD_TESTS)
         src/interval_tree.cc
     )
 
+    add_executable(
+        interval_tree_benchmark
+        src/interval_tree_benchmark.cc
+        src/interval_tree.cc
+    )
+
     target_link_libraries(
         interval_tree_test
         gtest_main
         gmock_main
+        absl::status
+        absl::statusor
+    )
+
+    target_link_libraries(
+        interval_tree_benchmark
+        benchmark::benchmark
+        absl::status
+        absl::statusor
     )
 
     gtest_discover_tests(interval_tree_test)

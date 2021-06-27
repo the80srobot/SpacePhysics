@@ -1,6 +1,7 @@
 #ifndef VSTR_INTERVAL_TREE
 #define VSTR_INTERVAL_TREE
 
+#include <absl/status/statusor.h>
 #include <assert.h>
 
 #include <iostream>
@@ -550,6 +551,81 @@ class IntervalTree {
   // Nodes are kept together in this vector. Deleting an element from the middle
   // replaces it with the last element, which is then deleted instead.
   std::vector<Node> nodes_;
+
+#ifndef NDEBUG
+ public:
+  absl::Status Validate() { return Validate(root_, 0).status(); }
+
+ private:
+  absl::StatusOr<int> Validate(int n, int blackDepth) {
+    if (nodes_.size() == 0) {
+      return 0;
+    }
+
+    if (root_ >= nodes_.size()) {
+      return absl::InternalError(absl::StrCat("storage error: root ", root_,
+                                              " is out of range (",
+                                              nodes_.size(), "nodes)"));
+    }
+
+    if (n == kNil) {
+      return blackDepth + 1;
+    }
+
+    if (nodes_[n].color == kBlack) {
+      blackDepth++;
+    }
+
+    int l = nodes_[n].children[kLeft];
+    int r = nodes_[n].children[kRight];
+    if (l != kNil) {
+      auto x = std::make_pair(nodes_[n].interval, nodes_[n].value);
+      auto y = std::make_pair(nodes_[l].interval, nodes_[l].value);
+
+      if (x <= y) {
+        return absl::InternalError(absl::StrCat("BST violation: node ", n));
+      }
+    }
+
+    if (r != kNil) {
+      auto x = std::make_pair(nodes_[n].interval, nodes_[n].value);
+      auto y = std::make_pair(nodes_[r].interval, nodes_[r].value);
+      if (x >= y) {
+        return absl::InternalError(absl::StrCat("BST violation: node ", n));
+      }
+    }
+
+    if (n == root_ && nodes_[n].color != kBlack) {
+      return absl::InternalError(
+          absl::StrCat("RB violation 1: node ", n, "is a red root"));
+    }
+
+    int p = nodes_[n].parent;
+    if (p != kNil && nodes_[n].color == kRed && nodes_[p].color == kRed) {
+      return absl::InternalError(
+          absl::StrCat("RB violation 2: red node ", n, "has a red parent ", p));
+    }
+
+    auto leftDepth = Validate(l, blackDepth);
+    if (!leftDepth.ok()) {
+      return leftDepth;
+    }
+
+    auto rightDepth = Validate(r, blackDepth);
+    if (!rightDepth.ok()) {
+      return rightDepth;
+    }
+
+    if (leftDepth.value() != rightDepth.value()) {
+      return absl::InternalError(absl::StrCat(
+          "left subtree of node ", n, " has black depth ", leftDepth.value(),
+          ", right subtree", rightDepth.value()));
+    }
+
+    return leftDepth.value();
+  }
+
+#endif
 };
 
 template <typename T>
