@@ -193,9 +193,9 @@ class IntervalTree {
         // 1: Both p and n are left children: rotate right about g.
         //       (G-b)              (P-b)
         //       /   \              /   \
-		//    (P-r) (U-b)   =>   (N-r) (G-r)
+        //    (P-r) (U-b)   =>   (N-r) (G-r)
         //    /                            \
-		// (N-r)                          (U-b)
+        // (N-r)                          (U-b)
         Rotate(kRight, g);
         nodes_[g].color = kRed;
         nodes_[p].color = kBlack;
@@ -205,9 +205,9 @@ class IntervalTree {
         // rotate right about g.
         //       (G-b)              (G-b)             (N-b)
         //       /   \              /   \             /   \
-		//    (P-r) (U-b)   =>   (N-r) (U-b)   =>  (P-r) (G-r)
+        //    (P-r) (U-b)   =>   (N-r) (U-b)   =>  (P-r) (G-r)
         //        \              /                           \
-		//       (N-r)         (P-r)                        (U-b)
+        //       (N-r)         (P-r)                        (U-b)
         //
         // BST invariant: N >= P becomes P < N. Possible violation.
         Rotate(kLeft, p);
@@ -219,7 +219,7 @@ class IntervalTree {
         // 3: Both p and n are right children: rotate left about g.
         //       (G-b)              (P-b)
         //       /   \              /   \
-		//    (U-b) (P-r)   =>   (G-r) (N-r)
+        //    (U-b) (P-r)   =>   (G-r) (N-r)
         //              \        /
         //             (N-r)  (U-b)
         Rotate(kLeft, g);
@@ -231,7 +231,7 @@ class IntervalTree {
         // rotate left about g.
         //       (G-b)              (G-b)             (N-b)
         //       /   \              /   \             /   \
-		//    (U-b) (P-r)   =>   (U-b) (N-r)   =>  (G-r) (P-r)
+        //    (U-b) (P-r)   =>   (U-b) (N-r)   =>  (G-r) (P-r)
         //          /                     \        /
         //       (N-r)                    (P-r) (U-b)
         Rotate(kRight, p);
@@ -262,9 +262,6 @@ class IntervalTree {
     for (;;) {
       Direction direction;
       KV node_iv(nodes_[p].interval, nodes_[p].value);
-      // std::cout << "insert (" << interval_value.interval << ", " <<
-      // interval_value.value << ") " << " cmp node " <<  << node_iv
-      //           << std::endl;
       if (interval_value < node_iv) {
         direction = kLeft;
       } else if (interval_value > node_iv) {

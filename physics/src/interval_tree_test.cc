@@ -24,28 +24,28 @@ TEST(IntervalValue, Comparisons) {
 const std::vector<IntTree::KV> tree_empty{};
 
 const std::vector<const IntTree::KV> kTreeOne{
-    std::make_pair(Interval{0, 1}, 1),
+    IntTree::KV(Interval{0, 1}, 1),
 };
 
 const std::vector<const IntTree::KV> kTreeTwo{
-    std::make_pair(Interval{0, 1}, 1),
-    std::make_pair(Interval{1, 2}, 2),
+    IntTree::KV(Interval{0, 1}, 1),
+    IntTree::KV(Interval{1, 2}, 2),
 };
 
 const std::vector<const IntTree::KV> kTreeDuplicate{
-    std::make_pair(Interval{1, 2}, 2),
-    std::make_pair(Interval{1, 2}, 2),
-    std::make_pair(Interval{1, 2}, 2),
+    IntTree::KV(Interval{1, 2}, 2),
+    IntTree::KV(Interval{1, 2}, 2),
+    IntTree::KV(Interval{1, 2}, 2),
 };
 
 const std::vector<const IntTree::KV> kTreeMany{
-    std::make_pair(Interval{0, 3}, 0),  std::make_pair(Interval{2, 3}, 1),
-    std::make_pair(Interval{1, 4}, 2),  std::make_pair(Interval{0, 10}, 3),
-    std::make_pair(Interval{3, 8}, 4),  std::make_pair(Interval{3, 8}, 5),
-    std::make_pair(Interval{3, 8}, 6),  std::make_pair(Interval{3, 8}, 7),
-    std::make_pair(Interval{3, 8}, 7),   // duplicate
-    std::make_pair(Interval{0, 10}, 3),  // duplicate
-    std::make_pair(Interval{1, 2}, 9),
+    IntTree::KV(Interval{0, 3}, 0),  IntTree::KV(Interval{2, 3}, 1),
+    IntTree::KV(Interval{1, 4}, 2),  IntTree::KV(Interval{0, 10}, 3),
+    IntTree::KV(Interval{3, 8}, 4),  IntTree::KV(Interval{3, 8}, 5),
+    IntTree::KV(Interval{3, 8}, 6),  IntTree::KV(Interval{3, 8}, 7),
+    IntTree::KV(Interval{3, 8}, 7),   // duplicate
+    IntTree::KV(Interval{0, 10}, 3),  // duplicate
+    IntTree::KV(Interval{1, 2}, 9),
 };
 
 struct PointQueryTestCase {
@@ -95,7 +95,7 @@ INSTANTIATE_TEST_SUITE_P(
             kTreeOne,
             0,
             std::vector<const IntTree::KV>{
-                std::make_pair(Interval(0, 1), 1),
+                IntTree::KV(Interval(0, 1), 1),
             },
         },
         PointQueryTestCase{
@@ -109,7 +109,7 @@ INSTANTIATE_TEST_SUITE_P(
             kTreeTwo,
             0,
             std::vector<const IntTree::KV>{
-                std::make_pair(Interval(0, 1), 1),
+                IntTree::KV(Interval(0, 1), 1),
             },
         },
         PointQueryTestCase{
@@ -117,7 +117,7 @@ INSTANTIATE_TEST_SUITE_P(
             kTreeTwo,
             1,
             std::vector<const IntTree::KV>{
-                std::make_pair(Interval(1, 2), 2),
+                IntTree::KV(Interval(1, 2), 2),
             },
         },
         PointQueryTestCase{
@@ -131,7 +131,7 @@ INSTANTIATE_TEST_SUITE_P(
             kTreeDuplicate,
             1,
             std::vector<const IntTree::KV>{
-                std::make_pair(Interval(1, 2), 2),
+                IntTree::KV(Interval(1, 2), 2),
             },
         },
         PointQueryTestCase{
@@ -139,8 +139,8 @@ INSTANTIATE_TEST_SUITE_P(
             kTreeMany,
             0,
             std::vector<const IntTree::KV>{
-                std::make_pair(Interval(0, 3), 0),
-                std::make_pair(Interval(0, 10), 3),
+                IntTree::KV(Interval(0, 3), 0),
+                IntTree::KV(Interval(0, 10), 3),
             },
         }),
     [](const testing::TestParamInfo<PointQueryTest::ParamType>& tc) {
