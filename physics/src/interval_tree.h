@@ -48,6 +48,20 @@ std::ostream& operator<<(std::ostream& os, const Interval& interval);
 // kinds of events in a timeline. In this case, lt, gt and eq operators should
 // first compare the enum value used to discriminate the union, then - if more
 // than one instance of each is allowed, sort on the actual value.
+//
+// Performance:
+//
+// Depending on the size and density of the tree, a point overlap query takes
+// between 150 and 1200 ns on 2.3 GHz 8-Core Intel Core i9. The throughput is
+// betwen 3 and 12 million items looked up per second.
+//
+// When running at 60 FPS, an application has about 16 ms to process a frame.
+// The 16 ms budget is enough to retrieve about 170,000 intervals from a tree
+// containing about 60,000 intervals.
+//
+// Benchmarks are in interval_tree_benchmark.cc. The tree compares favorably to
+// std::map when inserting and deleting. (Obviously interval overlap queries are
+// not supported by std::map and so can't be compared.)
 template <typename T>
 class IntervalTree {
  public:
