@@ -48,6 +48,32 @@ BENCHMARK(BM_IntervalTreeBuild)
     })
     ->Complexity();
 
+static void BM_StdMapBuild(benchmark::State& state) {
+  const int size = state.range(0);
+  const int overlap = state.range(1);
+  const int spread = state.range(2);
+  auto insert_data = GenerateData(size, overlap, spread);
+
+  for (auto _ : state) {
+    std::map<vstr::Interval, int> map;
+    for (const auto& kv : insert_data) {
+      map.insert(kv);
+    }
+  }
+
+  state.SetItemsProcessed(state.iterations() * size);
+  state.SetBytesProcessed(state.iterations() * size *
+                          sizeof(vstr::IntervalTree<int>::KV));
+  state.SetComplexityN(state.range(0));
+}
+BENCHMARK(BM_StdMapBuild)
+    ->ArgsProduct({
+        benchmark::CreateRange(1 << 2, 1 << 16, /*multi=*/2),  // size
+        benchmark::CreateDenseRange(0, 8, /*step=*/8),         // overlap
+        benchmark::CreateRange(1, 1 << 8, /*multi=*/16),       // spread
+    })
+    ->Complexity();
+
 static void BM_IntervalTreeOverlapPointDense(benchmark::State& state) {
   const int size = state.range(0);
   const int overlap = state.range(1);
@@ -78,6 +104,73 @@ static void BM_IntervalTreeOverlapPointDense(benchmark::State& state) {
   state.SetBytesProcessed(hits * sizeof(vstr::IntervalTree<int>::KV));
 }
 BENCHMARK(BM_IntervalTreeOverlapPointDense)
+    ->ArgsProduct({
+        benchmark::CreateRange(1 << 2, 1 << 16, /*multi=*/2),  // size
+        benchmark::CreateDenseRange(0, 8, /*step=*/8),         // overlap
+        benchmark::CreateRange(1, 1 << 8, /*multi=*/16),       // spread
+    })
+    ->Complexity();
+
+static void BM_IntervalTreeDeleteReinsertRandom(benchmark::State& state) {
+  const int size = state.range(0);
+  const int overlap = state.range(1);
+  const int spread = state.range(2);
+  auto insert_data = GenerateData(size, overlap, spread);
+  vstr::IntervalTree<int> tree;
+  for (const auto& kv : insert_data) {
+    tree.Insert(kv.first, kv.second);
+  }
+
+  std::mt19937 random_generator;
+  std::vector<vstr::IntervalTree<int>::KV> delete_ops(insert_data);
+  std::shuffle(delete_ops.begin(), delete_ops.end(), random_generator);
+
+  int i = 0;
+  for (auto _ : state) {
+    ++i;
+    auto entry = delete_ops[i % delete_ops.size()];
+    tree.Delete(entry);
+    tree.Insert(entry.first, entry.second);
+  }
+  state.SetItemsProcessed(i);
+  state.SetComplexityN(size);
+  state.SetBytesProcessed(i * sizeof(vstr::IntervalTree<int>::KV));
+}
+BENCHMARK(BM_IntervalTreeDeleteReinsertRandom)
+    ->ArgsProduct({
+        benchmark::CreateRange(1 << 2, 1 << 16, /*multi=*/2),  // size
+        benchmark::CreateDenseRange(0, 8, /*step=*/8),         // overlap
+        benchmark::CreateRange(1, 1 << 8, /*multi=*/16),       // spread
+    })
+    ->Complexity();
+
+static void BM_StdMapDeleteReinsertRandom(benchmark::State& state) {
+  const int size = state.range(0);
+  const int overlap = state.range(1);
+  const int spread = state.range(2);
+  auto insert_data = GenerateData(size, overlap, spread);
+  std::map<vstr::Interval, int> map;
+
+  for (const auto& kv : insert_data) {
+    map.insert(kv);
+  }
+
+  std::mt19937 random_generator;
+  std::vector<vstr::IntervalTree<int>::KV> delete_ops(insert_data);
+  std::shuffle(delete_ops.begin(), delete_ops.end(), random_generator);
+
+  int i = 0;
+  for (auto _ : state) {
+    ++i;
+    auto entry = delete_ops[i % delete_ops.size()];
+    map.erase(entry.first);
+    map.insert(entry);
+  }
+  state.SetItemsProcessed(i);
+  state.SetComplexityN(size);
+  state.SetBytesProcessed(i * sizeof(vstr::IntervalTree<int>::KV));
+}
+BENCHMARK(BM_StdMapDeleteReinsertRandom)
     ->ArgsProduct({
         benchmark::CreateRange(1 << 2, 1 << 16, /*multi=*/2),  // size
         benchmark::CreateDenseRange(0, 8, /*step=*/8),         // overlap
