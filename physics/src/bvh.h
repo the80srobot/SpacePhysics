@@ -33,7 +33,6 @@ class BoundingVolumeHierarchy {
     return os;
   }
 
-#ifndef NDEBUG
   std::string DebugOverlap(const AABB &aabb) {
     std::stringstream os;
     os << "BoundingVolumeHierarchy sequential overlap check " << aabb << ":"
@@ -44,7 +43,45 @@ class BoundingVolumeHierarchy {
     }
     return os.str();
   }
-#endif
+
+  int AvgDepth() { return AvgDepth(0, 0).second; }
+
+  std::pair<double, double> AvgDepth(int n, int depth) {
+    if (n == kNil) {
+      return std::make_pair<double, double>(1, depth);
+    }
+
+    std::pair<double, double> l =
+        AvgDepth(nodes_[n].children[kLeft], depth + 1);
+    std::pair<double, double> r =
+        AvgDepth(nodes_[n].children[kRight], depth + 1);
+
+    return std::make_pair(
+        l.first + r.first,
+        (l.first * l.second + r.first * r.second) / (l.first + r.first));
+  }
+
+  int MaxDepth() { return MaxDepth(0); }
+
+  int MaxDepth(int n) {
+    if (n == kNil) {
+      return 0;
+    }
+    return 1 + std::max(MaxDepth(nodes_[n].children[kLeft]),
+                        MaxDepth(nodes_[n].children[kRight]));
+  }
+
+  int MinDepth() { return MinDepth(0); }
+
+  int MinDepth(int n) {
+    if (n == kNil) {
+      return 0;
+    }
+    return 1 + std::min(MinDepth(nodes_[n].children[kLeft]),
+                        MinDepth(nodes_[n].children[kRight]));
+  }
+
+  int NodesTested() { return nodes_tested_; }
 
   friend std::ostream &operator<<(std::ostream &os,
                                   const BoundingVolumeHierarchy<T>::KV &kv) {
@@ -52,12 +89,13 @@ class BoundingVolumeHierarchy {
   }
 
   void Rebuild(std::vector<KV> &kvs) {
+    nodes_tested_ = 0;
     nodes_.clear();
     const AABB bounds = BoundingVolume(kvs);
     Build(bounds, kvs, 0, kvs.size() - 1);
   }
 
-  void Find(AABB needle, std::vector<KV> &hits) { Walk(0, needle, hits); }
+  void Overlap(AABB needle, std::vector<KV> &hits) { Walk(0, needle, hits); }
 
  private:
   enum Axis { kXAxis, kYAxis, kZAxis };
@@ -88,11 +126,14 @@ class BoundingVolumeHierarchy {
 
   std::vector<Node> nodes_;
 
-  void Walk(int n, AABB needle, std::vector<KV> &hits) const {
+  int nodes_tested_ = 0;
+
+  void Walk(int n, AABB needle, std::vector<KV> &hits) {
     if (n == kNil || nodes_.empty()) {
       return;
     }
 
+    nodes_tested_++;
     assert(n < nodes_.size());
 
     if (!nodes_[n].aabb.Overlaps(needle)) {

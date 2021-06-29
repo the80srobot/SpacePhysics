@@ -78,5 +78,19 @@ if(BUILD_TESTS)
         absl::statusor
     )
 
+
+    add_executable(
+        bvh_benchmark
+        src/bvh_benchmark.cc
+        src/bvh.cc
+        src/aabb.cc
+        src/vector3.cc
+    )
+
+    target_link_libraries(
+        bvh_benchmark
+        benchmark::benchmark
+    )
+
     gtest_discover_tests(interval_tree_test)
 endif(BUILD_TESTS)

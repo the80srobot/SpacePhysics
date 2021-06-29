@@ -25,7 +25,7 @@ TEST_P(BVHTest, BVHTest) {
   bvh.Rebuild(data);
 
   std::vector<IntBVH::KV> hits;
-  bvh.Find(GetParam().needle, hits);
+  bvh.Overlap(GetParam().needle, hits);
   EXPECT_THAT(hits, testing::UnorderedElementsAreArray(GetParam().expect))
       << "called bvh.Find(" << GetParam().needle << ", #vector_reference). "
       << bvh.DebugOverlap(GetParam().needle);
@@ -194,7 +194,7 @@ TEST_P(BVHFuzzTest, BVHFuzzTest) {
   std::vector<IntBVH::KV> buffer;
   for (const auto& kv : data) {
     buffer.clear();
-    bvh.Find(kv.bounds, buffer);
+    bvh.Overlap(kv.bounds, buffer);
     EXPECT_THAT(buffer, testing::Contains(kv)) << bvh.DebugOverlap(kv.bounds);
   }
 }
