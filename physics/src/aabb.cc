@@ -20,4 +20,9 @@ std::ostream &operator<<(std::ostream &os, const AABB &aabb) {
   return os << "AABB{/*min=*/" << aabb.min << ", /*max=*/" << aabb.max << "}";
 }
 
+AABB AABB::FromCenterAndExtents(const Vector3 center, const Vector3 extents) {
+  Vector3 half = extents / 2;
+  return AABB(center - half, center + half);
+}
+
 }  // namespace vstr

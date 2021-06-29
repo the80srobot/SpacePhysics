@@ -12,7 +12,9 @@ struct AABB {
   Vector3 max;
 
   explicit AABB() : min(Vector3()), max(Vector3()) {}
-  AABB(Vector3 min, Vector3 max) : min(min), max(max) {}
+  AABB(const Vector3 min, const Vector3 max) : min(min), max(max) {}
+
+  static AABB FromCenterAndExtents(const Vector3 center, const Vector3 extents);
 
   bool Overlaps(const AABB &other) const;
   void Encapsulate(const AABB &other);

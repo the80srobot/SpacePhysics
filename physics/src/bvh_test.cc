@@ -3,6 +3,8 @@
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 
+#include <random>
+
 namespace vstr {
 namespace {
 
@@ -166,6 +168,41 @@ INSTANTIATE_TEST_SUITE_P(
     [](const testing::TestParamInfo<BVHTest::ParamType>& tc) {
       return tc.param.comment;
     });
+
+class BVHFuzzTest : public testing::TestWithParam<int> {};
+
+TEST_P(BVHFuzzTest, BVHFuzzTest) {
+  const int count = GetParam();
+
+  std::mt19937 random_generator;
+  random_generator.seed(GetParam());
+  std::uniform_real_distribution<float> center_rg(-100, 100);
+  std::uniform_real_distribution<float> side_rg(0, 20);
+
+  std::vector<IntBVH::KV> data;
+  for (int i = 0; i < count; ++i) {
+    Vector3 center{center_rg(random_generator), center_rg(random_generator),
+                   center_rg(random_generator)};
+    Vector3 extents{side_rg(random_generator), side_rg(random_generator),
+                    side_rg(random_generator)};
+    data.push_back(IntBVH::KV(AABB::FromCenterAndExtents(center, extents), i));
+  }
+  IntBVH bvh;
+  bvh.Rebuild(data);
+
+  // All the stuff we instered should match when used as a needle.
+  std::vector<IntBVH::KV> buffer;
+  for (const auto& kv : data) {
+    buffer.clear();
+    bvh.Find(kv.bounds, buffer);
+    EXPECT_THAT(buffer, testing::Contains(kv)) << bvh.DebugOverlap(kv.bounds);
+  }
+}
+
+INSTANTIATE_TEST_SUITE_P(BVHFuzzTest, BVHFuzzTest,
+                         testing::Values(1, 2, 3, 4, 5, 6, 7, 8, 1 << 4, 1 << 5,
+                                         1 << 6, 1 << 7, 1 << 8, 1 << 9,
+                                         1 << 10));
 
 }  // namespace
 }  // namespace vstr
