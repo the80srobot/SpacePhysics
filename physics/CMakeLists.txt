@@ -43,18 +43,32 @@ if(BUILD_TESTS)
         src/interval_tree.cc
     )
 
-    add_executable(
-        interval_tree_benchmark
-        src/interval_tree_benchmark.cc
-        src/interval_tree.cc
-    )
-
     target_link_libraries(
         interval_tree_test
         gtest_main
         gmock_main
         absl::status
         absl::statusor
+    )
+
+    add_executable(
+        bvh_test
+        src/bvh_test.cc
+        src/bvh.cc
+        src/aabb.cc
+        src/vector3.cc
+    )
+
+    target_link_libraries(
+        bvh_test
+        gtest_main
+        gmock_main
+    )
+
+    add_executable(
+        interval_tree_benchmark
+        src/interval_tree_benchmark.cc
+        src/interval_tree.cc
     )
 
     target_link_libraries(
