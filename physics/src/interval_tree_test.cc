@@ -216,23 +216,19 @@ INSTANTIATE_TEST_SUITE_P(
 class TreeFuzzTest : public testing::TestWithParam<int> {};
 
 TEST_P(TreeFuzzTest, TreeFuzzTest) {
+  constexpr int sz = 10000;
   std::mt19937 random_generator;
+  std::uniform_int_distribution low_dist(-sz, sz);
+  std::uniform_int_distribution len_dist(1, sz / 100);
   random_generator.seed(GetParam());
   IntTree tree;
 
   std::vector<IntTree::KV> data;
-  constexpr int sz = 10000;
   data.reserve(sz);
 
   for (int i = 0; i < sz; ++i) {
-    int x = random_generator();
-    int y = random_generator();
-    if (x == y) {
-      ++y;
-    } else if (y < x) {
-      std::swap(x, y);
-    }
-
+    int x = low_dist(random_generator);
+    int y = x + len_dist(random_generator);
     tree.Insert(Interval(x, y), i);
   }
 

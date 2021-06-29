@@ -2,7 +2,9 @@
 #define VSTR_BVH
 
 #include <algorithm>
-
+#ifndef NDEBUG
+#include <sstream>
+#endif
 #include "aabb.h"
 
 namespace vstr {
@@ -21,6 +23,28 @@ class BoundingVolumeHierarchy {
       return bounds == other.bounds && value == other.value;
     }
   };
+
+  friend std::ostream &operator<<(std::ostream &os,
+                                  const BoundingVolumeHierarchy &bvh) {
+    os << "BoundingVolumeHierarchy:" << std::endl;
+    for (int i = 0; i < bvh.nodes_.size(); ++i) {
+      os << "\t #" << i << ": " << bvh.nodes_[i] << std::endl;
+    }
+    return os;
+  }
+
+#ifndef NDEBUG
+  std::string DebugOverlap(const AABB &aabb) {
+    std::stringstream os;
+    os << "BoundingVolumeHierarchy sequential overlap check " << aabb << ":"
+       << std::endl;
+    for (int i = 0; i < nodes_.size(); ++i) {
+      os << "\t #" << i << ": " << nodes_[i] << " -> "
+         << (aabb.Overlaps(nodes_[i].aabb) ? "HIT" : "MISS") << std::endl;
+    }
+    return os.str();
+  }
+#endif
 
   friend std::ostream &operator<<(std::ostream &os,
                                   const BoundingVolumeHierarchy<T>::KV &kv) {
@@ -48,6 +72,13 @@ class BoundingVolumeHierarchy {
       return children[kLeft] == kNil && children[kRight] == kNil;
     }
   };
+
+  friend std::ostream &operator<<(
+      std::ostream &os, const BoundingVolumeHierarchy<T>::Node &node) {
+    return os << "Node{/*aabb=*/" << node.aabb << ",\t/*value=*/" << node.value
+              << ",\t/*children=*/[" << node.children[kLeft] << ",\t"
+              << node.children[kRight] << "]}";
+  }
 
   static constexpr int kNil = -1;
 
@@ -98,11 +129,11 @@ class BoundingVolumeHierarchy {
         int pivot = HoarePartition(kvs, axis, lo, hi);
 
         nodes_[id].children[kLeft] =
-            Build(BoundingVolume(kvs.cbegin() + lo, kvs.cbegin() + pivot), kvs,
-                  lo, pivot);
+            Build(BoundingVolume(kvs.cbegin() + lo, kvs.cbegin() + pivot + 1),
+                  kvs, lo, pivot);
         nodes_[id].children[kRight] =
-            Build(BoundingVolume(kvs.cbegin() + pivot, kvs.cbegin() + hi), kvs,
-                  pivot + 1, hi);
+            Build(BoundingVolume(kvs.cbegin() + pivot, kvs.cbegin() + hi + 1),
+                  kvs, pivot + 1, hi);
         return id;
     }
   }
