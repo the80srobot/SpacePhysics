@@ -134,7 +134,6 @@ class BoundingVolumeHierarchy {
     }
 
     nodes_tested_++;
-    assert(n < nodes_.size());
 
     if (!nodes_[n].aabb.Overlaps(needle)) {
       return;
