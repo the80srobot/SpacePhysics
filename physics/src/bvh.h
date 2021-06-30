@@ -9,6 +9,19 @@
 
 namespace vstr {
 
+// Basic implemntation of BVH as a binary tree. Each node splits the space along
+// the axis where the node's bounding volume has the longest extent. The axis is
+// split such that approximately half the data are on either side - this is done
+// by finding the median of three elements and then moving elements lesser than
+// the median to the left child and other elements to the right child. (A
+// modified quickselect.)
+//
+// Performance of the naive implementation:
+//
+// Not great. Building a BVH of 1024 elements takes about 1 ms. Each query takes
+// about 8000 ns, needing about 250 AABB overlap checks. Consequently, with 1024
+// elements in the scene, building the BVH and querying overlap for each element
+// needs about 10 ms total.
 template <typename T>
 class BoundingVolumeHierarchy {
  public:
@@ -25,23 +38,28 @@ class BoundingVolumeHierarchy {
   };
 
   friend std::ostream &operator<<(std::ostream &os,
+                                  const BoundingVolumeHierarchy<T>::KV &kv) {
+    return os << "{" << kv.bounds << ", " << kv.value << "}";
+  }
+
+  // Clears the BVH and populates it with the new data. This takes about
+  // NLog2(N) steps (N = kvs.size()).
+  void Rebuild(std::vector<KV> &kvs) {
+    nodes_tested_ = 0;
+    nodes_.clear();
+    const AABB bounds = BoundingVolume(kvs);
+    Build(bounds, kvs, 0, kvs.size() - 1);
+  }
+
+  void Overlap(AABB needle, std::vector<KV> &hits) { Walk(0, needle, hits); }
+
+  friend std::ostream &operator<<(std::ostream &os,
                                   const BoundingVolumeHierarchy &bvh) {
     os << "BoundingVolumeHierarchy:" << std::endl;
     for (int i = 0; i < bvh.nodes_.size(); ++i) {
       os << "\t #" << i << ": " << bvh.nodes_[i] << std::endl;
     }
     return os;
-  }
-
-  std::string DebugOverlap(const AABB &aabb) {
-    std::stringstream os;
-    os << "BoundingVolumeHierarchy sequential overlap check " << aabb << ":"
-       << std::endl;
-    for (int i = 0; i < nodes_.size(); ++i) {
-      os << "\t #" << i << ": " << nodes_[i] << " -> "
-         << (aabb.Overlaps(nodes_[i].aabb) ? "HIT" : "MISS") << std::endl;
-    }
-    return os.str();
   }
 
   int AvgDepth() { return AvgDepth(0, 0).second; }
@@ -82,20 +100,6 @@ class BoundingVolumeHierarchy {
   }
 
   int NodesTested() { return nodes_tested_; }
-
-  friend std::ostream &operator<<(std::ostream &os,
-                                  const BoundingVolumeHierarchy<T>::KV &kv) {
-    return os << "{" << kv.bounds << ", " << kv.value << "}";
-  }
-
-  void Rebuild(std::vector<KV> &kvs) {
-    nodes_tested_ = 0;
-    nodes_.clear();
-    const AABB bounds = BoundingVolume(kvs);
-    Build(bounds, kvs, 0, kvs.size() - 1);
-  }
-
-  void Overlap(AABB needle, std::vector<KV> &hits) { Walk(0, needle, hits); }
 
  private:
   enum Axis { kXAxis, kYAxis, kZAxis };

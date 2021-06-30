@@ -28,7 +28,7 @@ TEST_P(BVHTest, BVHTest) {
   bvh.Overlap(GetParam().needle, hits);
   EXPECT_THAT(hits, testing::UnorderedElementsAreArray(GetParam().expect))
       << "called bvh.Find(" << GetParam().needle << ", #vector_reference). "
-      << bvh.DebugOverlap(GetParam().needle);
+      << "Tree dump follows: " << bvh;
 }
 
 INSTANTIATE_TEST_SUITE_P(
@@ -195,7 +195,7 @@ TEST_P(BVHFuzzTest, BVHFuzzTest) {
   for (const auto& kv : data) {
     buffer.clear();
     bvh.Overlap(kv.bounds, buffer);
-    EXPECT_THAT(buffer, testing::Contains(kv)) << bvh.DebugOverlap(kv.bounds);
+    EXPECT_THAT(buffer, testing::Contains(kv)) << "Tree dump follows: " << bvh;
   }
 }
 
