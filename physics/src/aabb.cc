@@ -16,6 +16,12 @@ void AABB::Encapsulate(const Vector3 &point) {
   min = Vector3::Min(min, point);
 }
 
+void AABB::Sweep(const Vector3 &motion) {
+  // TODO: is this right?
+  max = Vector3::Max(max, max + motion);
+  min = Vector3::Min(min, min + motion);
+}
+
 std::ostream &operator<<(std::ostream &os, const AABB &aabb) {
   return os << "AABB{/*min=*/" << aabb.min << ", /*max=*/" << aabb.max << "}";
 }
@@ -23,6 +29,11 @@ std::ostream &operator<<(std::ostream &os, const AABB &aabb) {
 AABB AABB::FromCenterAndExtents(const Vector3 center, const Vector3 extents) {
   Vector3 half = extents / 2;
   return AABB(center - half, center + half);
+}
+
+AABB AABB::FromCenterAndHalfExtents(const Vector3 center,
+                                    const Vector3 half_extents) {
+  return AABB(center - half_extents, center + half_extents);
 }
 
 }  // namespace vstr

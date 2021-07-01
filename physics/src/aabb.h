@@ -15,10 +15,13 @@ struct AABB {
   AABB(const Vector3 min, const Vector3 max) : min(min), max(max) {}
 
   static AABB FromCenterAndExtents(const Vector3 center, const Vector3 extents);
+  static AABB FromCenterAndHalfExtents(const Vector3 center,
+                                       const Vector3 half_extents);
 
   bool Overlaps(const AABB &other) const;
   void Encapsulate(const AABB &other);
   void Encapsulate(const Vector3 &other);
+  void Sweep(const Vector3 &motion);
 };
 
 inline bool operator==(const AABB lhs, const AABB rhs) {

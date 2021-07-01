@@ -37,6 +37,41 @@ if(BUILD_TESTS)
     )
     FetchContent_MakeAvailable(absl)
 
+    # CollisionWorld
+
+    add_executable(
+        collision_world_test
+        src/collision_world_test.cc
+        src/collision_world.cc
+        src/layer_matrix.cc
+        src/aabb.cc
+        src/vector3.cc
+        src/component_data.cc
+    )
+
+    target_link_libraries(
+        collision_world_test
+        gtest_main
+        gmock_main
+    )
+
+    add_executable(
+        collision_world_benchmark
+        src/collision_world_benchmark.cc
+        src/layer_matrix.cc
+        src/collision_world.cc
+        src/aabb.cc
+        src/vector3.cc
+        src/component_data.cc
+    )
+
+    target_link_libraries(
+        collision_world_benchmark
+        benchmark::benchmark
+    )
+
+    # IntervalTree
+
     add_executable(
         interval_tree_test
         src/interval_tree_test.cc
@@ -52,20 +87,6 @@ if(BUILD_TESTS)
     )
 
     add_executable(
-        bvh_test
-        src/bvh_test.cc
-        src/bvh.cc
-        src/aabb.cc
-        src/vector3.cc
-    )
-
-    target_link_libraries(
-        bvh_test
-        gtest_main
-        gmock_main
-    )
-
-    add_executable(
         interval_tree_benchmark
         src/interval_tree_benchmark.cc
         src/interval_tree.cc
@@ -78,6 +99,21 @@ if(BUILD_TESTS)
         absl::statusor
     )
 
+    # BVH
+
+    add_executable(
+        bvh_test
+        src/bvh_test.cc
+        src/bvh.cc
+        src/aabb.cc
+        src/vector3.cc
+    )
+
+    target_link_libraries(
+        bvh_test
+        gtest_main
+        gmock_main
+    )
 
     add_executable(
         bvh_benchmark
