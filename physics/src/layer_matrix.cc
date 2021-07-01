@@ -11,7 +11,7 @@ LayerMatrix::LayerMatrix(
   }
 }
 
-void LayerMatrix::Set(uint32_t x, uint32_t y, bool enabled) {
+void LayerMatrix::Set(const uint32_t x, const uint32_t y, const bool enabled) {
   assert(x < 32 && x >= 0);
   assert(y < 32 && y >= 0);
   if (enabled) {
@@ -23,7 +23,7 @@ void LayerMatrix::Set(uint32_t x, uint32_t y, bool enabled) {
   }
 }
 
-bool LayerMatrix::Check(uint32_t x, uint32_t y) const {
+bool LayerMatrix::Check(const uint32_t x, const uint32_t y) const {
   assert(x < 32 && x >= 0);
   assert(y < 32 && y >= 0);
   return (layers_[x] & 1 << y) != 0;

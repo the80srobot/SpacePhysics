@@ -12,7 +12,7 @@ namespace vstr {
 class CollisionWorld {
  public:
   CollisionWorld(LayerMatrix layer_matrix) : matrix_(layer_matrix) {}
-  void Compute(const Frame &frame, const float dt,
+  void Compute(const Frame &frame, float dt,
                std::vector<CollisionEvent> &out_events);
 
  private:
