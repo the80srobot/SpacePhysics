@@ -242,8 +242,6 @@ class IntervalTree {
         //    (P-r) (U-b)   =>   (N-r) (U-b)   =>  (P-r) (G-r)
         //        \              /                           \
         //       (N-r)         (P-r)                        (U-b)
-        //
-        // BST invariant: N >= P becomes P < N. Possible violation.
         Rotate(kLeft, p);
         Rotate(kRight, g);
         nodes_[n].color = kBlack;
