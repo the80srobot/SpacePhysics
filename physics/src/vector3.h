@@ -44,6 +44,8 @@ struct Vector3 {
   }
 };
 
+inline Vector3 operator-(const Vector3 v) { return Vector3{-v.x, -v.y, -v.z}; }
+
 inline Vector3 operator*(const Vector3 lhs, const Vector3 rhs) {
   return Vector3{lhs.x * rhs.x, lhs.y * rhs.y, lhs.z * rhs.z};
 }
