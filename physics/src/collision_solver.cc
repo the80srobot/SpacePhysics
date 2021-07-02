@@ -1,7 +1,8 @@
+#include "collision_solver.h"
+
 #include <limits>
 
 #include "aabb.h"
-#include "collision_solver.h"
 #include "layer_matrix.h"
 #include "vector3.h"
 
@@ -23,12 +24,12 @@ float CollisionTime(const Frame &frame, const int a, const int b,
                     const float dt) {
   // The distance between the two objects is a function of time:
   //
-  //  d(t): |(posA + vA * t) - (posB + vB * t)|
+  //  d(t) = |(posA + vA * t) - (posB + vB * t)|
   //
   // Distance to collision is also a function of time (recall that the objects
   // are spheres):
   //
-  //  dc(t): = d(t) - rA - rB
+  //  dc(t) = d(t) - rA - rB
   //
   // Therefore, we can find the time of collision by solving the following
   // equation for t:

@@ -10,7 +10,7 @@ supports efficient and deterministic queries about past and future states of
 objects in the simulation.
 
 Most modern rigid body systems support determinism (for example, Unity Physics
-does this by running in fixed time steps), but not rewinding to a previous
+does this by running in fixed time steps), but not scrubbing to a previous
 state, or efficient queries about the future.
 
 The system proposed here is a time database (journal) of objects states and
@@ -57,11 +57,55 @@ TBD
 
 ### Life of a physics frame
 
+* `frame_number` is the frame number being processed
+* `frame` is the frame state, which includes all component data
+* `head` is the highest frame number processed so far
+* `log` is a database of events, indexed by frame number and object id
+
+#### Frame at HEAD
+
+If `frame_number == head + 1`, then a frame is being computed for the first
+time.
+
+1. Load the final state at `frame_number - 1` into `frame`
+2. For each object, compute its `velocity` and `next_position`
+3. Compute and resolve collisions
+4. For each object, set the current `position` to its `next_position`
+5. Record the frame in the `log`
+  * Collisions, glued state and destroyed state are recorded as intervals
+  * Acceleration from user input or scripted events is recorded as intervals
+  * Object position is recorded at key frames only (by default 1 in every 60
+    frames)
+
 ### Seeking
 
 ### Object destruction
 
 ### Collisions
+
+Collisions can occur between any two eligible objects. To be eligible, both
+objects in the pair must:
+
+1. Be active (not destroyed)
+2. Be assigned to a combination of layers for which collisions are enabled
+
+Currently, all objects are spherical, and so collision between any two eligible
+objects occurs if their centers come within the sum of both their radii at any
+point during the frame. Because all motion in a single frame is linearized, for
+every two objects the distance between their centers is a linear function of time:
+
+`d(t) = |(posA + vA * t) - (posB + vB * t)|`
+
+And the distance to collision is also a linear function of time:
+
+`dc(t) = d(t) - rA - rB`
+
+Finding the time of collision between two objects is simply a question of
+solving the above equation for `t`, which is handled numerically.
+
+Checking every pair of objects in the scene has O(N^2) complexity. We use a
+bounding-volume hierarchy to quickly filter out any objects that are too distant
+for a collision to be possible.
 
 ### Testing
 
