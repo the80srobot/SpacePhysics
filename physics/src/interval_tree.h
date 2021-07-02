@@ -346,10 +346,8 @@ class IntervalTree {
       // children affects the black depth of this subtree, violating property
       // 4.
       int p = nodes_[n].parent;
-      // Fix up the max values up to the root, before the code below performs
-      // rotations.
-
-      // Pretend the node is already deleted.
+      // Pretend the node is already deleted as we fix up the max values in its
+      // ancestor nodes.
       nodes_[n].max = nodes_[p].interval.low;
       FixBranchMax(p);
       if (nodes_[n].color == kBlack) {
@@ -523,6 +521,8 @@ class IntervalTree {
   }
 
   void FixBranchMax(int n) {
+    // TODO: this function can terminate early if we get to a node that's
+    // already got the correct values.
     while (n != kNil) {
       FixMax(n);
       n = nodes_[n].parent;
