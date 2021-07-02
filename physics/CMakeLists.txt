@@ -40,9 +40,9 @@ if(BUILD_TESTS)
     # CollisionWorld
 
     add_executable(
-        collision_world_test
-        src/collision_world_test.cc
-        src/collision_world.cc
+        collision_solver_test
+        src/collision_solver_test.cc
+        src/collision_solver.cc
         src/layer_matrix.cc
         src/aabb.cc
         src/vector3.cc
@@ -50,23 +50,23 @@ if(BUILD_TESTS)
     )
 
     target_link_libraries(
-        collision_world_test
+        collision_solver_test
         gtest_main
         gmock_main
     )
 
     add_executable(
-        collision_world_benchmark
-        src/collision_world_benchmark.cc
+        collision_solver_benchmark
+        src/collision_solver_benchmark.cc
         src/layer_matrix.cc
-        src/collision_world.cc
+        src/collision_solver.cc
         src/aabb.cc
         src/vector3.cc
         src/component_data.cc
     )
 
     target_link_libraries(
-        collision_world_benchmark
+        collision_solver_benchmark
         benchmark::benchmark
     )
 

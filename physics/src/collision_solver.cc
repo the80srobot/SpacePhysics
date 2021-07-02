@@ -1,8 +1,7 @@
-#include "collision_world.h"
-
 #include <limits>
 
 #include "aabb.h"
+#include "collision_solver.h"
 #include "layer_matrix.h"
 #include "vector3.h"
 
@@ -148,8 +147,8 @@ bool Eligible(const Frame &frame, const LayerMatrix &matrix, const int a,
 
 };  // namespace
 
-void CollisionWorld::Compute(const Frame &frame, const float dt,
-                             std::vector<CollisionEvent> &out_events) {
+void CollisionSolver::Solve(const Frame &frame, const float dt,
+                            std::vector<CollisionEvent> &out_events) {
   cache_bvh_kvs_.clear();
   for (int id = 0; id < frame.colliders.size(); ++id) {
     float radius = frame.colliders[id].radius;

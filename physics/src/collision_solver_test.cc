@@ -1,7 +1,7 @@
-#include "collision_world.h"
-
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
+
+#include "collision_solver.h"
 
 namespace vstr {
 namespace {
@@ -17,9 +17,9 @@ struct TestCase {
 class CollisionWorldTest : public testing::TestWithParam<TestCase> {};
 
 TEST_P(CollisionWorldTest, CollisionWorldTest) {
-  CollisionWorld world(GetParam().matrix);
+  CollisionSolver world(GetParam().matrix);
   std::vector<CollisionEvent> events;
-  world.Compute(GetParam().frame, GetParam().deltaTime, events);
+  world.Solve(GetParam().frame, GetParam().deltaTime, events);
   EXPECT_THAT(events, testing::UnorderedElementsAreArray(GetParam().expect));
 }
 

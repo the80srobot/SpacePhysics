@@ -1,6 +1,6 @@
 #include <benchmark/benchmark.h>
 
-#include "collision_world.h"
+#include "collision_solver.h"
 
 namespace {}  // namespace
 

@@ -1,5 +1,5 @@
-#ifndef VSTR_COLLISION_WORLD
-#define VSTR_COLLISION_WORLD
+#ifndef VSTR_COLLISION_SOLVER
+#define VSTR_COLLISION_SOLVER
 
 #include <iostream>
 
@@ -9,11 +9,11 @@
 
 namespace vstr {
 
-class CollisionWorld {
+class CollisionSolver {
  public:
-  CollisionWorld(LayerMatrix layer_matrix) : matrix_(layer_matrix) {}
-  void Compute(const Frame &frame, float dt,
-               std::vector<CollisionEvent> &out_events);
+  CollisionSolver(LayerMatrix layer_matrix) : matrix_(layer_matrix) {}
+  void Solve(const Frame &frame, float dt,
+             std::vector<CollisionEvent> &out_events);
 
  private:
   using BVH = BoundingVolumeHierarchy<int>;
