@@ -7,6 +7,7 @@
 
 #include "layer_matrix.h"
 
+#include <iomanip>
 #include <vector>
 
 namespace vstr {
@@ -34,6 +35,32 @@ bool LayerMatrix::Check(const uint32_t x, const uint32_t y) const {
   assert(x < 32 && x >= 0);
   assert(y < 32 && y >= 0);
   return (layers_[x] & 1 << y) != 0;
+}
+
+std::ostream &operator<<(std::ostream &os, const LayerMatrix &lm) {
+  os << "LayerMatrix(\n   ";
+  os << std::fixed << std::setfill(' ');
+  // Header:
+  for (uint32_t u = 0; u < 32; ++u) {
+    os << " " << std::setw(2) << u;
+  }
+  os << "\n   ";
+  for (uint32_t u = 0; u < 32; ++u) {
+    os << " --";
+  }
+  os << "\n";
+
+  // Matrix:
+  for (uint32_t row = 0; row < 32; ++row) {
+    os << std::setw(2) << row << "|";
+    for (uint32_t col = 0; col < 32; ++col) {
+      os << "  " << lm.Check(row, col);
+    }
+    os << "\n";
+  }
+
+  os << ")";
+  return os;
 }
 
 }  // namespace vstr
