@@ -145,7 +145,7 @@ bool Eligible(const Frame &frame, const LayerMatrix &matrix, const int a,
     return false;
   }
 
-  // // TODO: recursive glue?
+  // TODO: recursive glue?
   if (frame.glue[a].parent_id == b || frame.glue[b].parent_id == a) {
     return false;
   }
@@ -156,7 +156,7 @@ bool Eligible(const Frame &frame, const LayerMatrix &matrix, const int a,
 };  // namespace
 
 void CollisionSystem::Solve(const Frame &frame, const float dt,
-                            std::vector<CollisionEvent> &out_events) {
+                            std::vector<Collision> &out_events) {
   cache_bvh_kvs_.clear();
   for (int id = 0; id < frame.colliders.size(); ++id) {
     float radius = frame.colliders[id].radius;
@@ -177,7 +177,7 @@ void CollisionSystem::Solve(const Frame &frame, const float dt,
       if (Eligible(frame, matrix_, id, kv.value)) {
         float t = CollisionTime(frame, dt, id, kv.value);
         if (t <= dt) {
-          out_events.push_back(CollisionEvent{id, kv.value, t});
+          out_events.push_back(Collision{id, kv.value, t});
         }
       }
     }

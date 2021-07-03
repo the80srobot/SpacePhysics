@@ -60,6 +60,10 @@ INSTANTIATE_TEST_SUITE_P(
                 Collider{},
                 Collider{},
             },
+            std::vector<Orbit>{
+                Orbit{},
+                Orbit{},
+            },
             std::vector<Glue>{
                 Glue{-1},
                 Glue{-1},
@@ -142,6 +146,10 @@ INSTANTIATE_TEST_SUITE_P(
                 Collider{},
                 Collider{},
             },
+            std::vector<Orbit>{
+                Orbit{},
+                Orbit{},
+            },
             std::vector<Glue>{
                 Glue{-1},
                 Glue{-1},
@@ -174,6 +182,10 @@ INSTANTIATE_TEST_SUITE_P(
             std::vector<Collider>{
                 Collider{},
                 Collider{},
+            },
+            std::vector<Orbit>{
+                Orbit{},
+                Orbit{},
             },
             std::vector<Glue>{
                 Glue{-1},

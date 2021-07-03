@@ -32,6 +32,19 @@ std::ostream &operator<<(std::ostream &os, const Motion &motion) {
             << ", /*new_position=*/" << motion.new_position << "}";
 }
 
+std::ostream &operator<<(std::ostream &os, const Orbit::Kepler &kepler) {
+  return os << "Kepler{" << kepler.semi_major_axis << ", "
+            << kepler.eccentricity << ", " << kepler.mean_longitude_deg << ", "
+            << kepler.longitude_of_perihelion_deg << ", "
+            << kepler.longitude_of_ascending_node_deg << ", "
+            << kepler.inclination_deg << "}";
+}
+
+std::ostream &operator<<(std::ostream &os, const Orbit &orbit) {
+  return os << "Orbit{/*focus=*/" << orbit.focus << ", /*initial=*/"
+            << orbit.initial << ", /*delta=*/" << orbit.delta << "}";
+}
+
 std::ostream &operator<<(std::ostream &os, const Glue &glue) {
   return os << "Glue{/*parent_id=*/" << glue.parent_id << "}";
 }
@@ -40,7 +53,7 @@ std::ostream &operator<<(std::ostream &os, const Destroyed &destroyed) {
   return os << "Destroyed{" << destroyed.value << "}";
 }
 
-std::ostream &operator<<(std::ostream &os, const CollisionEvent &event) {
+std::ostream &operator<<(std::ostream &os, const Collision &event) {
   return os << "CollisionEvent{/*first_body_id=*/" << event.first_body_id
             << ", /*second_body_id=*/" << event.second_body_id
             << ", /*first_frame_offset_seconds=*/"

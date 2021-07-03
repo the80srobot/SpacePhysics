@@ -18,14 +18,14 @@ struct TestCase {
   const float deltaTime;
   const Frame frame;
   const LayerMatrix matrix;
-  const std::vector<CollisionEvent> expect;
+  const std::vector<Collision> expect;
 };
 
 class CollisionSystemTest : public testing::TestWithParam<TestCase> {};
 
 TEST_P(CollisionSystemTest, CollisionSystemTest) {
   CollisionSystem system(GetParam().matrix);
-  std::vector<CollisionEvent> events;
+  std::vector<Collision> events;
   system.Solve(GetParam().frame, GetParam().deltaTime, events);
   EXPECT_THAT(events, testing::UnorderedElementsAreArray(GetParam().expect));
 }
@@ -53,6 +53,10 @@ INSTANTIATE_TEST_SUITE_P(
                     Collider{1, 0.5},
                     Collider{1, 0.5},
                 },
+                std::vector<Orbit>{
+                    Orbit{},
+                    Orbit{},
+                },
                 std::vector<Glue>{
                     Glue{-1},
                     Glue{-1},
@@ -64,8 +68,8 @@ INSTANTIATE_TEST_SUITE_P(
             },
             LayerMatrix(std::vector<std::pair<uint32_t, uint32_t>>{
                 std::make_pair(1, 1)}),
-            std::vector<CollisionEvent>{
-                CollisionEvent{0, 1, 0.9},
+            std::vector<Collision>{
+                Collision{0, 1, 0.9},
             },
         },
         TestCase{
@@ -88,6 +92,10 @@ INSTANTIATE_TEST_SUITE_P(
                     Collider{1, 0.5},
                     Collider{1, 0.5},
                 },
+                std::vector<Orbit>{
+                    Orbit{},
+                    Orbit{},
+                },
                 std::vector<Glue>{
                     Glue{-1},
                     Glue{-1},
@@ -99,8 +107,8 @@ INSTANTIATE_TEST_SUITE_P(
             },
             LayerMatrix(std::vector<std::pair<uint32_t, uint32_t>>{
                 std::make_pair(1, 1)}),
-            std::vector<CollisionEvent>{
-                CollisionEvent{0, 1, 0},
+            std::vector<Collision>{
+                Collision{0, 1, 0},
             },
         },
         TestCase{
@@ -123,6 +131,10 @@ INSTANTIATE_TEST_SUITE_P(
                     Collider{1, 0.5},
                     Collider{1, 0.5},
                 },
+                std::vector<Orbit>{
+                    Orbit{},
+                    Orbit{},
+                },
                 std::vector<Glue>{
                     Glue{-1},
                     Glue{-1},
@@ -134,8 +146,8 @@ INSTANTIATE_TEST_SUITE_P(
             },
             LayerMatrix(std::vector<std::pair<uint32_t, uint32_t>>{
                 std::make_pair(1, 1)}),
-            std::vector<CollisionEvent>{
-                CollisionEvent{0, 1, 0},
+            std::vector<Collision>{
+                Collision{0, 1, 0},
             },
         },
         TestCase{
@@ -158,6 +170,10 @@ INSTANTIATE_TEST_SUITE_P(
                     Collider{1, 0.5},
                     Collider{1, 0.5},
                 },
+                std::vector<Orbit>{
+                    Orbit{},
+                    Orbit{},
+                },
                 std::vector<Glue>{
                     Glue{-1},
                     Glue{-1},
@@ -169,7 +185,7 @@ INSTANTIATE_TEST_SUITE_P(
             },
             LayerMatrix(std::vector<std::pair<uint32_t, uint32_t>>{
                 std::make_pair(1, 1)}),
-            std::vector<CollisionEvent>{
+            std::vector<Collision>{
                 // At the time of collision, the line connecting the two centers
                 // is the hypotenuse of an isosceles right triangle, with the
                 // third pivot at {0,0,0}. Both sides are therefore:
@@ -178,7 +194,7 @@ INSTANTIATE_TEST_SUITE_P(
                 //
                 // It takes 1.0 seconds to travel the 10 units, leading to the
                 // final formula.
-                CollisionEvent{0, 1, 1.0f - (1.0f / std::sqrtf(2)) / 10.0f},
+                Collision{0, 1, 1.0f - (1.0f / std::sqrtf(2)) / 10.0f},
             },
         },
         TestCase{
@@ -201,6 +217,10 @@ INSTANTIATE_TEST_SUITE_P(
                     Collider{1, 0.5},
                     Collider{1, 0.5},
                 },
+                std::vector<Orbit>{
+                    Orbit{},
+                    Orbit{},
+                },
                 std::vector<Glue>{
                     Glue{-1},
                     Glue{-1},
@@ -212,8 +232,8 @@ INSTANTIATE_TEST_SUITE_P(
             },
             LayerMatrix(std::vector<std::pair<uint32_t, uint32_t>>{
                 std::make_pair(1, 1)}),
-            std::vector<CollisionEvent>{
-                CollisionEvent{0, 1, 0},
+            std::vector<Collision>{
+                Collision{0, 1, 0},
             },
         },
         TestCase{
@@ -236,6 +256,10 @@ INSTANTIATE_TEST_SUITE_P(
                     Collider{1, 0.5},
                     Collider{1, 0.5},
                 },
+                std::vector<Orbit>{
+                    Orbit{},
+                    Orbit{},
+                },
                 std::vector<Glue>{
                     Glue{-1},
                     Glue{-1},
@@ -247,7 +271,7 @@ INSTANTIATE_TEST_SUITE_P(
             },
             LayerMatrix(std::vector<std::pair<uint32_t, uint32_t>>{
                 std::make_pair(1, 1)}),
-            std::vector<CollisionEvent>{},
+            std::vector<Collision>{},
         },
         TestCase{
             "layer_mask_no_collision",
@@ -267,7 +291,11 @@ INSTANTIATE_TEST_SUITE_P(
                 },
                 std::vector<Collider>{
                     Collider{1, 0.5},
-                    Collider{2, 0.5},
+                    Collider{1, 0.5},
+                },
+                std::vector<Orbit>{
+                    Orbit{},
+                    Orbit{},
                 },
                 std::vector<Glue>{
                     Glue{-1},
@@ -279,8 +307,8 @@ INSTANTIATE_TEST_SUITE_P(
                 },
             },
             LayerMatrix(std::vector<std::pair<uint32_t, uint32_t>>{
-                std::make_pair(1, 1)}),
-            std::vector<CollisionEvent>{},
+                std::make_pair(1, 2)}),
+            std::vector<Collision>{},
         }),
     [](const testing::TestParamInfo<CollisionSystemTest::ParamType>& tc) {
       return tc.param.comment;

@@ -74,6 +74,39 @@ inline bool operator==(const Motion &a, const Motion &b) {
 
 std::ostream &operator<<(std::ostream &os, const Motion &motion);
 
+struct Orbit {
+  struct Kepler {
+    float semi_major_axis;
+    float eccentricity;
+    float mean_longitude_deg;
+    float longitude_of_perihelion_deg;
+    float longitude_of_ascending_node_deg;
+    float inclination_deg;
+  };
+
+  Vector3 focus;
+  Kepler initial;
+  Kepler delta;
+};
+
+inline bool operator==(const Orbit::Kepler &a, const Orbit::Kepler &b) {
+  return a.semi_major_axis == b.semi_major_axis &&
+         a.eccentricity == b.eccentricity &&
+         a.mean_longitude_deg == b.mean_longitude_deg &&
+         a.longitude_of_perihelion_deg == b.longitude_of_perihelion_deg &&
+         a.longitude_of_ascending_node_deg ==
+             b.longitude_of_ascending_node_deg &&
+         a.inclination_deg == b.inclination_deg;
+}
+
+std::ostream &operator<<(std::ostream &os, const Orbit::Kepler &kepler);
+
+inline bool operator==(const Orbit &a, const Orbit &b) {
+  return a.initial == b.delta && a.focus == b.focus;
+}
+
+std::ostream &operator<<(std::ostream &os, const Orbit &glue);
+
 struct Glue {
   int32_t parent_id;
 };
@@ -94,19 +127,19 @@ inline bool operator==(const Destroyed &a, const Destroyed &b) {
 
 std::ostream &operator<<(std::ostream &os, const Destroyed &destroyed);
 
-struct CollisionEvent {
+struct Collision {
   int32_t first_body_id;
   int32_t second_body_id;
   float first_frame_offset_seconds;
 };
 
-inline bool operator==(const CollisionEvent &a, const CollisionEvent &b) {
+inline bool operator==(const Collision &a, const Collision &b) {
   return a.first_body_id == b.first_body_id &&
          a.second_body_id == b.second_body_id &&
          a.first_frame_offset_seconds == b.first_frame_offset_seconds;
 }
 
-std::ostream &operator<<(std::ostream &os, const CollisionEvent &event);
+std::ostream &operator<<(std::ostream &os, const Collision &event);
 
 struct Frame {
   std::vector<Position> positions;
@@ -114,6 +147,7 @@ struct Frame {
   std::vector<Acceleration> acceleration;
   std::vector<Motion> motion;
   std::vector<Collider> colliders;
+  std::vector<Orbit> orbits;
   std::vector<Glue> glue;
   std::vector<Destroyed> destroyed;
 };
