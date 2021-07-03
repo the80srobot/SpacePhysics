@@ -139,7 +139,7 @@ inline bool operator==(const Collision &a, const Collision &b) {
          a.first_frame_offset_seconds == b.first_frame_offset_seconds;
 }
 
-std::ostream &operator<<(std::ostream &os, const Collision &event);
+std::ostream &operator<<(std::ostream &os, const Collision &collision);
 
 struct Frame {
   std::vector<Position> positions;
@@ -152,25 +152,39 @@ struct Frame {
   std::vector<Destroyed> destroyed;
 };
 
-// struct BodyEvent {
-//   enum Type { kAcceleration, kGlue, kDestroyed, kCollision };
+struct Input {
+  int32_t object_id;
+  Vector3 acceleration;
+};
 
-//   int32_t body_id;
-//   Type type;
+inline bool operator==(const Input &a, const Input &b) {
+  return a.object_id == b.object_id && a.acceleration == b.acceleration;
+}
 
-//   union {
-//     AccelerationEvent acceleration;
-//     GlueEvent glue;
-//     DestroyedEvent destroyed;
-//     CollisionEvent collision;
-//   };
-// };
+std::ostream &operator<<(std::ostream &os, const Input &input);
 
-// bool operator==(const BodyEvent &a, const BodyEvent &b);
-// bool operator>=(const BodyEvent &a, const BodyEvent &b);
-// bool operator>(const BodyEvent &a, const BodyEvent &b);
-// bool operator<(const BodyEvent &a, const BodyEvent &b);
-// bool operator<=(const BodyEvent &a, const BodyEvent &b);
+struct Event {
+  enum Type { kInput, kGlue, kDestroyed, kCollision };
+
+  int32_t body_id;
+  Type type;
+
+  union {
+    Input input;
+    Glue glue;
+    Destroyed destroyed;
+    Collision collision;
+  };
+};
+
+bool operator==(const Event &a, const Event &b);
+bool operator>=(const Event &a, const Event &b);
+bool operator>(const Event &a, const Event &b);
+bool operator<(const Event &a, const Event &b);
+bool operator<=(const Event &a, const Event &b);
+
+std::ostream &operator<<(std::ostream &os, Event::Type event_type);
+std::ostream &operator<<(std::ostream &os, const Event &event);
 
 }  // namespace vstr
 

@@ -14,11 +14,6 @@
 
 namespace vstr {
 
-struct Input {
-  int32_t object_id;
-  Vector3 acceleration;
-};
-
 class MotionSystem {
  public:
   enum Integrator {

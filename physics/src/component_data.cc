@@ -53,11 +53,63 @@ std::ostream &operator<<(std::ostream &os, const Destroyed &destroyed) {
   return os << "Destroyed{" << destroyed.value << "}";
 }
 
-std::ostream &operator<<(std::ostream &os, const Collision &event) {
-  return os << "CollisionEvent{/*first_body_id=*/" << event.first_body_id
-            << ", /*second_body_id=*/" << event.second_body_id
+std::ostream &operator<<(std::ostream &os, const Collision &collision) {
+  return os << "CollisionEvent{/*first_body_id=*/" << collision.first_body_id
+            << ", /*second_body_id=*/" << collision.second_body_id
             << ", /*first_frame_offset_seconds=*/"
-            << event.first_frame_offset_seconds << "}";
+            << collision.first_frame_offset_seconds << "}";
+}
+
+std::ostream &operator<<(std::ostream &os, const Input &input) {
+  return os << "Input{/*object_id=*/" << input.object_id
+            << ", /*acceleration=*/" << input.acceleration << "}";
+}
+
+bool operator==(const Event &a, const Event &b) {
+  // Intentionally don't check the value of the event - each event can only
+  // occur once per unique pair of interval and object.
+  return a.body_id == b.body_id && a.type == b.type;
+}
+
+bool operator>(const Event &a, const Event &b) {
+  return (a.body_id > b.body_id) ||
+         ((a.body_id == b.body_id) && a.type > b.type);
+}
+
+bool operator<(const Event &a, const Event &b) {
+  return (a.body_id < b.body_id) ||
+         ((a.body_id == b.body_id) && a.type < b.type);
+}
+
+std::ostream &operator<<(std::ostream &os, const Event::Type event_type) {
+  switch (event_type) {
+    case Event::Type::kInput:
+      return os << "input";
+    case Event::Type::kGlue:
+      return os << "glue";
+    case Event::Type::kDestroyed:
+      return os << "destroyed";
+    case Event::Type::kCollision:
+      return os << "collision";
+    default:
+      assert("not reachable");
+  }
+}
+
+std::ostream &operator<<(std::ostream &os, const Event &event) {
+  os << "Event{/*body_id=*/" << event.body_id << ", /*type=*/" << event.type;
+  switch (event.type) {
+    case Event::Type::kInput:
+      return os << ", /*input=*/" << event.input << "}";
+    case Event::Type::kGlue:
+      return os << ", /*glue=*/" << event.glue << "}";
+    case Event::Type::kDestroyed:
+      return os << ", /*destroyed=*/" << event.destroyed << "}";
+    case Event::Type::kCollision:
+      return os << ", /*collision=*/" << event.collision << "}";
+    default:
+      assert("not reachable");
+  }
 }
 
 }  // namespace vstr
