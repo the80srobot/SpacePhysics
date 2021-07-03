@@ -37,6 +37,22 @@ if(BUILD_TESTS)
     )
     FetchContent_MakeAvailable(absl)
 
+    # MotionSystem
+
+    add_executable(
+        motion_system_test
+        src/motion_system_test.cc
+        src/motion_system.cc
+        src/vector3.cc
+        src/component_data.cc
+    )
+
+    target_link_libraries(
+        motion_system_test
+        gtest_main
+        gmock_main
+    )
+
     # CollisionSystem
 
     add_executable(
