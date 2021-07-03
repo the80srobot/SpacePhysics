@@ -37,12 +37,12 @@ if(BUILD_TESTS)
     )
     FetchContent_MakeAvailable(absl)
 
-    # CollisionWorld
+    # CollisionSystem
 
     add_executable(
-        collision_solver_test
-        src/collision_solver_test.cc
-        src/collision_solver.cc
+        collision_system_test
+        src/collision_system_test.cc
+        src/collision_system.cc
         src/layer_matrix.cc
         src/aabb.cc
         src/vector3.cc
@@ -50,23 +50,23 @@ if(BUILD_TESTS)
     )
 
     target_link_libraries(
-        collision_solver_test
+        collision_system_test
         gtest_main
         gmock_main
     )
 
     add_executable(
-        collision_solver_benchmark
-        src/collision_solver_benchmark.cc
+        collision_system_benchmark
+        src/collision_system_benchmark.cc
         src/layer_matrix.cc
-        src/collision_solver.cc
+        src/collision_system.cc
         src/aabb.cc
         src/vector3.cc
         src/component_data.cc
     )
 
     target_link_libraries(
-        collision_solver_benchmark
+        collision_system_benchmark
         benchmark::benchmark
     )
 

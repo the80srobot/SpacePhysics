@@ -2,7 +2,7 @@
 
 #include <random>
 
-#include "collision_solver.h"
+#include "collision_system.h"
 
 namespace vstr {
 namespace {
@@ -44,7 +44,7 @@ Frame Generate(const int clusters, const int collision_every_n_clusters,
   return frame;
 }
 
-void BM_CollisionSolver(benchmark::State& state) {
+void BM_CollisionSystem(benchmark::State& state) {
   const int clusters = state.range(0);
   const int collision_every_n_clusters = state.range(1);
   const int cluster_size = state.range(2);
@@ -53,7 +53,7 @@ void BM_CollisionSolver(benchmark::State& state) {
   const Frame frame = Generate(clusters, collision_every_n_clusters,
                                cluster_size, random_generator);
 
-  CollisionSolver solver(LayerMatrix(
+  CollisionSystem solver(LayerMatrix(
       std::vector<std::pair<uint32_t, uint32_t>>{std::make_pair(1, 1)}));
   std::vector<CollisionEvent> buffer;
   int collisions = 0;
@@ -67,7 +67,7 @@ void BM_CollisionSolver(benchmark::State& state) {
   state.SetItemsProcessed(collisions);
   state.SetComplexityN(clusters * cluster_size);
 }
-BENCHMARK(BM_CollisionSolver)
+BENCHMARK(BM_CollisionSystem)
     ->ArgsProduct({
         // clusters
         benchmark::CreateRange(1 << 2, 1 << 10, /*multi=*/2),

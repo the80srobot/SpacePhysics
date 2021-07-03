@@ -1,4 +1,4 @@
-#include "collision_solver.h"
+#include "collision_system.h"
 
 #include <limits>
 
@@ -148,7 +148,7 @@ bool Eligible(const Frame &frame, const LayerMatrix &matrix, const int a,
 
 };  // namespace
 
-void CollisionSolver::Solve(const Frame &frame, const float dt,
+void CollisionSystem::Solve(const Frame &frame, const float dt,
                             std::vector<CollisionEvent> &out_events) {
   cache_bvh_kvs_.clear();
   for (int id = 0; id < frame.colliders.size(); ++id) {

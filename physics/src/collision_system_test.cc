@@ -1,7 +1,7 @@
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 
-#include "collision_solver.h"
+#include "collision_system.h"
 
 namespace vstr {
 namespace {
@@ -14,17 +14,17 @@ struct TestCase {
   const std::vector<CollisionEvent> expect;
 };
 
-class CollisionWorldTest : public testing::TestWithParam<TestCase> {};
+class CollisionSystemTest : public testing::TestWithParam<TestCase> {};
 
-TEST_P(CollisionWorldTest, CollisionWorldTest) {
-  CollisionSolver world(GetParam().matrix);
+TEST_P(CollisionSystemTest, CollisionSystemTest) {
+  CollisionSystem system(GetParam().matrix);
   std::vector<CollisionEvent> events;
-  world.Solve(GetParam().frame, GetParam().deltaTime, events);
+  system.Solve(GetParam().frame, GetParam().deltaTime, events);
   EXPECT_THAT(events, testing::UnorderedElementsAreArray(GetParam().expect));
 }
 
 INSTANTIATE_TEST_SUITE_P(
-    CollisionWorldTest, CollisionWorldTest,
+    CollisionSystemTest, CollisionSystemTest,
     testing::Values(
         TestCase{
             "basic",
@@ -34,6 +34,8 @@ INSTANTIATE_TEST_SUITE_P(
                     Position{Vector3{0, 0, 0}},
                     Position{Vector3{10, 0, 0}},
                 },
+                std::vector<Mass>{},
+                std::vector<Acceleration>{},
                 std::vector<Motion>{
                     Motion::FromPositionAndVelocity(Vector3{0, 0, 0},
                                                     Vector3{10, 0, 0}),
@@ -67,6 +69,8 @@ INSTANTIATE_TEST_SUITE_P(
                     Position{Vector3{0, 0, 0}},
                     Position{Vector3{10, 0, 0}},
                 },
+                std::vector<Mass>{},
+                std::vector<Acceleration>{},
                 std::vector<Motion>{
                     Motion::FromPositionAndVelocity(Vector3{0, 0, 0},
                                                     Vector3{1000000, 0, 0}),
@@ -100,6 +104,8 @@ INSTANTIATE_TEST_SUITE_P(
                     Position{Vector3{0, 0, 0}},
                     Position{Vector3{10, 0, 0}},
                 },
+                std::vector<Mass>{},
+                std::vector<Acceleration>{},
                 std::vector<Motion>{
                     Motion::FromPositionAndVelocity(Vector3{0, 0, 0},
                                                     Vector3{1000000, 0, 0}),
@@ -133,6 +139,8 @@ INSTANTIATE_TEST_SUITE_P(
                     Position{Vector3{-10, 0, 0}},
                     Position{Vector3{0, -10, 0}},
                 },
+                std::vector<Mass>{},
+                std::vector<Acceleration>{},
                 std::vector<Motion>{
                     Motion::FromPositionAndVelocity(Vector3{-10, 0, 0},
                                                     Vector3{10, 0, 0}),
@@ -174,6 +182,8 @@ INSTANTIATE_TEST_SUITE_P(
                     Position{Vector3{-10, 0, 0}},
                     Position{Vector3{0, -10, 0}},
                 },
+                std::vector<Mass>{},
+                std::vector<Acceleration>{},
                 std::vector<Motion>{
                     Motion::FromPositionAndVelocity(Vector3{-10, 0, 0},
                                                     Vector3{10000000, 0, 0}),
@@ -207,6 +217,8 @@ INSTANTIATE_TEST_SUITE_P(
                     Position{Vector3{-10, 0, 0}},
                     Position{Vector3{0, -10, 0}},
                 },
+                std::vector<Mass>{},
+                std::vector<Acceleration>{},
                 std::vector<Motion>{
                     Motion::FromPositionAndVelocity(Vector3{-10, 0, 0},
                                                     Vector3{10, 0, 0}),
@@ -238,6 +250,8 @@ INSTANTIATE_TEST_SUITE_P(
                     Position{Vector3{-10, 0, 0}},
                     Position{Vector3{0, -10, 0}},
                 },
+                std::vector<Mass>{},
+                std::vector<Acceleration>{},
                 std::vector<Motion>{
                     Motion::FromPositionAndVelocity(Vector3{-10, 0, 0},
                                                     Vector3{10, 0, 0}),
@@ -261,7 +275,7 @@ INSTANTIATE_TEST_SUITE_P(
                 std::make_pair(1, 1)}),
             std::vector<CollisionEvent>{},
         }),
-    [](const testing::TestParamInfo<CollisionWorldTest::ParamType>& tc) {
+    [](const testing::TestParamInfo<CollisionSystemTest::ParamType>& tc) {
       return tc.param.comment;
     });
 }  // namespace

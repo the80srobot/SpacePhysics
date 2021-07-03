@@ -1,5 +1,5 @@
-#ifndef VSTR_COLLISION_SOLVER
-#define VSTR_COLLISION_SOLVER
+#ifndef VSTR_collision_system
+#define VSTR_collision_system
 
 #include <iostream>
 
@@ -9,9 +9,9 @@
 
 namespace vstr {
 
-class CollisionSolver {
+class CollisionSystem {
  public:
-  CollisionSolver(LayerMatrix layer_matrix) : matrix_(layer_matrix) {}
+  CollisionSystem(LayerMatrix layer_matrix) : matrix_(layer_matrix) {}
   void Solve(const Frame &frame, float dt,
              std::vector<CollisionEvent> &out_events);
 
