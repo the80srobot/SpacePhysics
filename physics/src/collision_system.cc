@@ -17,17 +17,21 @@ namespace vstr {
 
 namespace {
 
-float DistanceToCollision(const Frame &frame, const int a, const int b,
-                          const float t) {
-  Vector3 a_pos = frame.positions[a].value + frame.motion[a].velocity * t;
-  Vector3 b_pos = frame.positions[b].value + frame.motion[b].velocity * t;
-  return Vector3::Magnitude(a_pos - b_pos) - frame.colliders[a].radius -
-         frame.colliders[b].radius;
+float DistanceToCollision(const std::vector<Position> &positions,
+                          const std::vector<Collider> &colliders,
+                          const std::vector<Motion> &motion, const int a,
+                          const int b, const float t) {
+  Vector3 a_pos = positions[a].value + motion[a].velocity * t;
+  Vector3 b_pos = positions[b].value + motion[b].velocity * t;
+  return Vector3::Magnitude(a_pos - b_pos) - colliders[a].radius -
+         colliders[b].radius;
 }
 
 // Returns the earliest time objects a and b will collide based on their current
 // velocities. If no such time can be found, returns a time greater than dt.
-float CollisionTime(const Frame &frame, const int a, const int b,
+float CollisionTime(const std::vector<Position> &positions,
+                    const std::vector<Collider> &colliders,
+                    const std::vector<Motion> &motion, const int a, const int b,
                     const float dt) {
   // The distance between the two objects is a function of time:
   //
@@ -59,9 +63,9 @@ float CollisionTime(const Frame &frame, const int a, const int b,
   //    linear.
   // 2) If d(0) == d(dt/2) == d(dt) then the lines are parallel.
   // 3) Otherwise the function is V-shaped.
-  float d0 = DistanceToCollision(frame, a, b, 0);
-  float d1 = DistanceToCollision(frame, a, b, dt / 2);
-  float d2 = DistanceToCollision(frame, a, b, dt);
+  float d0 = DistanceToCollision(positions, colliders, motion, a, b, 0);
+  float d1 = DistanceToCollision(positions, colliders, motion, a, b, dt / 2);
+  float d2 = DistanceToCollision(positions, colliders, motion, a, b, dt);
 
   if (d0 == d1 && d0 == d2) {
     // The lines are parallel. The objects are either already in collision, or
@@ -123,7 +127,7 @@ float CollisionTime(const Frame &frame, const int a, const int b,
   // the value is negative, we know it will be just on the negative side of
   // zero.
   float t = (-d0 / slope);
-  if (DistanceToCollision(frame, a, b,
+  if (DistanceToCollision(positions, colliders, motion, a, b,
                           t + std::numeric_limits<float>::epsilon()) < 0) {
     return t;
   }
@@ -131,22 +135,24 @@ float CollisionTime(const Frame &frame, const int a, const int b,
   return std::numeric_limits<float>::infinity();
 }
 
-bool Eligible(const Frame &frame, const LayerMatrix &matrix, const int a,
-              const int b) {
+bool Eligible(const std::vector<Collider> &colliders,
+              const std::vector<Flags> &flags, const std::vector<Glue> &glue,
+              const LayerMatrix &matrix, const int a, const int b) {
   if (b <= a) {
     return false;  // Checked in the other direction or self-collision.
   }
 
-  if (frame.destroyed[a].value || frame.destroyed[b].value) {
+  if ((flags[a].value & Flags::kDestroyed) ||
+      (flags[b].value & Flags::kDestroyed)) {
     return false;
   }
 
-  if (!matrix.Check(frame.colliders[a].layer, frame.colliders[b].layer)) {
+  if (!matrix.Check(colliders[a].layer, colliders[b].layer)) {
     return false;
   }
 
   // TODO: recursive glue?
-  if (frame.glue[a].parent_id == b || frame.glue[b].parent_id == a) {
+  if (glue[a].parent_id == b || glue[b].parent_id == a) {
     return false;
   }
 
@@ -155,27 +161,30 @@ bool Eligible(const Frame &frame, const LayerMatrix &matrix, const int a,
 
 };  // namespace
 
-void CollisionSystem::Solve(const Frame &frame, const float dt,
+void CollisionSystem::Solve(const std::vector<Position> &positions,
+                            const std::vector<Collider> &colliders,
+                            const std::vector<Motion> &motion,
+                            const std::vector<Flags> &flags,
+                            const std::vector<Glue> &glue, const float dt,
                             std::vector<Collision> &out_events) {
   cache_bvh_kvs_.clear();
-  for (int id = 0; id < frame.colliders.size(); ++id) {
-    float radius = frame.colliders[id].radius;
+  for (int id = 0; id < colliders.size(); ++id) {
+    float radius = colliders[id].radius;
     AABB bounds = AABB::FromCenterAndHalfExtents(
-        frame.positions[id].value, Vector3{radius, radius, radius});
-    bounds.Sweep(frame.motion[id].velocity);
+        positions[id].value, Vector3{radius, radius, radius});
+    bounds.Sweep(motion[id].velocity);
     cache_bvh_kvs_.push_back(BVH::KV(bounds, id));
     cache_object_swept_bounds_.push_back(bounds);
   }
   cache_bvh_.Rebuild(cache_bvh_kvs_);
 
   std::vector<BVH::KV> buffer;
-  for (int id = 0; id < frame.colliders.size(); ++id) {
+  for (int id = 0; id < colliders.size(); ++id) {
     buffer.clear();
     cache_bvh_.Overlap(cache_object_swept_bounds_[id], buffer);
-
     for (const auto &kv : buffer) {
-      if (Eligible(frame, matrix_, id, kv.value)) {
-        float t = CollisionTime(frame, dt, id, kv.value);
+      if (Eligible(colliders, flags, glue, matrix_, id, kv.value)) {
+        float t = CollisionTime(positions, colliders, motion, dt, id, kv.value);
         if (t <= dt) {
           out_events.push_back(Collision{id, kv.value, t});
         }

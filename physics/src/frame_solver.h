@@ -17,6 +17,20 @@
 
 namespace vstr {
 
+struct Frame {
+  // Core components:
+  std::vector<Position> positions;
+  std::vector<Mass> mass;
+  std::vector<Motion> motion;
+  std::vector<Collider> colliders;
+  std::vector<Glue> glue;
+  std::vector<Flags> flags;
+
+  // Optional components:
+  std::vector<Input> input;
+  std::vector<Orbit> orbits;
+};
+
 class FrameSolver {
  public:
   void Step(float dt, Frame &frame, std::vector<Event> &out_events);

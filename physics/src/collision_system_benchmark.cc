@@ -14,6 +14,14 @@
 namespace vstr {
 namespace {
 
+struct Frame {
+  std::vector<Position> positions;
+  std::vector<Mass> mass;
+  std::vector<Motion> motion;
+  std::vector<Collider> colliders;
+  std::vector<Glue> glue;
+  std::vector<Flags> flags;
+};
 constexpr int kDeltaTime = 1.0 / 60;
 
 void GenerateCluster(const int size, const bool collision,
@@ -33,7 +41,7 @@ void GenerateCluster(const int size, const bool collision,
     float radius = radius_rg(random_generator);
     Vector3 velocity = (collision ? -offset : offset);
     frame.colliders.push_back(Collider{1, radius});
-    frame.destroyed.push_back(Destroyed{false});
+    frame.flags.push_back(Flags{false});
     frame.glue.push_back(Glue{-1});
     frame.positions.push_back(Position{center});
     frame.motion.push_back(Motion::FromPositionAndVelocity(center, velocity));
@@ -65,7 +73,8 @@ void BM_CollisionSystem(benchmark::State& state) {
   std::vector<Collision> buffer;
   int collisions = 0;
   for (auto _ : state) {
-    solver.Solve(frame, kDeltaTime, buffer);
+    solver.Solve(frame.positions, frame.colliders, frame.motion, frame.flags,
+                 frame.glue, kDeltaTime, buffer);
     collisions += buffer.size();
     buffer.clear();
   }

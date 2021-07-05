@@ -19,7 +19,11 @@ namespace vstr {
 class CollisionSystem {
  public:
   CollisionSystem(LayerMatrix layer_matrix) : matrix_(layer_matrix) {}
-  void Solve(const Frame &frame, float dt, std::vector<Collision> &out_events);
+  void Solve(const std::vector<Position> &positions,
+             const std::vector<Collider> &colliders,
+             const std::vector<Motion> &motion, const std::vector<Flags> &flags,
+             const std::vector<Glue> &glue, float dt,
+             std::vector<Collision> &out_events);
 
  private:
   using BVH = BoundingVolumeHierarchy<int>;

@@ -14,7 +14,8 @@ namespace vstr {
 
 class GlueSystem {
  public:
-  void Step(Frame &frame);
+  void Step(const std::vector<Position> &positions,
+            const std::vector<Glue> &glue, std::vector<Motion> &motion);
 
  private:
 };

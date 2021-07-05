@@ -16,7 +16,11 @@ namespace {
 struct TestCase {
   const std::string comment;
   const float deltaTime;
-  const Frame frame;
+  const std::vector<Position> positions;
+  const std::vector<Motion> motion;
+  const std::vector<Collider> colliders;
+  const std::vector<Glue> glue;
+  const std::vector<Flags> flags;
   const LayerMatrix matrix;
   const std::vector<Collision> expect;
 };
@@ -26,7 +30,8 @@ class CollisionSystemTest : public testing::TestWithParam<TestCase> {};
 TEST_P(CollisionSystemTest, CollisionSystemTest) {
   CollisionSystem system(GetParam().matrix);
   std::vector<Collision> events;
-  system.Solve(GetParam().frame, GetParam().deltaTime, events);
+  system.Solve(GetParam().positions, GetParam().colliders, GetParam().motion,
+               GetParam().flags, GetParam().glue, GetParam().deltaTime, events);
   EXPECT_THAT(events, testing::UnorderedElementsAreArray(GetParam().expect));
 }
 
@@ -36,35 +41,27 @@ INSTANTIATE_TEST_SUITE_P(
         TestCase{
             "basic",
             1.0,
-            Frame{
-                std::vector<Position>{
-                    Position{Vector3{0, 0, 0}},
-                    Position{Vector3{10, 0, 0}},
-                },
-                std::vector<Mass>{},
-                std::vector<Acceleration>{},
-                std::vector<Motion>{
-                    Motion::FromPositionAndVelocity(Vector3{0, 0, 0},
-                                                    Vector3{10, 0, 0}),
-                    Motion::FromPositionAndVelocity(Vector3{10, 0, 0},
-                                                    Vector3{0, 0, 0}),
-                },
-                std::vector<Collider>{
-                    Collider{1, 0.5},
-                    Collider{1, 0.5},
-                },
-                std::vector<Orbit>{
-                    Orbit{},
-                    Orbit{},
-                },
-                std::vector<Glue>{
-                    Glue{-1},
-                    Glue{-1},
-                },
-                std::vector<Destroyed>{
-                    Destroyed{false},
-                    Destroyed{false},
-                },
+            std::vector<Position>{
+                Position{Vector3{0, 0, 0}},
+                Position{Vector3{10, 0, 0}},
+            },
+            std::vector<Motion>{
+                Motion::FromPositionAndVelocity(Vector3{0, 0, 0},
+                                                Vector3{10, 0, 0}),
+                Motion::FromPositionAndVelocity(Vector3{10, 0, 0},
+                                                Vector3{0, 0, 0}),
+            },
+            std::vector<Collider>{
+                Collider{1, 0.5},
+                Collider{1, 0.5},
+            },
+            std::vector<Glue>{
+                Glue{-1},
+                Glue{-1},
+            },
+            std::vector<Flags>{
+                Flags{},
+                Flags{},
             },
             LayerMatrix(std::vector<std::pair<uint32_t, uint32_t>>{
                 std::make_pair(1, 1)}),
@@ -75,35 +72,27 @@ INSTANTIATE_TEST_SUITE_P(
         TestCase{
             "fast_mover",
             1.0 / 60,
-            Frame{
-                std::vector<Position>{
-                    Position{Vector3{0, 0, 0}},
-                    Position{Vector3{10, 0, 0}},
-                },
-                std::vector<Mass>{},
-                std::vector<Acceleration>{},
-                std::vector<Motion>{
-                    Motion::FromPositionAndVelocity(Vector3{0, 0, 0},
-                                                    Vector3{1000000, 0, 0}),
-                    Motion::FromPositionAndVelocity(Vector3{10, 0, 0},
-                                                    Vector3{0, 0, 0}),
-                },
-                std::vector<Collider>{
-                    Collider{1, 0.5},
-                    Collider{1, 0.5},
-                },
-                std::vector<Orbit>{
-                    Orbit{},
-                    Orbit{},
-                },
-                std::vector<Glue>{
-                    Glue{-1},
-                    Glue{-1},
-                },
-                std::vector<Destroyed>{
-                    Destroyed{false},
-                    Destroyed{false},
-                },
+            std::vector<Position>{
+                Position{Vector3{0, 0, 0}},
+                Position{Vector3{10, 0, 0}},
+            },
+            std::vector<Motion>{
+                Motion::FromPositionAndVelocity(Vector3{0, 0, 0},
+                                                Vector3{1000000, 0, 0}),
+                Motion::FromPositionAndVelocity(Vector3{10, 0, 0},
+                                                Vector3{0, 0, 0}),
+            },
+            std::vector<Collider>{
+                Collider{1, 0.5},
+                Collider{1, 0.5},
+            },
+            std::vector<Glue>{
+                Glue{-1},
+                Glue{-1},
+            },
+            std::vector<Flags>{
+                Flags{false},
+                Flags{false},
             },
             LayerMatrix(std::vector<std::pair<uint32_t, uint32_t>>{
                 std::make_pair(1, 1)}),
@@ -114,35 +103,27 @@ INSTANTIATE_TEST_SUITE_P(
         TestCase{
             "both_fast_movers",
             1.0 / 60,
-            Frame{
-                std::vector<Position>{
-                    Position{Vector3{0, 0, 0}},
-                    Position{Vector3{10, 0, 0}},
-                },
-                std::vector<Mass>{},
-                std::vector<Acceleration>{},
-                std::vector<Motion>{
-                    Motion::FromPositionAndVelocity(Vector3{0, 0, 0},
-                                                    Vector3{1000000, 0, 0}),
-                    Motion::FromPositionAndVelocity(Vector3{10, 0, 0},
-                                                    Vector3{-1000000, 0, 0}),
-                },
-                std::vector<Collider>{
-                    Collider{1, 0.5},
-                    Collider{1, 0.5},
-                },
-                std::vector<Orbit>{
-                    Orbit{},
-                    Orbit{},
-                },
-                std::vector<Glue>{
-                    Glue{-1},
-                    Glue{-1},
-                },
-                std::vector<Destroyed>{
-                    Destroyed{false},
-                    Destroyed{false},
-                },
+            std::vector<Position>{
+                Position{Vector3{0, 0, 0}},
+                Position{Vector3{10, 0, 0}},
+            },
+            std::vector<Motion>{
+                Motion::FromPositionAndVelocity(Vector3{0, 0, 0},
+                                                Vector3{1000000, 0, 0}),
+                Motion::FromPositionAndVelocity(Vector3{10, 0, 0},
+                                                Vector3{-1000000, 0, 0}),
+            },
+            std::vector<Collider>{
+                Collider{1, 0.5},
+                Collider{1, 0.5},
+            },
+            std::vector<Glue>{
+                Glue{-1},
+                Glue{-1},
+            },
+            std::vector<Flags>{
+                Flags{false},
+                Flags{false},
             },
             LayerMatrix(std::vector<std::pair<uint32_t, uint32_t>>{
                 std::make_pair(1, 1)}),
@@ -153,35 +134,27 @@ INSTANTIATE_TEST_SUITE_P(
         TestCase{
             "slow_orthogonal_movers_collide",
             1.0,
-            Frame{
-                std::vector<Position>{
-                    Position{Vector3{-10, 0, 0}},
-                    Position{Vector3{0, -10, 0}},
-                },
-                std::vector<Mass>{},
-                std::vector<Acceleration>{},
-                std::vector<Motion>{
-                    Motion::FromPositionAndVelocity(Vector3{-10, 0, 0},
-                                                    Vector3{10, 0, 0}),
-                    Motion::FromPositionAndVelocity(Vector3{0, -10, 0},
-                                                    Vector3{0, 10, 0}),
-                },
-                std::vector<Collider>{
-                    Collider{1, 0.5},
-                    Collider{1, 0.5},
-                },
-                std::vector<Orbit>{
-                    Orbit{},
-                    Orbit{},
-                },
-                std::vector<Glue>{
-                    Glue{-1},
-                    Glue{-1},
-                },
-                std::vector<Destroyed>{
-                    Destroyed{false},
-                    Destroyed{false},
-                },
+            std::vector<Position>{
+                Position{Vector3{-10, 0, 0}},
+                Position{Vector3{0, -10, 0}},
+            },
+            std::vector<Motion>{
+                Motion::FromPositionAndVelocity(Vector3{-10, 0, 0},
+                                                Vector3{10, 0, 0}),
+                Motion::FromPositionAndVelocity(Vector3{0, -10, 0},
+                                                Vector3{0, 10, 0}),
+            },
+            std::vector<Collider>{
+                Collider{1, 0.5},
+                Collider{1, 0.5},
+            },
+            std::vector<Glue>{
+                Glue{-1},
+                Glue{-1},
+            },
+            std::vector<Flags>{
+                Flags{false},
+                Flags{false},
             },
             LayerMatrix(std::vector<std::pair<uint32_t, uint32_t>>{
                 std::make_pair(1, 1)}),
@@ -200,35 +173,27 @@ INSTANTIATE_TEST_SUITE_P(
         TestCase{
             "fast_orthogonal_movers_collide",
             1.0 / 60,
-            Frame{
-                std::vector<Position>{
-                    Position{Vector3{-10, 0, 0}},
-                    Position{Vector3{0, -10, 0}},
-                },
-                std::vector<Mass>{},
-                std::vector<Acceleration>{},
-                std::vector<Motion>{
-                    Motion::FromPositionAndVelocity(Vector3{-10, 0, 0},
-                                                    Vector3{10000000, 0, 0}),
-                    Motion::FromPositionAndVelocity(Vector3{0, -10, 0},
-                                                    Vector3{0, 10000000, 0}),
-                },
-                std::vector<Collider>{
-                    Collider{1, 0.5},
-                    Collider{1, 0.5},
-                },
-                std::vector<Orbit>{
-                    Orbit{},
-                    Orbit{},
-                },
-                std::vector<Glue>{
-                    Glue{-1},
-                    Glue{-1},
-                },
-                std::vector<Destroyed>{
-                    Destroyed{false},
-                    Destroyed{false},
-                },
+            std::vector<Position>{
+                Position{Vector3{-10, 0, 0}},
+                Position{Vector3{0, -10, 0}},
+            },
+            std::vector<Motion>{
+                Motion::FromPositionAndVelocity(Vector3{-10, 0, 0},
+                                                Vector3{10000000, 0, 0}),
+                Motion::FromPositionAndVelocity(Vector3{0, -10, 0},
+                                                Vector3{0, 10000000, 0}),
+            },
+            std::vector<Collider>{
+                Collider{1, 0.5},
+                Collider{1, 0.5},
+            },
+            std::vector<Glue>{
+                Glue{-1},
+                Glue{-1},
+            },
+            std::vector<Flags>{
+                Flags{false},
+                Flags{false},
             },
             LayerMatrix(std::vector<std::pair<uint32_t, uint32_t>>{
                 std::make_pair(1, 1)}),
@@ -239,35 +204,27 @@ INSTANTIATE_TEST_SUITE_P(
         TestCase{
             "destroyed_does_not_collide",
             1.0,
-            Frame{
-                std::vector<Position>{
-                    Position{Vector3{-10, 0, 0}},
-                    Position{Vector3{0, -10, 0}},
-                },
-                std::vector<Mass>{},
-                std::vector<Acceleration>{},
-                std::vector<Motion>{
-                    Motion::FromPositionAndVelocity(Vector3{-10, 0, 0},
-                                                    Vector3{10, 0, 0}),
-                    Motion::FromPositionAndVelocity(Vector3{0, -10, 0},
-                                                    Vector3{0, 10, 0}),
-                },
-                std::vector<Collider>{
-                    Collider{1, 0.5},
-                    Collider{1, 0.5},
-                },
-                std::vector<Orbit>{
-                    Orbit{},
-                    Orbit{},
-                },
-                std::vector<Glue>{
-                    Glue{-1},
-                    Glue{-1},
-                },
-                std::vector<Destroyed>{
-                    Destroyed{true},
-                    Destroyed{false},
-                },
+            std::vector<Position>{
+                Position{Vector3{-10, 0, 0}},
+                Position{Vector3{0, -10, 0}},
+            },
+            std::vector<Motion>{
+                Motion::FromPositionAndVelocity(Vector3{-10, 0, 0},
+                                                Vector3{10, 0, 0}),
+                Motion::FromPositionAndVelocity(Vector3{0, -10, 0},
+                                                Vector3{0, 10, 0}),
+            },
+            std::vector<Collider>{
+                Collider{1, 0.5},
+                Collider{1, 0.5},
+            },
+            std::vector<Glue>{
+                Glue{-1},
+                Glue{-1},
+            },
+            std::vector<Flags>{
+                Flags{true},
+                Flags{false},
             },
             LayerMatrix(std::vector<std::pair<uint32_t, uint32_t>>{
                 std::make_pair(1, 1)}),
@@ -276,35 +233,27 @@ INSTANTIATE_TEST_SUITE_P(
         TestCase{
             "layer_mask_no_collision",
             1.0,
-            Frame{
-                std::vector<Position>{
-                    Position{Vector3{-10, 0, 0}},
-                    Position{Vector3{0, -10, 0}},
-                },
-                std::vector<Mass>{},
-                std::vector<Acceleration>{},
-                std::vector<Motion>{
-                    Motion::FromPositionAndVelocity(Vector3{-10, 0, 0},
-                                                    Vector3{10, 0, 0}),
-                    Motion::FromPositionAndVelocity(Vector3{0, -10, 0},
-                                                    Vector3{0, 10, 0}),
-                },
-                std::vector<Collider>{
-                    Collider{1, 0.5},
-                    Collider{1, 0.5},
-                },
-                std::vector<Orbit>{
-                    Orbit{},
-                    Orbit{},
-                },
-                std::vector<Glue>{
-                    Glue{-1},
-                    Glue{-1},
-                },
-                std::vector<Destroyed>{
-                    Destroyed{false},
-                    Destroyed{false},
-                },
+            std::vector<Position>{
+                Position{Vector3{-10, 0, 0}},
+                Position{Vector3{0, -10, 0}},
+            },
+            std::vector<Motion>{
+                Motion::FromPositionAndVelocity(Vector3{-10, 0, 0},
+                                                Vector3{10, 0, 0}),
+                Motion::FromPositionAndVelocity(Vector3{0, -10, 0},
+                                                Vector3{0, 10, 0}),
+            },
+            std::vector<Collider>{
+                Collider{1, 0.5},
+                Collider{1, 0.5},
+            },
+            std::vector<Glue>{
+                Glue{-1},
+                Glue{-1},
+            },
+            std::vector<Flags>{
+                Flags{false},
+                Flags{false},
             },
             LayerMatrix(std::vector<std::pair<uint32_t, uint32_t>>{
                 std::make_pair(1, 2)}),

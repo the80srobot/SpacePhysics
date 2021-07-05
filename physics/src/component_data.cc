@@ -18,10 +18,6 @@ std::ostream &operator<<(std::ostream &os, const Position &position) {
   return os << "Position{" << position.value << "}";
 }
 
-std::ostream &operator<<(std::ostream &os, const Acceleration &acceleration) {
-  return os << "Acceleration{" << acceleration.value << "}";
-}
-
 std::ostream &operator<<(std::ostream &os, const Mass &mass) {
   return os << "Mass{/*rest=*/" << mass.rest << ", /*effective=*/"
             << mass.effective << "}";
@@ -49,8 +45,8 @@ std::ostream &operator<<(std::ostream &os, const Glue &glue) {
   return os << "Glue{/*parent_id=*/" << glue.parent_id << "}";
 }
 
-std::ostream &operator<<(std::ostream &os, const Destroyed &destroyed) {
-  return os << "Destroyed{" << destroyed.value << "}";
+std::ostream &operator<<(std::ostream &os, const Flags &flags) {
+  return os << "Flags{" << flags.value << "}";
 }
 
 std::ostream &operator<<(std::ostream &os, const Collision &collision) {

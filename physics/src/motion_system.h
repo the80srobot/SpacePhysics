@@ -23,18 +23,26 @@ class MotionSystem {
 
   explicit MotionSystem(Integrator integrator) : integrator_(integrator) {}
 
-  // Updates the Motion and Acceleration components, except where Glue, Orbit or
-  // Destroyed are in effect. Does not update Position (SecondPass does that).
-  // Separate systems update Motion for objects that are otherwise controlled:
-  // GlueSystem and OrbitSystem.
-  void FirstPass(float dt, const std::vector<Input> &input, Frame &frame);
+  // Updates the Motion and Acceleration components, except where kGlued,
+  // kOrbiting or kDestroyed are in effect. Does not update Position (SecondPass
+  // does that). Separate systems update Motion for objects that are otherwise
+  // controlled: GlueSystem and OrbitSystem.
+  void FirstPass(float dt, const std::vector<Input> &input,
+                 const std::vector<Position> &positions,
+                 const std::vector<Mass> &mass, const std::vector<Flags> &flags,
+                 std::vector<Motion> &motion);
 
   // Copies Motion.next_position to Position.value.
-  void SecondPass(Frame &frame);
+  void SecondPass(const std::vector<Motion> &motion,
+                  std::vector<Position> &positions);
 
-  static Vector3 GravityForceOn(const Frame &frame, int object_id);
+  static Vector3 GravityForceOn(const std::vector<Position> &positions,
+                                const std::vector<Mass> &mass,
+
+                                const std::vector<Flags> &flags, int object_id);
   static Vector3 GravityComponentsOn(
-      const Frame &frame, int object_id,
+      const std::vector<Position> &positions, const std::vector<Mass> &mass,
+      const std::vector<Flags> &flags, int object_id,
       std::vector<std::pair<int, Vector3>> &contributions);
 
  private:

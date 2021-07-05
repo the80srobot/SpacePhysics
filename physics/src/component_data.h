@@ -37,16 +37,6 @@ inline bool operator==(const Position &a, const Position &b) {
 
 std::ostream &operator<<(std::ostream &os, const Position &position);
 
-struct Acceleration {
-  Vector3 value;
-};
-
-inline bool operator==(const Acceleration &a, const Acceleration &b) {
-  return a.value == b.value;
-}
-
-std::ostream &operator<<(std::ostream &os, const Acceleration &acceleration);
-
 struct Mass {
   float rest;
   float effective;
@@ -61,10 +51,17 @@ std::ostream &operator<<(std::ostream &os, const Mass &mass);
 struct Motion {
   Vector3 velocity;
   Vector3 new_position;
+  Vector3 acceleration;
 
   inline static Motion FromPositionAndVelocity(Vector3 position,
-                                               Vector3 velocity) {
-    return Motion{velocity, position + velocity};
+                                               Vector3 velocity,
+                                               Vector3 acceleration = Vector3{
+                                                   0, 0, 0}) {
+    return Motion{
+        velocity,
+        position + velocity,
+        acceleration,
+    };
   }
 };
 
@@ -117,15 +114,19 @@ inline bool operator==(const Glue &a, const Glue &b) {
 
 std::ostream &operator<<(std::ostream &os, const Glue &glue);
 
-struct Destroyed {
-  bool value;
+struct Flags {
+  uint32_t value;
+
+  static constexpr uint32_t kDestroyed = 1;
+  static constexpr uint32_t kGlued = 1 << 1;
+  static constexpr uint32_t kOrbiting = 1 << 2;
 };
 
-inline bool operator==(const Destroyed &a, const Destroyed &b) {
+inline bool operator==(const Flags &a, const Flags &b) {
   return a.value == b.value;
 }
 
-std::ostream &operator<<(std::ostream &os, const Destroyed &destroyed);
+std::ostream &operator<<(std::ostream &os, const Flags &destroyed);
 
 struct Collision {
   int32_t first_body_id;
@@ -140,17 +141,6 @@ inline bool operator==(const Collision &a, const Collision &b) {
 }
 
 std::ostream &operator<<(std::ostream &os, const Collision &collision);
-
-struct Frame {
-  std::vector<Position> positions;
-  std::vector<Mass> mass;
-  std::vector<Acceleration> acceleration;
-  std::vector<Motion> motion;
-  std::vector<Collider> colliders;
-  std::vector<Orbit> orbits;
-  std::vector<Glue> glue;
-  std::vector<Destroyed> destroyed;
-};
 
 struct Input {
   int32_t object_id;
@@ -172,7 +162,7 @@ struct Event {
   union {
     Input input;
     Glue glue;
-    Destroyed destroyed;
+    Flags destroyed;
     Collision collision;
   };
 };

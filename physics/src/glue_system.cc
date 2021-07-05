@@ -12,20 +12,22 @@
 namespace vstr {
 namespace {
 
-void FollowParents(Frame &frame) {
-  const int count = frame.positions.size();
+void FollowParents(const std::vector<Position> &positions,const std::vector<Glue> &glue, std::vector<Motion> &motion) {
+  const int count = positions.size();
   for (int i = 0; i < count; ++i) {
-    const int parent_id = frame.glue[i].parent_id;
+    const int parent_id = glue[i].parent_id;
     if (parent_id < 0) continue;
-    frame.motion[i].velocity = frame.motion[parent_id].velocity;
-    frame.motion[i].new_position =
-        frame.motion[parent_id].new_position +
-        (frame.positions[i].value - frame.positions[parent_id].value);
+    motion[i].velocity = motion[parent_id].velocity;
+    motion[i].new_position = motion[parent_id].new_position +
+                             (positions[i].value - positions[parent_id].value);
   }
 }
 
 }  // namespace
 
-void GlueSystem::Step(Frame &frame) { FollowParents(frame); }
+void GlueSystem::Step(const std::vector<Position> &positions,const std::vector<Glue> &glue,
+                      std::vector<Motion> &motion) {
+  FollowParents(positions, glue, motion);
+}
 
 }  // namespace vstr
