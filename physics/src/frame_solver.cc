@@ -15,10 +15,11 @@ namespace {
 // Compute forces
 }
 
-void FrameSolver::Step(const float dt, Frame &frame,
+void FrameSolver::Step(const float dt, const int frame_no, Frame &frame,
                        std::vector<Event> &out_events) {
+  orbit_system_.Step(dt * frame_no, frame.positions, frame.orbits,
+                     frame.motion);
   // TODO: compute effective mass
-  // TODO: compute orbits
   motion_system_.FirstPass(dt, frame.input, frame.positions, frame.mass,
                            frame.flags, frame.motion);
   glue_system_.Step(frame.positions, frame.glue, frame.motion);

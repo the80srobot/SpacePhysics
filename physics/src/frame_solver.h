@@ -14,6 +14,7 @@
 #include "component_data.h"
 #include "glue_system.h"
 #include "motion_system.h"
+#include "orbit_system.h"
 
 namespace vstr {
 
@@ -33,12 +34,14 @@ struct Frame {
 
 class FrameSolver {
  public:
-  void Step(float dt, Frame &frame, std::vector<Event> &out_events);
+  void Step(float dt, int frame_no, Frame &frame,
+            std::vector<Event> &out_events);
 
  private:
   MotionSystem motion_system_;
   CollisionSystem collision_system_;
   GlueSystem glue_system_;
+  OrbitSystem orbit_system_;
   std::vector<Collision> collision_events_;
 };
 
