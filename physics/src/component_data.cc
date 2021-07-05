@@ -38,7 +38,7 @@ std::ostream &operator<<(std::ostream &os, const Orbit::Kepler &kepler) {
 
 std::ostream &operator<<(std::ostream &os, const Orbit &orbit) {
   return os << "Orbit{/*focus=*/" << orbit.focus << ", /*initial=*/"
-            << orbit.initial << ", /*delta=*/" << orbit.delta << "}";
+            << orbit.epoch << ", /*delta=*/" << orbit.delta << "}";
 }
 
 std::ostream &operator<<(std::ostream &os, const Glue &glue) {

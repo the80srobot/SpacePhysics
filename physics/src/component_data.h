@@ -126,7 +126,7 @@ struct Orbit {
   };
 
   Vector3 focus;
-  Kepler initial;
+  Kepler epoch;
   Kepler delta;
 };
 
@@ -140,10 +140,32 @@ inline bool operator==(const Orbit::Kepler &a, const Orbit::Kepler &b) {
          a.inclination_deg == b.inclination_deg;
 }
 
+inline Orbit::Kepler operator+(const Orbit::Kepler &a, const Orbit::Kepler &b) {
+  return Orbit::Kepler{
+      a.semi_major_axis + b.semi_major_axis,
+      a.eccentricity + b.eccentricity,
+      a.mean_longitude_deg + b.mean_longitude_deg,
+      a.longitude_of_perihelion_deg + b.longitude_of_perihelion_deg,
+      a.longitude_of_ascending_node_deg + b.longitude_of_ascending_node_deg,
+      a.inclination_deg + b.inclination_deg,
+  };
+}
+
+inline Orbit::Kepler operator*(const Orbit::Kepler &a, const float b) {
+  return Orbit::Kepler{
+      a.semi_major_axis * b,
+      a.eccentricity * b,
+      a.mean_longitude_deg * b,
+      a.longitude_of_perihelion_deg * b,
+      a.longitude_of_ascending_node_deg * b,
+      a.inclination_deg * b,
+  };
+}
+
 std::ostream &operator<<(std::ostream &os, const Orbit::Kepler &kepler);
 
 inline bool operator==(const Orbit &a, const Orbit &b) {
-  return a.initial == b.delta && a.focus == b.focus;
+  return a.epoch == b.delta && a.focus == b.focus;
 }
 
 std::ostream &operator<<(std::ostream &os, const Orbit &glue);
