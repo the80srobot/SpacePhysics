@@ -49,11 +49,11 @@ Vector3 ComputeAcceleration(
     const std::vector<Flags> &flags, const int id,
     std::vector<Input>::const_iterator &input_iter,
     const std::vector<Input>::const_iterator &input_end) {
-  while (input_iter != input_end && input_iter->object_id < id) {
+  while (input_iter != input_end && input_iter->id < id) {
     ++input_iter;
   }
   Vector3 result;
-  if (input_iter != input_end && input_iter->object_id == id) {
+  if (input_iter != input_end && input_iter->id == id) {
     result = input_iter->acceleration;
   } else {
     result = Vector3{0, 0, 0};
