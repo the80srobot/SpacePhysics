@@ -39,25 +39,29 @@ if(BUILD_TESTS)
 
     # MotionSystem
 
-    add_executable(
-        motion_system_test
-        src/motion_system_test.cc
+    add_library(
+        motion_system
         src/motion_system.cc
         src/vector3.cc
         src/component_data.cc
     )
 
+    add_executable(
+        motion_system_test
+        src/motion_system_test.cc
+    )
+
     target_link_libraries(
         motion_system_test
+        motion_system
         gtest_main
         gmock_main
     )
 
     # CollisionSystem
 
-    add_executable(
-        collision_system_test
-        src/collision_system_test.cc
+    add_library(
+        collision_system
         src/collision_system.cc
         src/layer_matrix.cc
         src/aabb.cc
@@ -65,8 +69,14 @@ if(BUILD_TESTS)
         src/component_data.cc
     )
 
+    add_executable(
+        collision_system_test
+        src/collision_system_test.cc
+    )
+
     target_link_libraries(
         collision_system_test
+        collision_system
         gtest_main
         gmock_main
     )
@@ -74,42 +84,47 @@ if(BUILD_TESTS)
     add_executable(
         collision_system_benchmark
         src/collision_system_benchmark.cc
-        src/layer_matrix.cc
-        src/collision_system.cc
-        src/aabb.cc
-        src/vector3.cc
-        src/component_data.cc
     )
 
     target_link_libraries(
         collision_system_benchmark
+        collision_system
         benchmark::benchmark
     )
 
     # IntervalTree
 
-    add_executable(
-        interval_tree_test
-        src/interval_tree_test.cc
+    add_library(
+        interval_tree
         src/interval_tree.cc
     )
 
     target_link_libraries(
-        interval_tree_test
-        gtest_main
-        gmock_main
+        interval_tree
         absl::status
         absl::statusor
     )
 
     add_executable(
+        interval_tree_test
+        src/interval_tree_test.cc
+    )
+
+    target_link_libraries(
+        interval_tree_test
+        interval_tree
+        gtest_main
+        gmock_main
+    )
+
+    add_executable(
         interval_tree_benchmark
         src/interval_tree_benchmark.cc
-        src/interval_tree.cc
     )
 
     target_link_libraries(
         interval_tree_benchmark
+        interval_tree
         benchmark::benchmark
         absl::status
         absl::statusor
@@ -117,16 +132,21 @@ if(BUILD_TESTS)
 
     # BVH
 
-    add_executable(
-        bvh_test
-        src/bvh_test.cc
+    add_library(
+        bvh
         src/bvh.cc
         src/aabb.cc
         src/vector3.cc
     )
 
+    add_executable(
+        bvh_test
+        src/bvh_test.cc
+    )
+
     target_link_libraries(
         bvh_test
+        bvh
         gtest_main
         gmock_main
     )
@@ -134,13 +154,11 @@ if(BUILD_TESTS)
     add_executable(
         bvh_benchmark
         src/bvh_benchmark.cc
-        src/bvh.cc
-        src/aabb.cc
-        src/vector3.cc
     )
 
     target_link_libraries(
         bvh_benchmark
+        bvh
         benchmark::benchmark
     )
 
