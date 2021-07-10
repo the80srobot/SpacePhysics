@@ -166,7 +166,7 @@ void CollisionSystem::Solve(const std::vector<Position> &positions,
                             const std::vector<Motion> &motion,
                             const std::vector<Flags> &flags,
                             const std::vector<Glue> &glue, const float dt,
-                            std::vector<Collision> &out_events) {
+                            std::vector<Event> &out_events) {
   cache_bvh_kvs_.clear();
   for (int id = 0; id < colliders.size(); ++id) {
     float radius = colliders[id].radius;
@@ -186,7 +186,7 @@ void CollisionSystem::Solve(const std::vector<Position> &positions,
       if (Eligible(colliders, flags, glue, matrix_, id, kv.value)) {
         float t = CollisionTime(positions, colliders, motion, dt, id, kv.value);
         if (t <= dt) {
-          out_events.push_back(Collision{id, kv.value, t});
+          out_events.push_back(Event(Collision{id, kv.value, t}));
         }
       }
     }

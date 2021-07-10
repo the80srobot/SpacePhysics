@@ -23,7 +23,7 @@ class CollisionSystem {
              const std::vector<Collider> &colliders,
              const std::vector<Motion> &motion, const std::vector<Flags> &flags,
              const std::vector<Glue> &glue, float dt,
-             std::vector<Collision> &out_events);
+             std::vector<Event> &out_events);
 
  private:
   using BVH = BoundingVolumeHierarchy<int>;

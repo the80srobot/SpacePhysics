@@ -21,7 +21,8 @@ class MotionSystem {
     kVelocityVerlet,
   };
 
-  explicit MotionSystem(Integrator integrator) : integrator_(integrator) {}
+  explicit MotionSystem(Integrator integrator = kVelocityVerlet)
+      : integrator_(integrator) {}
 
   // Updates the Motion and Acceleration components, except where kGlued,
   // kOrbiting or kDestroyed are in effect. Does not update Position (SecondPass

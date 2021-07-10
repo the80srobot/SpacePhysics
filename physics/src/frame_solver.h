@@ -28,21 +28,23 @@ struct Frame {
   std::vector<Flags> flags;
 
   // Optional components:
-  std::vector<Input> input;
   std::vector<Orbit> orbits;
 };
 
 class FrameSolver {
  public:
+  explicit FrameSolver(
+      LayerMatrix collision_matrix,
+      MotionSystem::Integrator integrator = MotionSystem::kVelocityVerlet)
+      : collision_system_(collision_matrix), motion_system_(integrator) {}
   void Step(float dt, int frame_no, Frame &frame,
-            std::vector<Event> &out_events);
+            const std::vector<Input> &input, std::vector<Event> &out_events);
 
  private:
   MotionSystem motion_system_;
   CollisionSystem collision_system_;
   GlueSystem glue_system_;
   OrbitSystem orbit_system_;
-  std::vector<Collision> collision_events_;
 };
 
 }  // namespace vstr

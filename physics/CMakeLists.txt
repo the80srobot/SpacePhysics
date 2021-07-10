@@ -37,13 +37,38 @@ if(BUILD_TESTS)
     )
     FetchContent_MakeAvailable(absl)
 
+    # Frame Solver
+
+    add_library(
+        frame_solver
+        src/frame_solver.cc
+    )
+
+    target_link_libraries(
+        frame_solver
+        motion_system
+        collision_system
+        glue_system
+    )
+
+    # Glue System
+
+    add_library(
+        glue_system
+        src/glue_system.cc
+    )
+
     # MotionSystem
 
     add_library(
         motion_system
         src/motion_system.cc
-        src/vector3.cc
-        src/component_data.cc
+    )
+
+    target_link_libraries(
+        motion_system
+        geometry
+        components
     )
 
     add_executable(
@@ -63,10 +88,12 @@ if(BUILD_TESTS)
     add_library(
         collision_system
         src/collision_system.cc
-        src/layer_matrix.cc
-        src/aabb.cc
-        src/vector3.cc
-        src/component_data.cc
+    )
+
+    target_link_libraries(
+        collision_system
+        bvh
+        components
     )
 
     add_executable(
@@ -135,8 +162,11 @@ if(BUILD_TESTS)
     add_library(
         bvh
         src/bvh.cc
-        src/aabb.cc
-        src/vector3.cc
+    )
+
+    target_link_libraries(
+        bvh
+        geometry
     )
 
     add_executable(
@@ -160,6 +190,22 @@ if(BUILD_TESTS)
         bvh_benchmark
         bvh
         benchmark::benchmark
+    )
+
+    # Definitions
+
+    add_library(
+        components
+        src/component_data.cc
+    )
+
+    # Geometry
+
+    add_library(
+        geometry
+        src/aabb.cc
+        src/vector3.cc
+        src/layer_matrix.cc
     )
 
     gtest_discover_tests(interval_tree_test)

@@ -22,14 +22,14 @@ struct TestCase {
   const std::vector<Glue> glue;
   const std::vector<Flags> flags;
   const LayerMatrix matrix;
-  const std::vector<Collision> expect;
+  const std::vector<Event> expect;
 };
 
 class CollisionSystemTest : public testing::TestWithParam<TestCase> {};
 
 TEST_P(CollisionSystemTest, CollisionSystemTest) {
   CollisionSystem system(GetParam().matrix);
-  std::vector<Collision> events;
+  std::vector<Event> events;
   system.Solve(GetParam().positions, GetParam().colliders, GetParam().motion,
                GetParam().flags, GetParam().glue, GetParam().deltaTime, events);
   EXPECT_THAT(events, testing::UnorderedElementsAreArray(GetParam().expect));
@@ -65,7 +65,7 @@ INSTANTIATE_TEST_SUITE_P(
             },
             LayerMatrix(std::vector<std::pair<uint32_t, uint32_t>>{
                 std::make_pair(1, 1)}),
-            std::vector<Collision>{
+            std::vector<Event>{
                 Collision{0, 1, 0.9},
             },
         },
@@ -96,7 +96,7 @@ INSTANTIATE_TEST_SUITE_P(
             },
             LayerMatrix(std::vector<std::pair<uint32_t, uint32_t>>{
                 std::make_pair(1, 1)}),
-            std::vector<Collision>{
+            std::vector<Event>{
                 Collision{0, 1, 0},
             },
         },
@@ -127,7 +127,7 @@ INSTANTIATE_TEST_SUITE_P(
             },
             LayerMatrix(std::vector<std::pair<uint32_t, uint32_t>>{
                 std::make_pair(1, 1)}),
-            std::vector<Collision>{
+            std::vector<Event>{
                 Collision{0, 1, 0},
             },
         },
@@ -158,7 +158,7 @@ INSTANTIATE_TEST_SUITE_P(
             },
             LayerMatrix(std::vector<std::pair<uint32_t, uint32_t>>{
                 std::make_pair(1, 1)}),
-            std::vector<Collision>{
+            std::vector<Event>{
                 // At the time of collision, the line connecting the two centers
                 // is the hypotenuse of an isosceles right triangle, with the
                 // third pivot at {0,0,0}. Both sides are therefore:
@@ -197,7 +197,7 @@ INSTANTIATE_TEST_SUITE_P(
             },
             LayerMatrix(std::vector<std::pair<uint32_t, uint32_t>>{
                 std::make_pair(1, 1)}),
-            std::vector<Collision>{
+            std::vector<Event>{
                 Collision{0, 1, 0},
             },
         },
@@ -228,7 +228,7 @@ INSTANTIATE_TEST_SUITE_P(
             },
             LayerMatrix(std::vector<std::pair<uint32_t, uint32_t>>{
                 std::make_pair(1, 1)}),
-            std::vector<Collision>{},
+            std::vector<Event>{},
         },
         TestCase{
             "layer_mask_no_collision",
@@ -257,7 +257,7 @@ INSTANTIATE_TEST_SUITE_P(
             },
             LayerMatrix(std::vector<std::pair<uint32_t, uint32_t>>{
                 std::make_pair(1, 2)}),
-            std::vector<Collision>{},
+            std::vector<Event>{},
         }),
     [](const testing::TestParamInfo<CollisionSystemTest::ParamType>& tc) {
       return tc.param.comment;

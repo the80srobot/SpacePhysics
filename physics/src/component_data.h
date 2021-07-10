@@ -199,6 +199,11 @@ std::ostream &operator<<(std::ostream &os, const Input &input);
 struct Event {
   enum Type { kInput, kGlue, kDestroyed, kCollision };
 
+  Event(Collision &&collision)
+      : type(kCollision),
+        id(collision.first_id),
+        collision(std::move(collision)) {}
+
   int32_t id;
   Type type;
 

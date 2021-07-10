@@ -16,16 +16,18 @@ namespace {
 }
 
 void FrameSolver::Step(const float dt, const int frame_no, Frame &frame,
+                       const std::vector<Input> &input,
                        std::vector<Event> &out_events) {
   orbit_system_.Step(dt * frame_no, frame.positions, frame.orbits,
                      frame.motion);
   // TODO: compute effective mass
-  motion_system_.FirstPass(dt, frame.input, frame.positions, frame.mass,
-                           frame.flags, frame.motion);
+  motion_system_.FirstPass(dt, input, frame.positions, frame.mass, frame.flags,
+                           frame.motion);
   glue_system_.Step(frame.positions, frame.glue, frame.motion);
+
   collision_system_.Solve(frame.positions, frame.colliders, frame.motion,
-                          frame.flags, frame.glue, dt, collision_events_);
-  // TODO: Apply the results of collisions?
+                          frame.flags, frame.glue, dt, out_events);
+  // TODO: Should collisions be processed here, first?
   motion_system_.SecondPass(frame.motion, frame.positions);
 }
 

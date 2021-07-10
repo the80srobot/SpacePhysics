@@ -70,7 +70,7 @@ void BM_CollisionSystem(benchmark::State& state) {
 
   CollisionSystem solver(LayerMatrix(
       std::vector<std::pair<uint32_t, uint32_t>>{std::make_pair(1, 1)}));
-  std::vector<Collision> buffer;
+  std::vector<Event> buffer;
   int collisions = 0;
   for (auto _ : state) {
     solver.Solve(frame.positions, frame.colliders, frame.motion, frame.flags,
