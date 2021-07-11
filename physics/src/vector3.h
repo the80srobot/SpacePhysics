@@ -16,9 +16,11 @@
 namespace vstr {
 
 struct Vector3 {
-  float x = 0;
-  float y = 0;
-  float z = 0;
+  float x;
+  float y;
+  float z;
+
+  static Vector3 Zero() { return Vector3{0, 0, 0}; }
 
   static inline float Dot(const Vector3 x, const Vector3 y) {
     return x.x * y.x + x.y * y.y + x.z * y.z;
@@ -52,6 +54,9 @@ struct Vector3 {
     return Vector3{std::min(a.x, b.x), std::min(a.y, b.y), std::min(a.z, b.z)};
   }
 };
+
+static_assert(std::is_standard_layout<Vector3>());
+static_assert(std::is_trivial<Vector3>());
 
 inline Vector3 operator-(const Vector3 v) { return Vector3{-v.x, -v.y, -v.z}; }
 

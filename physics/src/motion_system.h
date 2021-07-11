@@ -8,6 +8,8 @@
 #ifndef VSTR_MOTION_SYSTEM
 #define VSTR_MOTION_SYSTEM
 
+#include <absl/types/span.h>
+
 #include <iostream>
 
 #include "component_data.h"
@@ -28,7 +30,7 @@ class MotionSystem {
   // kOrbiting or kDestroyed are in effect. Does not update Position (SecondPass
   // does that). Separate systems update Motion for objects that are otherwise
   // controlled: GlueSystem and OrbitSystem.
-  void FirstPass(float dt, const std::vector<Input> &input,
+  void FirstPass(float dt, absl::Span<const Input> input,
                  const std::vector<Position> &positions,
                  const std::vector<Mass> &mass, const std::vector<Flags> &flags,
                  std::vector<Motion> &motion);
@@ -39,7 +41,6 @@ class MotionSystem {
 
   static Vector3 GravityForceOn(const std::vector<Position> &positions,
                                 const std::vector<Mass> &mass,
-
                                 const std::vector<Flags> &flags, int object_id);
   static Vector3 GravityComponentsOn(
       const std::vector<Position> &positions, const std::vector<Mass> &mass,

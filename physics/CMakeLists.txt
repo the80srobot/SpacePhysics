@@ -37,6 +37,18 @@ if(BUILD_TESTS)
     )
     FetchContent_MakeAvailable(absl)
 
+    # Foreign Function Interface
+
+    add_library(
+        vstr_c_api
+        src/c_api.cc
+    )
+
+    target_link_libraries(
+        vstr_c_api
+        frame_solver
+    )
+
     # Frame Solver
 
     add_library(
@@ -69,6 +81,7 @@ if(BUILD_TESTS)
         motion_system
         geometry
         components
+        absl::span
     )
 
     add_executable(

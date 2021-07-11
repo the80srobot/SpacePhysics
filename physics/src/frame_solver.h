@@ -8,6 +8,8 @@
 #ifndef VSTR_FRAME_SOLVER
 #define VSTR_FRAME_SOLVER
 
+#include <absl/types/span.h>
+
 #include <iostream>
 
 #include "collision_system.h"
@@ -31,14 +33,16 @@ struct Frame {
   std::vector<Orbit> orbits;
 };
 
+static_assert(std::is_standard_layout<Frame>());
+
 class FrameSolver {
  public:
   explicit FrameSolver(
       LayerMatrix collision_matrix,
       MotionSystem::Integrator integrator = MotionSystem::kVelocityVerlet)
       : collision_system_(collision_matrix), motion_system_(integrator) {}
-  void Step(float dt, int frame_no, Frame &frame,
-            const std::vector<Input> &input, std::vector<Event> &out_events);
+  void Step(float dt, int frame_no, Frame &frame, absl::Span<const Input> input,
+            std::vector<Event> &out_events);
 
  private:
   MotionSystem motion_system_;

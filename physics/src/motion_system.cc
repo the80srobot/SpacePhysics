@@ -47,8 +47,8 @@ Vector3 GravityAt(const std::vector<Position> &positions,
 Vector3 ComputeAcceleration(
     const std::vector<Position> &positions, const std::vector<Mass> &mass,
     const std::vector<Flags> &flags, const int id,
-    std::vector<Input>::const_iterator &input_iter,
-    const std::vector<Input>::const_iterator &input_end) {
+    absl::Span<Input>::const_iterator &input_iter,
+    const absl::Span<Input>::const_iterator &input_end) {
   while (input_iter != input_end && input_iter->id < id) {
     ++input_iter;
   }
@@ -62,7 +62,7 @@ Vector3 ComputeAcceleration(
   return result + GravityAt(positions, mass, flags, id, nullptr);
 }
 
-void IntegrateFirstOrderEuler(const float dt, const std::vector<Input> &input,
+void IntegrateFirstOrderEuler(const float dt, absl::Span<const Input> input,
                               const std::vector<Position> &positions,
                               const std::vector<Mass> &mass,
                               const std::vector<Flags> &flags,
@@ -81,7 +81,7 @@ void IntegrateFirstOrderEuler(const float dt, const std::vector<Input> &input,
   }
 }
 
-void IntegrateVelocityVerlet(const float dt, const std::vector<Input> &input,
+void IntegrateVelocityVerlet(const float dt, absl::Span<const Input> input,
                              const std::vector<Position> &positions,
                              const std::vector<Mass> &mass,
                              const std::vector<Flags> &flags,
@@ -106,7 +106,7 @@ void IntegrateVelocityVerlet(const float dt, const std::vector<Input> &input,
 
 }  // namespace
 
-void MotionSystem::FirstPass(float dt, const std::vector<Input> &input,
+void MotionSystem::FirstPass(float dt, absl::Span<const Input> input,
                              const std::vector<Position> &positions,
                              const std::vector<Mass> &mass,
                              const std::vector<Flags> &flags,

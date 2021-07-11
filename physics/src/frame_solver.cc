@@ -16,7 +16,7 @@ namespace {
 }
 
 void FrameSolver::Step(const float dt, const int frame_no, Frame &frame,
-                       const std::vector<Input> &input,
+                       absl::Span<const Input> input,
                        std::vector<Event> &out_events) {
   orbit_system_.Step(dt * frame_no, frame.positions, frame.orbits,
                      frame.motion);
