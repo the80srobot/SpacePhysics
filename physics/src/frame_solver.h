@@ -12,11 +12,11 @@
 
 #include <iostream>
 
-#include "collision_system.h"
-#include "component_data.h"
-#include "glue_system.h"
-#include "motion_system.h"
-#include "orbit_system.h"
+#include "systems/collision_system.h"
+#include "systems/component_data.h"
+#include "systems/glue_system.h"
+#include "systems/motion_system.h"
+#include "systems/orbit_system.h"
 
 namespace vstr {
 

@@ -12,7 +12,7 @@
 #ifndef NDEBUG
 #include <sstream>
 #endif
-#include "aabb.h"
+#include "geometry/aabb.h"
 
 namespace vstr {
 

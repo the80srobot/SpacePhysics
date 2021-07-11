@@ -9,9 +9,9 @@
 
 #include <limits>
 
-#include "aabb.h"
-#include "layer_matrix.h"
-#include "vector3.h"
+#include "geometry/aabb.h"
+#include "geometry/layer_matrix.h"
+#include "geometry/vector3.h"
 
 namespace vstr {
 

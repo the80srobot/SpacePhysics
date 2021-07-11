@@ -9,7 +9,7 @@
 
 #include <random>
 
-#include "bvh.h"
+#include "geometry/bvh.h"
 
 namespace {
 

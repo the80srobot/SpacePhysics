@@ -7,7 +7,7 @@
 
 #include "frame_solver.h"
 
-#include "vector3.h"
+#include "geometry/vector3.h"
 
 namespace vstr {
 namespace {

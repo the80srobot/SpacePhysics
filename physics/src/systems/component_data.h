@@ -11,8 +11,8 @@
 #include <iostream>
 #include <vector>
 
-#include "aabb.h"
-#include "vector3.h"
+#include "geometry/aabb.h"
+#include "geometry/vector3.h"
 
 namespace vstr {
 

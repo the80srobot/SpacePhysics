@@ -5,7 +5,7 @@
 //
 // Author(s): Adam Sindelar <adam@wowsignal.io>
 
-#include "bvh.h"
+#include "geometry/bvh.h"
 
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>

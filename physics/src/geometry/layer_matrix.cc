@@ -5,7 +5,7 @@
 //
 // Author(s): Adam Sindelar <adam@wowsignal.io>
 
-#include "layer_matrix.h"
+#include "geometry/layer_matrix.h"
 
 #include <iomanip>
 #include <vector>

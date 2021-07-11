@@ -8,10 +8,10 @@
 #ifndef VSTR_C_API
 #define VSTR_C_API
 
-#include "component_data.h"
 #include "frame_solver.h"
-#include "layer_matrix.h"
-#include "vector3.h"
+#include "geometry/layer_matrix.h"
+#include "geometry/vector3.h"
+#include "systems/component_data.h"
 
 #if defined(__APPLE__) || defined(__linux__) || defined(ANDROID)
 #define EXPORT __attribute__((visibility("default")))
@@ -30,7 +30,7 @@ EXPORT void DestroyFrame(Frame *frame);
 using EventBuffer = std::vector<Event>;
 
 EXPORT EventBuffer *CreateEventBuffer();
-EXPORT Event *EventBufferGetEvents(EventBuffer *event_buffer, int*count);
+EXPORT Event *EventBufferGetEvents(EventBuffer *event_buffer, int *count);
 EXPORT void DestroyEventBuffer(EventBuffer *event_buffer);
 
 EXPORT LayerMatrix *CreateLayerMatrix();

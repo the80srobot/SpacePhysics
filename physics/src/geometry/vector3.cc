@@ -7,7 +7,7 @@
 //
 // This file provides basic 3D vector math.
 
-#include "vector3.h"
+#include "geometry/vector3.h"
 
 namespace vstr {
 

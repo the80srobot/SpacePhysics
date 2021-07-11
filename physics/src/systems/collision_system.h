@@ -10,9 +10,9 @@
 
 #include <iostream>
 
-#include "bvh.h"
 #include "component_data.h"
-#include "layer_matrix.h"
+#include "geometry/bvh.h"
+#include "geometry/layer_matrix.h"
 
 namespace vstr {
 

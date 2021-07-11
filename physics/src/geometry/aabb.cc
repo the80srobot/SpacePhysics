@@ -5,7 +5,7 @@
 //
 // Author(s): Adam Sindelar <adam@wowsignal.io>
 
-#include "aabb.h"
+#include "geometry/aabb.h"
 
 namespace vstr {
 
