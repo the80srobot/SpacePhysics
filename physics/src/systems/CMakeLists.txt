@@ -12,6 +12,25 @@ add_library(
     glue_system.cc
 )
 
+target_link_libraries(
+    glue_system
+    geometry
+    components
+)
+
+# Orbit System
+
+add_library(
+    orbit_system
+    orbit_system.cc
+)
+
+target_link_libraries(
+    orbit_system
+    geometry
+    components
+)
+
 # Motion System
 
 add_library(
