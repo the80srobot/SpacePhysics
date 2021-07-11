@@ -36,3 +36,6 @@
 
 # CMake build artefacts
 build
+
+# macOS garbage
+.DS_Store
