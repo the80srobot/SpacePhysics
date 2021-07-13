@@ -7,7 +7,18 @@ extern "C" {
 
 Frame *CreateFrame() { return new Frame(); }
 
-EXPORT Position *FrameGetPositions(Frame *frame, int *count) {
+int FrameCoreCount(Frame *frame) { return frame->positions.size(); }
+
+void FrameResize(Frame *frame, int count) {
+  frame->positions.resize(count);
+  frame->mass.resize(count);
+  frame->motion.resize(count);
+  frame->colliders.resize(count);
+  frame->glue.resize(count);
+  frame->flags.resize(count);
+}
+
+Position *FrameGetPositions(Frame *frame, int *count) {
   *count = frame->positions.size();
   return frame->positions.data();
 }
@@ -16,7 +27,7 @@ void DestroyFrame(Frame *frame) { delete frame; }
 
 EventBuffer *CreateEventBuffer() { return new EventBuffer(); }
 
-EXPORT Event *EventBufferGetEvents(EventBuffer *event_buffer, int *count) {
+Event *EventBufferGetEvents(EventBuffer *event_buffer, int *count) {
   *count = event_buffer->size();
   return event_buffer->data();
 }

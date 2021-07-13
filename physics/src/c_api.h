@@ -24,7 +24,10 @@ namespace vstr {
 extern "C" {
 
 EXPORT Frame *CreateFrame();
+EXPORT int FrameCoreCount(Frame *frame);
+EXPORT void FrameResize(Frame *frame, int count);
 EXPORT Position *FrameGetPositions(Frame *frame, int *count);
+EXPORT Position *FrameSetPosition(Frame *frame, int idx, Position *position);
 EXPORT void DestroyFrame(Frame *frame);
 
 using EventBuffer = std::vector<Event>;
