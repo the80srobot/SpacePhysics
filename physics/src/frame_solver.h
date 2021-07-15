@@ -12,6 +12,7 @@
 
 #include <iostream>
 
+#include "frame.h"
 #include "systems/collision_system.h"
 #include "systems/component_data.h"
 #include "systems/glue_system.h"
@@ -19,21 +20,6 @@
 #include "systems/orbit_system.h"
 
 namespace vstr {
-
-struct Frame {
-  // Core components:
-  std::vector<Position> positions;
-  std::vector<Mass> mass;
-  std::vector<Motion> motion;
-  std::vector<Collider> colliders;
-  std::vector<Glue> glue;
-  std::vector<Flags> flags;
-
-  // Optional components:
-  std::vector<Orbit> orbits;
-};
-
-static_assert(std::is_standard_layout<Frame>());
 
 class FrameSolver {
  public:
