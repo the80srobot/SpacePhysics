@@ -160,12 +160,41 @@ INSTANTIATE_TEST_SUITE_P(
             },
         },
         OverlapTestCase{
-            "intervals_are_half_open",
+            "intervals_are_half_open_0",
             kTreeMany,
             Interval(0, 1),
             std::vector<const IntTree::KV>{
+                // Intervals starting at 1 are excluded.
                 IntTree::KV(Interval(0, 3), 0),
                 IntTree::KV(Interval(0, 10), 3),
+            },
+        },
+        OverlapTestCase{
+            "intervals_are_half_open_1",
+            kTreeMany,
+            Interval(3, 4),
+            std::vector<const IntTree::KV>{
+                // [0, 3) is excluded
+                IntTree::KV(Interval(0, 10), 3),
+                IntTree::KV(Interval{1, 4}, 2),
+                IntTree::KV(Interval{3, 8}, 4),
+                IntTree::KV(Interval{3, 8}, 5),
+                IntTree::KV(Interval{3, 8}, 6),
+                IntTree::KV(Interval{3, 8}, 7),
+            },
+        },
+        OverlapTestCase{
+            "intervals_are_half_open_2",
+            kTreeMany,
+            3,  // This should be the same as [3, 4)
+            std::vector<const IntTree::KV>{
+                // [0, 3) is excluded
+                IntTree::KV(Interval(0, 10), 3),
+                IntTree::KV(Interval{1, 4}, 2),
+                IntTree::KV(Interval{3, 8}, 4),
+                IntTree::KV(Interval{3, 8}, 5),
+                IntTree::KV(Interval{3, 8}, 6),
+                IntTree::KV(Interval{3, 8}, 7),
             },
         },
         OverlapTestCase{
