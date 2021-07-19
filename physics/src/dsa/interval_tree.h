@@ -17,10 +17,20 @@
 
 namespace vstr {
 
+// Half-open interval [low, high) – up to, but excluding the high point.
 struct Interval {
   Interval(int low, int high) : low(low), high(high){};
   int low;
   int high;
+
+  inline bool Overlap(const Interval other) const {
+    // [0, 1) x [1, 2) => false
+    // [0, 2) x [1, 2) => true
+    // [0, 0) x [0, 0) => false
+    return low < other.high && other.low < high;
+  }
+
+  inline bool Empty() const { return low >= high; }
 };
 
 bool operator<(const Interval& x, const Interval& y);
@@ -95,6 +105,10 @@ class IntervalTree {
 
   void Overlap(const int point, std::vector<KV>& hits) const {
     return SearchPoint(root_, point, hits);
+  }
+
+  void Overlap(const Interval interval, std::vector<KV>& hits) const {
+    return Search(root_, interval, hits);
   }
 
   bool Delete(const KV& interval_value) {
@@ -193,6 +207,22 @@ class IntervalTree {
 
     if (point >= nodes_[node].interval.low) {
       SearchPoint(nodes_[node].children[kRight], point, hits);
+    }
+  }
+
+  void Search(int node, const Interval interval, std::vector<KV>& hits) const {
+    if (node == kNil) return;
+
+    if (interval.low > nodes_[node].max) return;
+
+    Search(nodes_[node].children[kLeft], interval, hits);
+
+    if (interval.Overlap(nodes_[node].interval)) {
+      hits.push_back(KV(nodes_[node].interval, nodes_[node].value));
+    }
+
+    if (interval.high >= nodes_[node].interval.low) {
+      Search(nodes_[node].children[kRight], interval, hits);
     }
   }
 

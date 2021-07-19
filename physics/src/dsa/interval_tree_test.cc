@@ -10,7 +10,10 @@
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 
+#include <ostream>
 #include <random>
+#include <sstream>
+#include <string>
 
 namespace vstr {
 namespace {
@@ -57,16 +60,16 @@ const std::vector<const IntTree::KV> kTreeMany{
     IntTree::KV(Interval{1, 2}, 9),
 };
 
-struct PointQueryTestCase {
+struct OverlapTestCase {
   const std::string comment;
   const std::vector<const IntTree::KV> data;
-  const int point;
+  const std::variant<int, Interval> query;
   const std::vector<const IntTree::KV> expect;
 };
 
-class PointQueryTest : public testing::TestWithParam<PointQueryTestCase> {};
+class OverlapTest : public testing::TestWithParam<OverlapTestCase> {};
 
-TEST_P(PointQueryTest, PointQueryTest) {
+TEST_P(OverlapTest, OverlapTest) {
   IntTree tree;
   for (auto kv : GetParam().data) {
     tree.Insert(kv.first, kv.second);
@@ -75,22 +78,35 @@ TEST_P(PointQueryTest, PointQueryTest) {
     EXPECT_TRUE(status.ok()) << status.message();
   }
   std::vector<IntTree::KV> results;
-  tree.Overlap(GetParam().point, results);
-  EXPECT_THAT(results, testing::ElementsAreArray(GetParam().expect))
-      << "called tree.Overlap(" << GetParam().point << ", #vector_reference). "
+  std::string readable_param;
+  try {
+    const int point = std::get<int>(GetParam().query);
+    readable_param = std::to_string(point);
+    tree.Overlap(point, results);
+  } catch (const std::bad_variant_access&) {
+    const Interval interval = std::get<Interval>(GetParam().query);
+    std::stringstream os;
+    os << interval;
+    readable_param = os.str();
+    tree.Overlap(interval, results);
+  }
+
+  EXPECT_THAT(results,
+              testing::WhenSorted(testing::ElementsAreArray(GetParam().expect)))
+      << "called tree.Overlap(" << readable_param << ", #vector_reference). "
       << "Tree printout follows: " << tree;
 }
 
 INSTANTIATE_TEST_SUITE_P(
-    PointQueryTest, PointQueryTest,
+    OverlapTest, OverlapTest,
     testing::Values(
-        PointQueryTestCase{
+        OverlapTestCase{
             "empty",
             std::vector<const IntTree::KV>{},
             0,
             std::vector<const IntTree::KV>{},
         },
-        PointQueryTestCase{
+        OverlapTestCase{
             "one_element_hit",
             kTreeOne,
             0,
@@ -98,13 +114,13 @@ INSTANTIATE_TEST_SUITE_P(
                 IntTree::KV(Interval(0, 1), 1),
             },
         },
-        PointQueryTestCase{
+        OverlapTestCase{
             "one_element_miss",
             kTreeOne,
             1,
             std::vector<const IntTree::KV>{},
         },
-        PointQueryTestCase{
+        OverlapTestCase{
             "two_element_hit_1",
             kTreeTwo,
             0,
@@ -112,7 +128,7 @@ INSTANTIATE_TEST_SUITE_P(
                 IntTree::KV(Interval(0, 1), 1),
             },
         },
-        PointQueryTestCase{
+        OverlapTestCase{
             "two_element_hit_2",
             kTreeTwo,
             1,
@@ -120,13 +136,13 @@ INSTANTIATE_TEST_SUITE_P(
                 IntTree::KV(Interval(1, 2), 2),
             },
         },
-        PointQueryTestCase{
+        OverlapTestCase{
             "two_element_miss",
             kTreeTwo,
             2,
             std::vector<const IntTree::KV>{},
         },
-        PointQueryTestCase{
+        OverlapTestCase{
             "duplicates",
             kTreeDuplicate,
             1,
@@ -134,7 +150,7 @@ INSTANTIATE_TEST_SUITE_P(
                 IntTree::KV(Interval(1, 2), 2),
             },
         },
-        PointQueryTestCase{
+        OverlapTestCase{
             "tree_many_hits_1",
             kTreeMany,
             0,
@@ -142,8 +158,51 @@ INSTANTIATE_TEST_SUITE_P(
                 IntTree::KV(Interval(0, 3), 0),
                 IntTree::KV(Interval(0, 10), 3),
             },
+        },
+        OverlapTestCase{
+            "intervals_are_half_open",
+            kTreeMany,
+            Interval(0, 1),
+            std::vector<const IntTree::KV>{
+                IntTree::KV(Interval(0, 3), 0),
+                IntTree::KV(Interval(0, 10), 3),
+            },
+        },
+        OverlapTestCase{
+            "interval_match_all",
+            kTreeMany,
+            Interval(-100, 100),
+            std::vector<const IntTree::KV>{
+                IntTree::KV(Interval{0, 3}, 0),
+                IntTree::KV(Interval{0, 10}, 3),
+                IntTree::KV(Interval{1, 2}, 9),
+                IntTree::KV(Interval{1, 4}, 2),
+                IntTree::KV(Interval{2, 3}, 1),
+                IntTree::KV(Interval{3, 8}, 4),
+                IntTree::KV(Interval{3, 8}, 5),
+                IntTree::KV(Interval{3, 8}, 6),
+                IntTree::KV(Interval{3, 8}, 7),
+            },
+        },
+        OverlapTestCase{
+            "interval_mismatch_right",
+            kTreeMany,
+            Interval(100, 110),
+            std::vector<const IntTree::KV>{},
+        },
+        OverlapTestCase{
+            "interval_mismatch_left",
+            kTreeMany,
+            Interval(-110, -10),
+            std::vector<const IntTree::KV>{},
+        },
+        OverlapTestCase{
+            "zero_interval",
+            kTreeMany,
+            Interval(0, 0),
+            std::vector<const IntTree::KV>{},
         }),
-    [](const testing::TestParamInfo<PointQueryTest::ParamType>& tc) {
+    [](const testing::TestParamInfo<OverlapTest::ParamType>& tc) {
       return tc.param.comment;
     });
 
