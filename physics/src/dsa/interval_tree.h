@@ -108,10 +108,18 @@ class IntervalTree {
   }
 
   void Overlap(const int point, std::vector<KV>& hits) const {
-    return SearchPoint(root_, point, hits);
+    return Search(root_, Interval{point, point + 1}, hits);
   }
 
   void Overlap(const Interval interval, std::vector<KV>& hits) const {
+    return Search(root_, interval, hits);
+  }
+
+  void Overlap(const int point, std::vector<ValueType>& hits) const {
+    return Search(root_, Interval{point, point + 1}, hits);
+  }
+
+  void Overlap(const Interval interval, std::vector<ValueType>& hits) const {
     return Search(root_, interval, hits);
   }
 
@@ -193,27 +201,6 @@ class IntervalTree {
               << " value=" << node.value;
   }
 
-  void SearchPoint(int node, const int point, std::vector<KV>& hits) const {
-    if (node == kNil) {
-      return;
-    }
-
-    if (point > nodes_[node].max) {
-      return;
-    }
-
-    SearchPoint(nodes_[node].children[kLeft], point, hits);
-
-    if (nodes_[node].interval.low <= point &&
-        nodes_[node].interval.high > point) {
-      hits.push_back(std::make_pair(nodes_[node].interval, nodes_[node].value));
-    }
-
-    if (point >= nodes_[node].interval.low) {
-      SearchPoint(nodes_[node].children[kRight], point, hits);
-    }
-  }
-
   void Search(int node, const Interval interval, std::vector<KV>& hits) const {
     if (node == kNil) return;
 
@@ -223,6 +210,23 @@ class IntervalTree {
 
     if (interval.Overlap(nodes_[node].interval)) {
       hits.push_back(KV(nodes_[node].interval, nodes_[node].value));
+    }
+
+    if (interval.high >= nodes_[node].interval.low) {
+      Search(nodes_[node].children[kRight], interval, hits);
+    }
+  }
+
+  void Search(int node, const Interval interval,
+              std::vector<ValueType>& hits) const {
+    if (node == kNil) return;
+
+    if (interval.low > nodes_[node].max) return;
+
+    Search(nodes_[node].children[kLeft], interval, hits);
+
+    if (interval.Overlap(nodes_[node].interval)) {
+      hits.push_back(nodes_[node].value);
     }
 
     if (interval.high >= nodes_[node].interval.low) {
