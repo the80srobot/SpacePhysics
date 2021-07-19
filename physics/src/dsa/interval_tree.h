@@ -92,6 +92,71 @@ class IntervalTree {
   using ValueType = T;
   using KV = std::pair<Interval, ValueType>;
 
+  // DFS iterator that filters by interval overlap.
+  class Iterator {
+   public:
+    using iterator_category = std::input_iterator_tag;
+    using difference_type = std::ptrdiff_t;
+    using value_type = KV;
+    using pointer = const KV*;
+    using reference = const KV&;
+
+    reference operator*() const { return tree_->nodes_[node_].kv; }
+    pointer operator->() { return &tree_->nodes_[node_].kv; }
+
+    Iterator& operator++() {
+      node_ = kNil;
+      while (!stack_.empty()) {
+        const int node = stack_.back();
+        stack_.pop_back();
+        if (node == kNil) continue;
+        if (interval_.low > tree_->nodes_[node].max) continue;
+
+        stack_.push_back(tree_->nodes_[node].children[kLeft]);
+        if (interval_.high >= tree_->nodes_[node].interval().low) {
+          stack_.push_back(tree_->nodes_[node].children[kRight]);
+        }
+
+        // A hit: pause the iterator here.
+        if (interval_.Overlap(tree_->nodes_[node].interval())) {
+          node_ = node;
+          break;
+        }
+      }
+      return *this;
+    }
+
+    Iterator operator++(int) {
+      auto tmp = *this;
+      ++(*this);
+      return tmp;
+    }
+
+    friend bool operator==(const Iterator& a, const Iterator& b) {
+      return a.tree_ == b.tree_ && a.node_ == b.node_;
+    }
+
+    friend bool operator!=(const Iterator& a, const Iterator& b) {
+      return a.tree_ != b.tree_ || a.node_ != b.node_;
+    }
+
+   private:
+    Iterator(const IntervalTree* tree, int node, Interval interval)
+        : tree_(tree), node_(kNil), interval_(interval), stack_{node} {
+      ++(*this);
+    }
+
+    Iterator(const IntervalTree* tree, int node)
+        : tree_(tree), node_(node), interval_(0, -1), stack_{} {}
+
+    const IntervalTree* tree_;
+    int node_;
+    const Interval interval_;
+    std::vector<int> stack_;
+
+    friend class IntervalTree;  // To call the constructor.
+  };
+
   int Count() const { return nodes_.size(); }
 
   // Returns the maximum point held in the tree. Must only be called if Count is
@@ -108,25 +173,37 @@ class IntervalTree {
   }
 
   void Overlap(const int point, std::vector<KV>& hits) const {
-    return Search(root_, Interval{point, point + 1}, hits);
+    Overlap(Interval{point, point + 1}, hits);
   }
 
   void Overlap(const Interval interval, std::vector<KV>& hits) const {
-    return Search(root_, interval, hits);
+    auto end = End();
+    for (auto it = Overlap(interval); it != end; ++it) {
+      hits.push_back(*it);
+    }
   }
 
   void Overlap(const int point, std::vector<ValueType>& hits) const {
-    return Search(root_, Interval{point, point + 1}, hits);
+    Overlap(Interval{point, point + 1}, hits);
   }
 
   void Overlap(const Interval interval, std::vector<ValueType>& hits) const {
-    return Search(root_, interval, hits);
+    auto end = End();
+    for (auto it = Overlap(interval); it != end; ++it) {
+      hits.push_back(it->second);
+    }
   }
+
+  Iterator Overlap(const Interval interval) const {
+    return Iterator(this, root_, interval);
+  }
+
+  Iterator End() const { return Iterator(this, kNil); }
 
   bool Delete(const KV& interval_value) {
     int n = root_;
     while (n != kNil) {
-      KV node_iv(nodes_[n].interval, nodes_[n].value);
+      KV node_iv = nodes_[n].kv;
       if (interval_value < node_iv) {
         n = nodes_[n].children[kLeft];
       } else if (interval_value > node_iv) {
@@ -181,57 +258,25 @@ class IntervalTree {
         : color(kRed),
           parent(kNil),
           children{kNil, kNil},
-          interval(interval),
-          max(interval.high),
-          value(value) {}
+          kv(interval, value),
+          max(interval.high) {}
 
     int parent;
     int children[2];
     Color color;
-    Interval interval;
+    KV kv;
     int max;
-    T value;
+
+    const inline Interval& interval() const { return kv.first; }
+    const inline T& value() const { return kv.second; }
   };
 
   friend std::ostream& operator<<(std::ostream& os,
                                   const IntervalTree<T>::Node& node) {
     return os << "parent=" << node.parent << " left=" << node.children[kLeft]
               << " right=" << node.children[kRight] << " color=" << node.color
-              << " max=" << node.max << " interval=" << node.interval
-              << " value=" << node.value;
-  }
-
-  void Search(int node, const Interval interval, std::vector<KV>& hits) const {
-    if (node == kNil) return;
-
-    if (interval.low > nodes_[node].max) return;
-
-    Search(nodes_[node].children[kLeft], interval, hits);
-
-    if (interval.Overlap(nodes_[node].interval)) {
-      hits.push_back(KV(nodes_[node].interval, nodes_[node].value));
-    }
-
-    if (interval.high >= nodes_[node].interval.low) {
-      Search(nodes_[node].children[kRight], interval, hits);
-    }
-  }
-
-  void Search(int node, const Interval interval,
-              std::vector<ValueType>& hits) const {
-    if (node == kNil) return;
-
-    if (interval.low > nodes_[node].max) return;
-
-    Search(nodes_[node].children[kLeft], interval, hits);
-
-    if (interval.Overlap(nodes_[node].interval)) {
-      hits.push_back(nodes_[node].value);
-    }
-
-    if (interval.high >= nodes_[node].interval.low) {
-      Search(nodes_[node].children[kRight], interval, hits);
-    }
+              << " max=" << node.max << " interval=" << node.interval()
+              << " value=" << node.value();
   }
 
   void FixInsert(int n) {
@@ -338,7 +383,7 @@ class IntervalTree {
     KV interval_value(interval, value);
     for (;;) {
       Direction direction;
-      KV node_iv(nodes_[p].interval, nodes_[p].value);
+      KV node_iv = nodes_[p].kv;
       if (interval_value < node_iv) {
         direction = kLeft;
       } else if (interval_value > node_iv) {
@@ -366,8 +411,7 @@ class IntervalTree {
 
     if (l != kNil && r != kNil) {
       int successor = MinNode(r);
-      nodes_[n].interval = nodes_[successor].interval;
-      nodes_[n].value = nodes_[successor].value;
+      nodes_[n].kv = nodes_[successor].kv;
       FixBranchMax(n);
       return DeleteNode(successor);
     } else if (l != kNil) {
@@ -393,7 +437,7 @@ class IntervalTree {
       int p = nodes_[n].parent;
       // Pretend the node is already deleted as we fix up the max values in its
       // ancestor nodes.
-      nodes_[n].max = nodes_[p].interval.low;
+      nodes_[n].max = nodes_[p].interval().low;
       FixBranchMax(p);
       if (nodes_[n].color == kBlack) {
         FixDoubleBlackNode(n);
@@ -579,14 +623,14 @@ class IntervalTree {
     int r = nodes_[n].children[kRight];
     if (l == kNil) {
       if (r == kNil) {
-        nodes_[n].max = nodes_[n].interval.high;
+        nodes_[n].max = nodes_[n].interval().high;
       } else {
-        nodes_[n].max = std::max(nodes_[n].interval.high, nodes_[r].max);
+        nodes_[n].max = std::max(nodes_[n].interval().high, nodes_[r].max);
       }
     } else if (r == kNil) {
-      nodes_[n].max = std::max(nodes_[n].interval.high, nodes_[l].max);
+      nodes_[n].max = std::max(nodes_[n].interval().high, nodes_[l].max);
     } else {  // Neither child is nil
-      nodes_[n].max = std::max(nodes_[n].interval.high,
+      nodes_[n].max = std::max(nodes_[n].interval().high,
                                std::max(nodes_[l].max, nodes_[r].max));
     }
   }
@@ -636,8 +680,8 @@ class IntervalTree {
     int l = nodes_[n].children[kLeft];
     int r = nodes_[n].children[kRight];
     if (l != kNil) {
-      auto x = std::make_pair(nodes_[n].interval, nodes_[n].value);
-      auto y = std::make_pair(nodes_[l].interval, nodes_[l].value);
+      auto x = nodes_[n].kv;
+      auto y = nodes_[l].kv;
 
       if (x <= y) {
         return absl::InternalError(absl::StrCat("BST violation: node ", n));
@@ -645,8 +689,8 @@ class IntervalTree {
     }
 
     if (r != kNil) {
-      auto x = std::make_pair(nodes_[n].interval, nodes_[n].value);
-      auto y = std::make_pair(nodes_[r].interval, nodes_[r].value);
+      auto x = nodes_[n].kv;
+      auto y = nodes_[r].kv;
       if (x >= y) {
         return absl::InternalError(absl::StrCat("BST violation: node ", n));
       }
