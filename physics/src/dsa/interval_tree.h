@@ -172,6 +172,20 @@ class IntervalTree {
     return false;
   }
 
+  void MergeInsert(Interval interval, const T value) {
+    auto end = End();
+    for (auto it = Overlap(Interval(interval.low - 1, interval.high));
+         it != end; ++it) {
+      if (it->second == value) {
+        interval.low = std::min(it->first.low, interval.low);
+        interval.high = std::max(it->first.high, interval.high);
+        Delete(it);
+      }
+    }
+
+    Insert(interval, value);
+  }
+
   void Overlap(const int point, std::vector<KV>& hits) const {
     Overlap(Interval{point, point + 1}, hits);
   }
@@ -196,6 +210,10 @@ class IntervalTree {
 
   Iterator Overlap(const Interval interval) const {
     return Iterator(this, root_, interval);
+  }
+
+  Iterator Overlap(const int point) const {
+    return Iterator(this, root_, Interval{point, point + 1});
   }
 
   // Returns an iterator pointing to the lowest element in the tree. Note that

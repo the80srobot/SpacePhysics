@@ -48,6 +48,7 @@ const std::vector<const IntTree::KV> kTreeDuplicate{
     IntTree::KV(Interval{1, 2}, 2),
     IntTree::KV(Interval{1, 2}, 2),
     IntTree::KV(Interval{1, 2}, 2),
+    IntTree::KV(Interval{2, 3}, 2),
 };
 
 const std::vector<const IntTree::KV> kTreeMany{
@@ -56,7 +57,9 @@ const std::vector<const IntTree::KV> kTreeMany{
     IntTree::KV(Interval{3, 8}, 4),  IntTree::KV(Interval{3, 8}, 5),
     IntTree::KV(Interval{3, 8}, 6),  IntTree::KV(Interval{3, 8}, 7),
     IntTree::KV(Interval{3, 8}, 7),   // duplicate
+    IntTree::KV(Interval{4, 11}, 7),  // extension of [3, 8) -> 7
     IntTree::KV(Interval{0, 10}, 3),  // duplicate
+    IntTree::KV(Interval{9, 11}, 6),  // NOT an extension of [3, 8) -> 6
     IntTree::KV(Interval{1, 2}, 9),
 };
 
@@ -145,9 +148,10 @@ INSTANTIATE_TEST_SUITE_P(
         OverlapTestCase{
             "duplicates",
             kTreeDuplicate,
-            1,
+            Interval(0, 3),
             std::vector<const IntTree::KV>{
                 IntTree::KV(Interval(1, 2), 2),
+                IntTree::KV(Interval(2, 3), 2),
             },
         },
         OverlapTestCase{
@@ -211,6 +215,8 @@ INSTANTIATE_TEST_SUITE_P(
                 IntTree::KV(Interval{3, 8}, 5),
                 IntTree::KV(Interval{3, 8}, 6),
                 IntTree::KV(Interval{3, 8}, 7),
+                IntTree::KV(Interval{4, 11}, 7),
+                IntTree::KV(Interval{9, 11}, 6),
             },
         },
         OverlapTestCase{
@@ -232,6 +238,62 @@ INSTANTIATE_TEST_SUITE_P(
             std::vector<const IntTree::KV>{},
         }),
     [](const testing::TestParamInfo<OverlapTest::ParamType>& tc) {
+      return tc.param.comment;
+    });
+
+struct MergeInsertTestCase {
+  const std::string comment;
+  const std::vector<const IntTree::KV> data;
+  const Interval overlap_query;
+  const std::vector<const IntTree::KV> expect;
+};
+
+class MergeInsertTest : public testing::TestWithParam<MergeInsertTestCase> {};
+
+TEST_P(MergeInsertTest, MergeInsertTest) {
+  IntTree tree;
+  for (auto kv : GetParam().data) {
+    tree.MergeInsert(kv.first, kv.second);
+  }
+
+  std::vector<IntTree::KV> results;
+  tree.Overlap(GetParam().overlap_query, results);
+  EXPECT_THAT(results,
+              testing::WhenSorted(testing::ElementsAreArray(GetParam().expect)))
+      << "called tree.Overlap(" << GetParam().overlap_query
+      << ", #vector_reference). "
+      << "Tree printout follows: " << tree;
+}
+
+INSTANTIATE_TEST_SUITE_P(
+    MergeInsertTest, MergeInsertTest,
+    testing::Values(
+        MergeInsertTestCase{
+            "duplicates_and_extension",
+            kTreeDuplicate,
+            Interval(1, 2),
+            std::vector<const IntTree::KV>{
+                IntTree::KV(Interval(1, 3), 2),
+            },
+        },
+        MergeInsertTestCase{
+            "overlap_extension_and_non_extension",
+            kTreeMany,
+            Interval(-100, 100),
+            std::vector<const IntTree::KV>{
+                IntTree::KV(Interval{0, 3}, 0),
+                IntTree::KV(Interval{0, 10}, 3),
+                IntTree::KV(Interval{1, 2}, 9),
+                IntTree::KV(Interval{1, 4}, 2),
+                IntTree::KV(Interval{2, 3}, 1),
+                IntTree::KV(Interval{3, 8}, 4),
+                IntTree::KV(Interval{3, 8}, 5),
+                IntTree::KV(Interval{3, 8}, 6),
+                IntTree::KV(Interval{3, 11}, 7),
+                IntTree::KV(Interval{9, 11}, 6),
+            },
+        }),
+    [](const testing::TestParamInfo<MergeInsertTest::ParamType>& tc) {
       return tc.param.comment;
     });
 
