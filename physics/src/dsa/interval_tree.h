@@ -161,7 +161,7 @@ class IntervalTree {
 
   // Returns the maximum point held in the tree. Must only be called if Count is
   // > 0 (otherwise throws range exception).
-  int Max() const { return nodes_[root_].max; }
+  int MaxPoint() const { return nodes_[root_].max; }
 
   bool Insert(const Interval interval, const T value) {
     int node = BstInsert(interval, value);
@@ -198,6 +198,17 @@ class IntervalTree {
     return Iterator(this, root_, interval);
   }
 
+  // Returns an iterator pointing to the lowest element in the tree. Note that
+  // Iterator is in DFS order and the minimum element, by BFS invariant, has no
+  // children. Consequently, this iterator can be dereferenced or passed to
+  // Delete, but not usefully incremented.
+  Iterator Min() const { return Iterator(this, MinNode(root_)); }
+
+  // Returns an iterator pointing to the highest element in the tree. This
+  // iterator can be passed to Delete to efficiently truncate the tree, but
+  // cannot be incremented for the same reason as apply to Min.
+  Iterator Max() const { return Iterator(this, MaxNode(root_)); }
+
   Iterator End() const { return Iterator(this, kNil); }
 
   bool Delete(const KV& interval_value) {
@@ -216,6 +227,8 @@ class IntervalTree {
 
     return false;
   }
+
+  void Delete(const Iterator& it) { DeleteNode(it.node_); }
 
   friend std::ostream& operator<<(std::ostream& os,
                                   const IntervalTree<T>& tree) {
@@ -450,6 +463,13 @@ class IntervalTree {
   int MinNode(int n) const {
     while (nodes_[n].children[kLeft] != kNil) {
       n = nodes_[n].children[kLeft];
+    }
+    return n;
+  }
+
+  int MaxNode(int n) const {
+    while (nodes_[n].children[kRight] != kNil) {
+      n = nodes_[n].children[kRight];
     }
     return n;
   }
