@@ -185,4 +185,72 @@ BENCHMARK(BM_StdMapDeleteReinsertRandom)
     })
     ->Complexity();
 
+static void BM_IntervalTreeTruncateRight(benchmark::State& state) {
+  const int size = state.range(0);
+  const int overlap = state.range(1);
+  const int spread = state.range(2);
+  auto insert_data = GenerateData(size, overlap, spread);
+  std::sort(insert_data.begin(), insert_data.end());
+  const auto median_kv = insert_data[insert_data.size() / 2];
+
+  vstr::IntervalTree<int> tree;
+  for (const auto& kv : insert_data) {
+    tree.Insert(kv.first, kv.second);
+  }
+
+  std::vector<vstr::IntervalTree<int>::KV> buffer;
+  for (auto _ : state) {
+    state.PauseTiming();
+    vstr::IntervalTree<int> tree_cpy = tree;
+    state.ResumeTiming();
+
+    tree_cpy.Overlap(vstr::Interval(median_kv.first.low, tree_cpy.MaxPoint()),
+                     buffer);
+
+    for (const auto& kv : buffer) {
+      tree_cpy.Delete(kv);
+    }
+  }
+}
+BENCHMARK(BM_IntervalTreeTruncateRight)
+    ->ArgsProduct({
+        benchmark::CreateRange(1 << 2, 1 << 16, /*multi=*/2),  // size
+        benchmark::CreateDenseRange(0, 8, /*step=*/8),         // overlap
+        benchmark::CreateRange(1, 1 << 8, /*multi=*/16),       // spread
+    });
+
+static void BM_IntervalTreeTruncateLeft(benchmark::State& state) {
+  const int size = state.range(0);
+  const int overlap = state.range(1);
+  const int spread = state.range(2);
+  auto insert_data = GenerateData(size, overlap, spread);
+  std::sort(insert_data.begin(), insert_data.end());
+  const auto median_kv = insert_data[insert_data.size() / 2];
+
+  vstr::IntervalTree<int> tree;
+  for (const auto& kv : insert_data) {
+    tree.Insert(kv.first, kv.second);
+  }
+
+  for (auto _ : state) {
+    state.PauseTiming();
+    vstr::IntervalTree<int> tree_cpy = tree;
+    state.ResumeTiming();
+
+    for (;;) {
+      auto it = tree_cpy.Min();
+      if (median_kv.first < it->first) {
+        break;
+      }
+      tree_cpy.Delete(it);
+    }
+  }
+}
+BENCHMARK(BM_IntervalTreeTruncateLeft)
+    ->ArgsProduct({
+        benchmark::CreateRange(1 << 2, 1 << 16, /*multi=*/2),  // size
+        benchmark::CreateDenseRange(0, 8, /*step=*/8),         // overlap
+        benchmark::CreateRange(1, 1 << 8, /*multi=*/16),       // spread
+    });
+
 BENCHMARK_MAIN();
