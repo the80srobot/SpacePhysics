@@ -21,20 +21,31 @@
 
 namespace vstr {
 
-class FrameSolver {
+class Pipeline {
  public:
-  explicit FrameSolver(
+  explicit Pipeline(
       LayerMatrix collision_matrix,
       MotionSystem::Integrator integrator = MotionSystem::kVelocityVerlet)
       : collision_system_(collision_matrix), motion_system_(integrator) {}
-  void Step(float dt, int frame_no, Frame &frame, absl::Span<const Input> input,
+  void Step(float dt, int frame_no, Frame &frame, absl::Span<Event> input,
             std::vector<Event> &out_events);
+  void Replay(float dt, int frame_no, Frame &frame, absl::Span<Event> events);
+
+  inline MotionSystem &motion_system() { return motion_system_; }
+
+  inline CollisionSystem &collision_system() { return collision_system_; }
+
+  inline GlueSystem &glue_system() { return glue_system_; }
+
+  inline OrbitSystem &orbit_system() { return orbit_system_; }
 
  private:
   MotionSystem motion_system_;
   CollisionSystem collision_system_;
   GlueSystem glue_system_;
   OrbitSystem orbit_system_;
+
+  std::vector<Event> event_buffer_;
 };
 
 }  // namespace vstr

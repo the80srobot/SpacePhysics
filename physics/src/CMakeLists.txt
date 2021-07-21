@@ -11,7 +11,7 @@ add_library(
 
 target_link_libraries(
     vstr_c_api
-    frame_solver
+    pipeline
 )
 
 set_target_properties(vstr_c_api PROPERTIES
@@ -19,17 +19,75 @@ set_target_properties(vstr_c_api PROPERTIES
     SOVERSION 1
     PUBLIC_HEADER c_api.h)
 
-# Frame Solver
+# Timeline
 
 add_library(
-    frame_solver
-    frame_solver.cc
+    timeline
+    timeline.cc
 )
 
 target_link_libraries(
-    frame_solver
+    timeline
+    pipeline
+)
+
+add_executable(
+    timeline_test
+    timeline_test.cc
+)
+
+target_link_libraries(
+    timeline_test
+    timeline
+    gtest_main
+    gmock_main
+)
+
+add_executable(
+    timeline_benchmark
+    timeline_benchmark.cc
+)
+
+target_link_libraries(
+    timeline_benchmark
+    timeline
+    benchmark::benchmark
+)
+
+# Frame Solver
+
+add_library(
+    pipeline
+    pipeline.cc
+)
+
+target_link_libraries(
+    pipeline
     motion_system
     orbit_system
     collision_system
     glue_system
+)
+
+add_executable(
+    pipeline_test
+    pipeline_test.cc
+)
+
+target_link_libraries(
+    pipeline_test
+    pipeline
+    gtest_main
+    gmock_main
+)
+
+add_executable(
+    pipeline_benchmark
+    pipeline_benchmark.cc
+)
+
+target_link_libraries(
+    pipeline_benchmark
+    pipeline
+    benchmark::benchmark
 )

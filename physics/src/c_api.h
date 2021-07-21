@@ -8,9 +8,9 @@
 #ifndef VSTR_C_API
 #define VSTR_C_API
 
-#include "frame_solver.h"
 #include "geometry/layer_matrix.h"
 #include "geometry/vector3.h"
+#include "pipeline.h"
 #include "systems/component_data.h"
 
 #if defined(__APPLE__) || defined(__linux__) || defined(ANDROID)
@@ -40,12 +40,12 @@ EXPORT LayerMatrix *CreateLayerMatrix();
 EXPORT void LayerMatrixSet(LayerMatrix *layer_matrix, uint32_t x, uint32_t y);
 EXPORT void DestroyLayerMatrix(LayerMatrix *layer_matrix);
 
-EXPORT FrameSolver *CreateFrameSolver(LayerMatrix *collision_matrix,
-                                      MotionSystem::Integrator integrator);
-EXPORT void FrameSolverStep(FrameSolver *frame_solver, float frame_time,
-                            int frame_no, Frame *frame, const Input *input,
+EXPORT Pipeline *CreateFrameSolver(LayerMatrix *collision_matrix,
+                                   MotionSystem::Integrator integrator);
+EXPORT void FrameSolverStep(Pipeline *frame_solver, float frame_time,
+                            int frame_no, Frame *frame, Event *input,
                             size_t input_sz, EventBuffer *event_buffer);
-EXPORT void DestroyFrameSolver(FrameSolver *frame_solver);
+EXPORT void DestroyFrameSolver(Pipeline *frame_solver);
 }
 }  // namespace vstr
 

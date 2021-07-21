@@ -42,18 +42,18 @@ void LayerMatrixSet(LayerMatrix *layer_matrix, uint32_t x, uint32_t y) {
 
 void DestroyLayerMatrix(LayerMatrix *layer_matrix) { delete layer_matrix; }
 
-FrameSolver *CreateFrameSolver(LayerMatrix *collision_matrix,
-                               MotionSystem::Integrator integrator) {
-  return new FrameSolver(*collision_matrix, integrator);
+Pipeline *CreateFrameSolver(LayerMatrix *collision_matrix,
+                            MotionSystem::Integrator integrator) {
+  return new Pipeline(*collision_matrix, integrator);
 }
 
-void FrameSolverStep(FrameSolver *frame_solver, const float frame_time,
-                     const int frame_no, Frame *frame, const Input *input,
+void FrameSolverStep(Pipeline *frame_solver, const float frame_time,
+                     const int frame_no, Frame *frame, Event *input,
                      const size_t input_sz, EventBuffer *event_buffer) {
   frame_solver->Step(frame_time, frame_no, *frame,
-                     absl::Span<const Input>(input, input_sz), *event_buffer);
+                     absl::MakeSpan(input, input_sz), *event_buffer);
 }
 
-void DestroyFrameSolver(FrameSolver *frame_solver) { delete frame_solver; }
+void DestroyFrameSolver(Pipeline *frame_solver) { delete frame_solver; }
 }
 }  // namespace vstr

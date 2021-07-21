@@ -25,6 +25,8 @@ class CollisionSystem {
              const std::vector<Glue> &glue, float dt,
              std::vector<Event> &out_events);
 
+  const inline LayerMatrix &matrix() const { return matrix_; }
+
  private:
   using BVH = BoundingVolumeHierarchy<int>;
   LayerMatrix matrix_;

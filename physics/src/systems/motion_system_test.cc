@@ -118,7 +118,7 @@ TEST(MotionSystemTest, VerletFalling) {
       Flags{},
   };
 
-  for (float f = 0; f < time_to_fall; f += coarse_dt) {
+  for (float t = 0; t < time_to_fall; t += coarse_dt) {
     system.FirstPass(coarse_dt, {}, positions, mass, flags, motion);
     system.SecondPass(motion, positions);
   }
@@ -132,7 +132,7 @@ TEST(MotionSystemTest, VerletFalling) {
   motion[0] = Motion{};
 
   // Run again in small steps.
-  for (float f = 0; f < time_to_fall; f += fine_dt) {
+  for (float t = 0; t < time_to_fall; t += fine_dt) {
     system.FirstPass(fine_dt, {}, positions, mass, flags, motion);
     system.SecondPass(motion, positions);
   }
@@ -172,11 +172,11 @@ TEST(MotionSystemTest, VerletHover) {
   // The acceleration due to gravity at point particle 0 is 100 / 100^2. The
   // inverse input should exactly counter.
   std::vector<Event> input{
-      Input{0, Vector3{0, 0.01, 0}},
+      Event(0, Input{Vector3{0, 0.01, 0}}),
   };
 
   for (float f = 0; f < duration; f += dt) {
-    system.FirstPass(dt, input, positions, mass, flags, motion);
+    system.FirstPass(dt, absl::MakeSpan(input), positions, mass, flags, motion);
     system.SecondPass(motion, positions);
   }
 
@@ -185,10 +185,10 @@ TEST(MotionSystemTest, VerletHover) {
   // If we now also apply acceleration to particle 1, the force of gravity
   // acting on particle 0 should decrease and its own acceleration should allow
   // it to escape.
-  input.push_back(Input{1, Vector3{0, -0.01, 0}});
+  input.push_back(Event(1, Input{Vector3{0, -0.01, 0}}));
 
   for (float f = 0; f < duration; f += dt) {
-    system.FirstPass(dt, input, positions, mass, flags, motion);
+    system.FirstPass(dt, absl::MakeSpan(input), positions, mass, flags, motion);
     system.SecondPass(motion, positions);
   }
 

@@ -186,12 +186,11 @@ inline bool operator==(const Collision &a, const Collision &b) {
 std::ostream &operator<<(std::ostream &os, const Collision &collision);
 
 struct Input {
-  int32_t id;
   Vector3 acceleration;
 };
 
 inline bool operator==(const Input &a, const Input &b) {
-  return a.id == b.id && a.acceleration == b.acceleration;
+  return a.acceleration == b.acceleration;
 }
 
 std::ostream &operator<<(std::ostream &os, const Input &input);
@@ -204,6 +203,8 @@ struct Event {
         id(collision.first_id),
         collision(std::move(collision)) {}
 
+  Event(int id, Input &&input) : id(id), type(kInput), input(input) {}
+
   int32_t id;
   Type type;
 
@@ -214,6 +215,9 @@ struct Event {
     Collision collision;
   };
 };
+
+static_assert(std::is_move_assignable<Event>());
+static_assert(std::is_move_constructible<Event>());
 
 bool operator==(const Event &a, const Event &b);
 bool operator>=(const Event &a, const Event &b);

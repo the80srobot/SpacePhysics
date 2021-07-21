@@ -57,8 +57,7 @@ std::ostream &operator<<(std::ostream &os, const Collision &collision) {
 }
 
 std::ostream &operator<<(std::ostream &os, const Input &input) {
-  return os << "Input{/*id=*/" << input.id << ", /*acceleration=*/"
-            << input.acceleration << "}";
+  return os << "Input{/*acceleration=*/" << input.acceleration << "}";
 }
 
 bool operator==(const Event &a, const Event &b) {

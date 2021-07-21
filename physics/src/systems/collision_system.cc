@@ -152,7 +152,8 @@ bool Eligible(const std::vector<Collider> &colliders,
   }
 
   // TODO: recursive glue?
-  if (glue[a].parent_id == b || glue[b].parent_id == a) {
+  if (((flags[a].value & Flags::kGlued) && glue[a].parent_id == b) ||
+      (flags[b].value & Flags::kGlued) && glue[b].parent_id == a) {
     return false;
   }
 
@@ -168,11 +169,13 @@ void CollisionSystem::Solve(const std::vector<Position> &positions,
                             const std::vector<Glue> &glue, const float dt,
                             std::vector<Event> &out_events) {
   cache_bvh_kvs_.clear();
+  cache_object_swept_bounds_.clear();
   for (int id = 0; id < colliders.size(); ++id) {
     float radius = colliders[id].radius;
     AABB bounds = AABB::FromCenterAndHalfExtents(
         positions[id].value, Vector3{radius, radius, radius});
-    bounds.Sweep(motion[id].velocity);
+    bounds.Encapsulate(AABB::FromCenterAndHalfExtents(
+        motion[id].new_position, Vector3{radius, radius, radius}));
     cache_bvh_kvs_.push_back(BVH::KV(bounds, id));
     cache_object_swept_bounds_.push_back(bounds);
   }
@@ -184,7 +187,7 @@ void CollisionSystem::Solve(const std::vector<Position> &positions,
     cache_bvh_.Overlap(cache_object_swept_bounds_[id], buffer);
     for (const auto &kv : buffer) {
       if (Eligible(colliders, flags, glue, matrix_, id, kv.value)) {
-        float t = CollisionTime(positions, colliders, motion, dt, id, kv.value);
+        float t = CollisionTime(positions, colliders, motion, id, kv.value, dt);
         if (t <= dt) {
           out_events.push_back(Event(Collision{id, kv.value, t}));
         }
