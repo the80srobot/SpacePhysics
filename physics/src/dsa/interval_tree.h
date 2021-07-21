@@ -69,8 +69,8 @@ std::ostream& operator<<(std::ostream& os, const Interval& interval);
 // Performance:
 //
 // Depending on the size and density of the tree, a point overlap query takes
-// between 150 and 1200 ns on 2.3 GHz 8-Core Intel Core i9. The throughput is
-// betwen 3 and 12 million items looked up per second.
+// between 150 and 1200 ns on 2.3 GHz Intel Core i9. The throughput is between 3
+// and 12 million items looked up per second.
 //
 // When running at 60 FPS, an application has about 16 ms to process a frame.
 // The 16 ms budget is enough to retrieve about 170,000 intervals from a tree
@@ -218,13 +218,14 @@ class IntervalTree {
 
   // Returns an iterator pointing to the lowest element in the tree. Note that
   // Iterator is in DFS order and the minimum element, by BFS invariant, has no
-  // children. Consequently, this iterator can be dereferenced or passed to
-  // Delete, but not usefully incremented.
+  // left children, which by RBT invariants means it has at most one descendant.
+  // Consequently, this iterator can be dereferenced or passed to Delete, but
+  // not usefully incremented.
   Iterator Min() const { return Iterator(this, MinNode(root_)); }
 
   // Returns an iterator pointing to the highest element in the tree. This
   // iterator can be passed to Delete to efficiently truncate the tree, but
-  // cannot be incremented for the same reason as apply to Min.
+  // cannot be incremented for the same reasons as apply to Min.
   Iterator Max() const { return Iterator(this, MaxNode(root_)); }
 
   Iterator End() const { return Iterator(this, kNil); }
@@ -541,10 +542,10 @@ class IntervalTree {
 
     if (distantNephew != kNil && nodes_[distantNephew].color == kRed) {
       // The distant child of the sibling node is red. After a rotation about
-      // the parent node, the sibling node becomes the new root of this
-      // subtree, and we keep it at the same color as the original parent.
-      // Other nodes are colored black. The subtree now looks topologically
-      // the same as before removal.
+      // the parent node, the sibling node becomes the new root of this subtree,
+      // and we keep it at the same color as the original parent. Other nodes
+      // are colored black. The subtree now looks topologically the same as
+      // before the remove operation that landed us in this mess.
       Rotate(d, p);
       nodes_[s].color = nodes_[p].color;
       nodes_[p].color = kBlack;

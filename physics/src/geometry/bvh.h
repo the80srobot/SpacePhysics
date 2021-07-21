@@ -9,9 +9,7 @@
 #define VSTR_BVH
 
 #include <algorithm>
-#ifndef NDEBUG
-#include <sstream>
-#endif
+
 #include "geometry/aabb.h"
 
 namespace vstr {
@@ -69,44 +67,13 @@ class BoundingVolumeHierarchy {
     return os;
   }
 
-  int AvgDepth() { return AvgDepth(0, 0).second; }
+  int AvgDepth() const { return AvgDepth(0, 0).second; }
 
-  std::pair<double, double> AvgDepth(int n, int depth) {
-    if (n == kNil) {
-      return std::make_pair<double, double>(1, depth);
-    }
+  int MaxDepth() const { return MaxDepth(0); }
 
-    std::pair<double, double> l =
-        AvgDepth(nodes_[n].children[kLeft], depth + 1);
-    std::pair<double, double> r =
-        AvgDepth(nodes_[n].children[kRight], depth + 1);
+  int MinDepth() const { return MinDepth(0); }
 
-    return std::make_pair(
-        l.first + r.first,
-        (l.first * l.second + r.first * r.second) / (l.first + r.first));
-  }
-
-  int MaxDepth() { return MaxDepth(0); }
-
-  int MaxDepth(int n) {
-    if (n == kNil) {
-      return 0;
-    }
-    return 1 + std::max(MaxDepth(nodes_[n].children[kLeft]),
-                        MaxDepth(nodes_[n].children[kRight]));
-  }
-
-  int MinDepth() { return MinDepth(0); }
-
-  int MinDepth(int n) {
-    if (n == kNil) {
-      return 0;
-    }
-    return 1 + std::min(MinDepth(nodes_[n].children[kLeft]),
-                        MinDepth(nodes_[n].children[kRight]));
-  }
-
-  int NodesTested() { return nodes_tested_; }
+  int NodesTested() const { return nodes_tested_; }
 
  private:
   enum Axis { kXAxis, kYAxis, kZAxis };
@@ -144,7 +111,7 @@ class BoundingVolumeHierarchy {
       return;
     }
 
-    nodes_tested_++;
+    ++nodes_tested_;
 
     if (!nodes_[n].aabb.Overlaps(needle)) {
       return;
@@ -187,6 +154,37 @@ class BoundingVolumeHierarchy {
                   kvs, pivot + 1, hi);
         return id;
     }
+  }
+
+  int MaxDepth(int n) const {
+    if (n == kNil) {
+      return 0;
+    }
+    return 1 + std::max(MaxDepth(nodes_[n].children[kLeft]),
+                        MaxDepth(nodes_[n].children[kRight]));
+  }
+
+  int MinDepth(int n) const {
+    if (n == kNil) {
+      return 0;
+    }
+    return 1 + std::min(MinDepth(nodes_[n].children[kLeft]),
+                        MinDepth(nodes_[n].children[kRight]));
+  }
+
+  std::pair<double, double> AvgDepth(int n, int depth) const {
+    if (n == kNil) {
+      return std::make_pair<double, double>(1, depth);
+    }
+
+    std::pair<double, double> l =
+        AvgDepth(nodes_[n].children[kLeft], depth + 1);
+    std::pair<double, double> r =
+        AvgDepth(nodes_[n].children[kRight], depth + 1);
+
+    return std::make_pair(
+        l.first + r.first,
+        (l.first * l.second + r.first * r.second) / (l.first + r.first));
   }
 
   static AABB BoundingVolume(const std::vector<KV> &kvs) {

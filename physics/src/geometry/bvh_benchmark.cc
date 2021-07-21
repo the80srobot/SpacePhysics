@@ -94,7 +94,6 @@ void BM_BVHOverlap(benchmark::State& state) {
   state.counters["hits"] = hits;
   state.counters["hits_per_query"] = float(hits) / i;
   state.counters["queries"] = i;
-  state.counters["checks"] = bvh.NodesTested();
   state.counters["checks_per_query"] = float(bvh.NodesTested()) / i;
   state.counters["pcnt_checked_per_query"] =
       100 * (float(bvh.NodesTested() / i) / float(count));
