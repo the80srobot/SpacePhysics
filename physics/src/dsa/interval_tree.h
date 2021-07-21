@@ -691,7 +691,6 @@ class IntervalTree {
   // replaces it with the last element, which is then deleted instead.
   std::vector<Node> nodes_;
 
-#ifndef NDEBUG
  public:
   absl::Status Validate() { return Validate(root_, 0).status(); }
 
@@ -763,8 +762,6 @@ class IntervalTree {
 
     return leftDepth.value();
   }
-
-#endif
 };
 
 template <typename T>
