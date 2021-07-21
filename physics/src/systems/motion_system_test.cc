@@ -82,10 +82,10 @@ struct MotionTestCase {
 };
 
 TEST(MotionSystemTest, VerletFalling) {
-  // Massless point particle 0 is falling towards a massive point particle 1 in
-  // a vaccum. They start out 100 meters apart and particle 1 weighs 100 kg.
-  // Note that the motion system sets G=1 for simplicity. (It's actual value is
-  // 11 orders of magnitude less.)
+  // Point particle 0 of negligible mass is falling towards a massive point
+  // particle 1 in a vaccum. They start out 100 meters apart and particle 1
+  // weighs 100 kg. Note that the motion system sets G=1 for simplicity. (It's
+  // actual value is 11 orders of magnitude less.)
   //
   // It should take t = ((pi/2) / sqrt(2(m1 + m2))) * r^(1.5) to close the
   // distance, or about 111 seconds. (Can be derived from more general forms
@@ -141,6 +141,59 @@ TEST(MotionSystemTest, VerletFalling) {
   // smaller.
   EXPECT_LT(positions[0].value.y, 1);
   EXPECT_GT(positions[0].value.y, 0);
+}
+
+TEST(MotionSystemTest, VerletHover) {
+  // Point particle 0 of neglibile mass is hovering 100 meters over point
+  // particle 1 which has 100 kg of mass. Input each frame sets acceleration of
+  // point particle 0 to counteract the gravitational influence of particle 1.
+
+  MotionSystem system(MotionSystem::kVelocityVerlet);
+  const float dt = 0.001;
+  const float duration = 100;
+
+  std::vector<Position> positions{
+      Position{Vector3{0, 100, 0}},
+      Position{Vector3{0, 0, 0}},
+  };
+  std::vector<Mass> mass{
+      Mass{},
+      Mass{100, 100},
+  };
+  std::vector<Motion> motion{
+      Motion{},
+      Motion{},
+  };
+  std::vector<Flags> flags{
+      Flags{},
+      Flags{},
+  };
+
+  // The acceleration due to gravity at point particle 0 is 100 / 100^2. The
+  // inverse input should exactly counter.
+  std::vector<Event> input{
+      Input{0, Vector3{0, 0.01, 0}},
+  };
+
+  for (float f = 0; f < duration; f += dt) {
+    system.FirstPass(dt, input, positions, mass, flags, motion);
+    system.SecondPass(motion, positions);
+  }
+
+  EXPECT_EQ(positions[0].value.y, 100);
+
+  // If we now also apply acceleration to particle 1, the force of gravity
+  // acting on particle 0 should decrease and its own acceleration should allow
+  // it to escape.
+  input.push_back(Input{1, Vector3{0, -0.01, 0}});
+
+  for (float f = 0; f < duration; f += dt) {
+    system.FirstPass(dt, input, positions, mass, flags, motion);
+    system.SecondPass(motion, positions);
+  }
+
+  EXPECT_GT(positions[0].value.y, 100);
+  EXPECT_LT(positions[1].value.y, 0);
 }
 
 }  // namespace

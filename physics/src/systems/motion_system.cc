@@ -15,12 +15,22 @@ namespace {
 Vector3 GravityContributionFrom(const std::vector<Position> &positions,
                                 const std::vector<Mass> &mass,
                                 const int attractor_id,
-                                const Vector3 other_position,
-                                const float other_mass) {
+                                const Vector3 other_position) {
+  // The force acting on two point masses is F = G×((m_1×m_2) / r²).
+  //
+  // The acceleration from force on a point mass is a = F / m.
+  //
+  // As simplification, we assume G = 1 (the actual value is 11 orders of
+  // magnitude less.)
+  //
+  // So the acceleration of point mass 1 due to gravity of point mass 2 is:
+  //
+  // a = ((m_1×m_2) / r²) / m_2
+  //
+  // Which is the same as a = m_1 / r².
   Vector3 f = positions[attractor_id].value - other_position;
   float rSquare = Vector3::SqrMagnitude(f);
-  return Vector3::Normalize(f) *
-         ((mass[attractor_id].effective + other_mass) / rSquare);
+  return Vector3::Normalize(f) * ((mass[attractor_id].effective) / rSquare);
 }
 
 Vector3 GravityAt(const std::vector<Position> &positions,
@@ -33,8 +43,8 @@ Vector3 GravityAt(const std::vector<Position> &positions,
     if (i == id) continue;
     if (mass[i].effective == 0) continue;
     if (flags[i].value & (Flags::kDestroyed | Flags::kGlued)) continue;
-    const Vector3 f = GravityContributionFrom(
-        positions, mass, i, positions[id].value, mass[id].effective);
+    const Vector3 f =
+        GravityContributionFrom(positions, mass, i, positions[id].value);
     result += f;
     if (contributions != nullptr) {
       contributions->push_back(std::make_pair(i, f));
@@ -44,17 +54,16 @@ Vector3 GravityAt(const std::vector<Position> &positions,
   return result;
 }
 
-Vector3 ComputeAcceleration(
-    const std::vector<Position> &positions, const std::vector<Mass> &mass,
-    const std::vector<Flags> &flags, const int id,
-    absl::Span<Event>::const_iterator &input_iter,
-    const absl::Span<Event>::const_iterator &input_end) {
-  while (input_iter != input_end && input_iter->id < id) {
-    ++input_iter;
+Vector3 ComputeAcceleration(const std::vector<Position> &positions,
+                            const std::vector<Mass> &mass,
+                            const std::vector<Flags> &flags, const int id,
+                            absl::Span<const Event> input) {
+  while (input.size() != 0 && input[0].id < id) {
+    input = input.subspan(1);
   }
   Vector3 result;
-  if (input_iter != input_end && input_iter->id == id) {
-    result = input_iter->input.acceleration;
+  if (input.size() != 0 && input[0].id == id) {
+    result = input[0].input.acceleration;
   } else {
     result = Vector3{0, 0, 0};
   }
@@ -68,14 +77,12 @@ void IntegrateFirstOrderEuler(const float dt, absl::Span<const Event> input,
                               const std::vector<Flags> &flags,
                               std::vector<Motion> &motion) {
   const int count = positions.size();
-  auto input_iter = input.cbegin();
-  auto input_end = input.cend();
   for (int i = 0; i < count; ++i) {
     if (flags[i].value & (Flags::kDestroyed | Flags::kGlued | Flags::kOrbiting))
       continue;
 
     motion[i].acceleration =
-        ComputeAcceleration(positions, mass, flags, i, input_iter, input_end);
+        ComputeAcceleration(positions, mass, flags, i, input);
     motion[i].velocity += motion[i].acceleration * dt;
     motion[i].new_position = positions[i].value + motion[i].velocity * dt;
   }
@@ -87,8 +94,6 @@ void IntegrateVelocityVerlet(const float dt, absl::Span<const Event> input,
                              const std::vector<Flags> &flags,
                              std::vector<Motion> &motion) {
   const int count = positions.size();
-  auto input_iter = input.cbegin();
-  auto input_end = input.cend();
   const float half_dt = dt * 0.5;
   for (int i = 0; i < count; ++i) {
     if (flags[i].value & (Flags::kDestroyed | Flags::kGlued | Flags::kOrbiting))
@@ -98,7 +103,7 @@ void IntegrateVelocityVerlet(const float dt, absl::Span<const Event> input,
                              motion[i].acceleration * (dt * half_dt);
 
     Vector3 new_acceleration =
-        ComputeAcceleration(positions, mass, flags, i, input_iter, input_end);
+        ComputeAcceleration(positions, mass, flags, i, input);
     motion[i].velocity += (new_acceleration + motion[i].acceleration) * half_dt;
     motion[i].acceleration = new_acceleration;
   }
