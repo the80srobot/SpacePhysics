@@ -97,8 +97,8 @@ TEST(MotionSystemTest, VerletFalling) {
   // be smaller with smaller steps.
 
   MotionSystem system(MotionSystem::kVelocityVerlet);
-  const float large_step_dt = 1;
-  const float small_step_dt = 0.001;
+  const float coarse_dt = 1;
+  const float fine_dt = 0.001;
   const float time_to_fall = 111;
 
   std::vector<Position> positions{
@@ -118,22 +118,22 @@ TEST(MotionSystemTest, VerletFalling) {
       Flags{},
   };
 
-  for (float f = 0; f < time_to_fall; f += large_step_dt) {
-    system.FirstPass(large_step_dt, {}, positions, mass, flags, motion);
+  for (float f = 0; f < time_to_fall; f += coarse_dt) {
+    system.FirstPass(coarse_dt, {}, positions, mass, flags, motion);
     system.SecondPass(motion, positions);
   }
 
   // Integration in large steps should get within the ballpark.
   EXPECT_LT(positions[0].value.y, 20);
-  EXPECT_GT(positions[0].value.y, 0);
+  EXPECT_GT(positions[0].value.y, 5);
 
   // Reset the position and motion.
   positions[0].value.y = 100;
   motion[0] = Motion{};
 
   // Run again in small steps.
-  for (float f = 0; f < time_to_fall; f += small_step_dt) {
-    system.FirstPass(small_step_dt, {}, positions, mass, flags, motion);
+  for (float f = 0; f < time_to_fall; f += fine_dt) {
+    system.FirstPass(fine_dt, {}, positions, mass, flags, motion);
     system.SecondPass(motion, positions);
   }
 
