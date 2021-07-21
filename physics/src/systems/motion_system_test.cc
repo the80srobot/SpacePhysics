@@ -52,7 +52,6 @@ INSTANTIATE_TEST_SUITE_P(
             Mass{},
             Mass{100, 100},
         },
-
         std::vector<Flags>{
             Flags{},
             Flags{},
@@ -68,7 +67,7 @@ INSTANTIATE_TEST_SUITE_P(
 
 struct MotionTestCase {
   const std::string comment;
-  const std::vector<Input> input;
+  const std::vector<Event> input;
   const MotionSystem::Integrator integrator;
   const float deltaTime;
   const int rounds;
@@ -82,64 +81,67 @@ struct MotionTestCase {
   const std::vector<Motion> expect_motion;
 };
 
-class MotionSystemTest : public testing::TestWithParam<MotionTestCase> {};
+TEST(MotionSystemTest, VerletFalling) {
+  // Massless point particle 0 is falling towards a massive point particle 1 in
+  // a vaccum. They start out 100 meters apart and particle 1 weighs 100 kg.
+  // Note that the motion system sets G=1 for simplicity. (It's actual value is
+  // 11 orders of magnitude less.)
+  //
+  // It should take t = ((pi/2) / sqrt(2(m1 + m2))) * r^(1.5) to close the
+  // distance, or about 111 seconds. (Can be derived from more general forms
+  // such as
+  // https://en.wikipedia.org/wiki/Radial_trajectory#Elliptic_trajectory)
+  //
+  // Any discrete integration of motion is inaccurate. Verlet integration
+  // over-estimates the time needed to fall by a distance, but the error should
+  // be smaller with smaller steps.
 
-// TODO: this turns out to be a really annoying way to test this system.
-// Narrower tests will probably be better.
-TEST_P(MotionSystemTest, MotionSystemTest) {
-  MotionSystem system(GetParam().integrator);
-  std::vector<Position> positions(GetParam().positions);
-  std::vector<Motion> motion(GetParam().motion);
+  MotionSystem system(MotionSystem::kVelocityVerlet);
+  const float large_step_dt = 1;
+  const float small_step_dt = 0.001;
+  const float time_to_fall = 111;
 
-  for (int i = 0; i < GetParam().rounds; ++i) {
-    system.FirstPass(GetParam().deltaTime, GetParam().input, positions,
-                     GetParam().mass, GetParam().flags, motion);
+  std::vector<Position> positions{
+      Position{Vector3{0, 100, 0}},
+      Position{Vector3{0, 0, 0}},
+  };
+  std::vector<Mass> mass{
+      Mass{},
+      Mass{100, 100},
+  };
+  std::vector<Motion> motion{
+      Motion{},
+      Motion{},
+  };
+  std::vector<Flags> flags{
+      Flags{},
+      Flags{},
+  };
+
+  for (float f = 0; f < time_to_fall; f += large_step_dt) {
+    system.FirstPass(large_step_dt, {}, positions, mass, flags, motion);
     system.SecondPass(motion, positions);
   }
-  EXPECT_THAT(positions,
-              testing::ElementsAreArray(GetParam().expect_positions));
-  EXPECT_THAT(motion, testing::ElementsAreArray(GetParam().expect_motion));
-}
 
-INSTANTIATE_TEST_SUITE_P(
-    MotionSystemTest, MotionSystemTest,
-    testing::Values(MotionTestCase{
-        "euler_falling_in_vaccum_frame_1",
-        std::vector<Input>{},
-        MotionSystem::kFirstOrderEuler,
-        1.0,
-        1,
-        std::vector<Position>{
-            Position{Vector3{0, 100, 0}},
-            Position{Vector3{0, 0, 0}},
-        },
-        std::vector<Mass>{
-            Mass{},
-            Mass{100, 100},
-        },
-        std::vector<Motion>{
-            Motion{},
-            Motion{},
-        },
-        std::vector<Flags>{
-            Flags{},
-            Flags{},
-        },
-        std::vector<Position>{
-            Position{Vector3{0, 100 - 100.0f / (100 * 100), 0}},
-            Position{Vector3{0, 0, 0}},
-        },
-        std::vector<Motion>{
-            Motion{
-                Vector3{0, -100.0f / (100 * 100), 0},
-                Vector3{0, 100 - 100.0f / (100 * 100), 0},
-            },
-            Motion{},
-        },
-    }),
-    [](const testing::TestParamInfo<MotionSystemTest::ParamType>& tc) {
-      return tc.param.comment;
-    });
+  // Integration in large steps should get within the ballpark.
+  EXPECT_LT(positions[0].value.y, 20);
+  EXPECT_GT(positions[0].value.y, 0);
+
+  // Reset the position and motion.
+  positions[0].value.y = 100;
+  motion[0] = Motion{};
+
+  // Run again in small steps.
+  for (float f = 0; f < time_to_fall; f += small_step_dt) {
+    system.FirstPass(small_step_dt, {}, positions, mass, flags, motion);
+    system.SecondPass(motion, positions);
+  }
+
+  // This should still under-estimate velocities, but the error should be much
+  // smaller.
+  EXPECT_LT(positions[0].value.y, 1);
+  EXPECT_GT(positions[0].value.y, 0);
+}
 
 }  // namespace
 }  // namespace vstr

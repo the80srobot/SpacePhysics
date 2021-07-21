@@ -30,7 +30,7 @@ class MotionSystem {
   // kOrbiting or kDestroyed are in effect. Does not update Position (SecondPass
   // does that). Separate systems update Motion for objects that are otherwise
   // controlled: GlueSystem and OrbitSystem.
-  void FirstPass(float dt, absl::Span<const Input> input,
+  void FirstPass(float dt, absl::Span<const Event> input,
                  const std::vector<Position> &positions,
                  const std::vector<Mass> &mass, const std::vector<Flags> &flags,
                  std::vector<Motion> &motion);
@@ -46,6 +46,8 @@ class MotionSystem {
       const std::vector<Position> &positions, const std::vector<Mass> &mass,
       const std::vector<Flags> &flags, int object_id,
       std::vector<std::pair<int, Vector3>> &contributions);
+
+  inline const Integrator integrator() const { return integrator_; }
 
  private:
   Integrator integrator_;
