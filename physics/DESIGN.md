@@ -41,7 +41,7 @@ Extensions, e.g., to other collision modes should be possible.
     objects)
 * Queries for past and future object state must be free of side effects and
   complete within 1 ms on consumer hardware
-* Fit all state into 100 of RAM
+* Fit all state into 100-200 MB of RAM
 * Precalculate at least 10 seconds of state per second, running alongside game
   code
 
@@ -125,8 +125,10 @@ The implementation language is C++.
 * (+) Well known in the industry: resolving issues and finding collaborators is
   easier
 * (+) Mature debuggers, profilers, static analysers and test frameworks exist
+* (+) Comparatively easy to ensure state is local and compact
 * (-) Limited compiler guarantees, safety and checks
 * (-) Extreme amount of technical debt in the language and ecosystem
+* (-) CMake is absolute crap, but no real alternatives exist
 
 #### Alternative considered: C#
 
@@ -135,8 +137,12 @@ The implementation language is C++.
 * (+) Memory-safe, compiler provides useful checks
 * (+) Mature debuggers and test frameworks
 * (-) Difficult to write well-performing code
+* (-) C# requires use of `unsafe` code for basic language features (like working
+  with arrays), and much earlier than comparable languages
 * (-) Poor quality of libraries, including the standard library
 * (-) Existing libraries and know-how are centered around Windows UI development
+* (-) Requires special care to avoid latency issues related to garbage
+  collection
 
 #### Alternative considered: Go
 
@@ -145,9 +151,11 @@ The implementation language is C++.
 * (+) Mature debuggers, test frameworks and analysers
 * (+) Easy to use, limited surprises and good productivity
 * (-) Hard to integrate with other languages and game engines
-* (-) Existing libraries and know-how are centered web development, Cloud and
-  security
-* (-) Requires special care to avoid garbage collector inducing latency
+* (-) The FFI (CGO) is absurdly slow and hard to use correctly
+* (-) Existing libraries and know-how are centered around web development, Cloud
+  and security
+* (-) Requires special care to avoid latency issues related to garbage
+  collection
 
 ## Performance
 
