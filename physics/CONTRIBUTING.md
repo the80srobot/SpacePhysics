@@ -12,6 +12,21 @@ guide](https://google.github.io/styleguide/cppguide.html) setting.
 clang-format -i -style=google *.cc *.h
 ```
 
+## License boilerplate
+
+All source code files must include the following header:
+
+```
+// This file is part of VSTR Space Physics.
+//
+// Copyright 2021 Adam Sindelar
+// License: http://www.gnu.org/licenses/old-licenses/gpl-2.0-standalone.html
+//
+// Author(s): Adam Sindelar <adam@wowsignal.io>
+```
+
+Obviously the Author(s) line should include names of the actual authors.
+
 ## Economy of Mechanism
 
 Code is read a lot more than it's written. It should be obvious rather than

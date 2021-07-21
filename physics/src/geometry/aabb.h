@@ -14,6 +14,8 @@
 
 namespace vstr {
 
+// Axis-aligned bounding box. Used to quickly check that two volumes definitely
+// don't intersect.
 struct AABB {
   Vector3 min;
   Vector3 max;
