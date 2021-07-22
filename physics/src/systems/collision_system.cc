@@ -27,6 +27,11 @@ float DistanceToCollision(const std::vector<Position> &positions,
          colliders[b].radius;
 }
 
+bool FloatEq(const float x, const float y) {
+  constexpr float kEpsilon = 0.005f;
+  return std::fabs(x - y) < kEpsilon;
+}
+
 // Returns the earliest time objects a and b will collide based on their current
 // velocities. If no such time can be found, returns a time greater than dt.
 float CollisionTime(const std::vector<Position> &positions,
@@ -73,9 +78,7 @@ float CollisionTime(const std::vector<Position> &positions,
   float d1 = DistanceToCollision(positions, colliders, motion, a, b, dt / 2);
   float d2 = DistanceToCollision(positions, colliders, motion, a, b, dt);
 
-  // TODO(adam): The floating point comparisons suffer from rounding errors.
-
-  if (d0 == d1 && d0 == d2) {
+  if (FloatEq(d0, d1) && FloatEq(d0, d2)) {
     // The lines are parallel. The objects are either already in collision, or
     // never will be.
     if (d0 <= 0) {
@@ -85,7 +88,7 @@ float CollisionTime(const std::vector<Position> &positions,
     return std::numeric_limits<float>::infinity();
   }
 
-  if (d0 < d1 && d0 - d1 == d1 - d2) {
+  if (d0 < d1 && FloatEq(d0 - d1, d1 - d2)) {
     // The distance function is linear and the objects are receding (d0 is the
     // smallest distance). Therefore, the objects are either already in
     // collision, or never will be.
@@ -98,7 +101,7 @@ float CollisionTime(const std::vector<Position> &positions,
   }
 
   float slope;
-  if (d0 > d1 && d0 - d1 == d1 - d2) {
+  if (d0 > d1 && FloatEq(d0 - d1, d1 - d2)) {
     // The distance function is linear and the objects are approaching (d2 is
     // the smallest distance).
     if (d2 > 0) {
