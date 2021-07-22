@@ -10,8 +10,8 @@
 
 #include "geometry/layer_matrix.h"
 #include "geometry/vector3.h"
-#include "pipeline.h"
 #include "systems/component_data.h"
+#include "timeline.h"
 
 #if defined(__APPLE__) || defined(__linux__) || defined(ANDROID)
 #define EXPORT __attribute__((visibility("default")))
@@ -23,12 +23,28 @@ namespace vstr {
 
 extern "C" {
 
+// FRAME API //
+
 EXPORT Frame *CreateFrame();
-EXPORT int FrameCoreCount(Frame *frame);
+
+// Work on core components:
+
+EXPORT int FrameSize(Frame *frame);
 EXPORT void FrameResize(Frame *frame, int count);
-EXPORT Position *FrameGetPositions(Frame *frame, int *count);
-EXPORT Position *FrameSetPosition(Frame *frame, int idx, Position *position);
+EXPORT Position *FrameGetMutablePositions(Frame *frame, int *count);
+EXPORT Mass *FrameGetMutableMass(Frame *frame, int *count);
+EXPORT Motion *FrameGetMutableMotion(Frame *frame, int *count);
+EXPORT Collider *FrameGetMutableColliders(Frame *frame, int *count);
+EXPORT Glue *FrameGetMutableGlue(Frame *frame, int *count);
+EXPORT Flags *FrameGetMutableFlags(Frame *frame, int *count);
+
+// Optional components
+EXPORT void FrameResizeOrbits(Frame *frame, int count);
+EXPORT Orbit *FrameGetMutableOrbits(Frame *frame, int *count);
+
 EXPORT void DestroyFrame(Frame *frame);
+
+// EVENT BUFFER API //
 
 using EventBuffer = std::vector<Event>;
 
@@ -36,16 +52,25 @@ EXPORT EventBuffer *CreateEventBuffer();
 EXPORT Event *EventBufferGetEvents(EventBuffer *event_buffer, int *count);
 EXPORT void DestroyEventBuffer(EventBuffer *event_buffer);
 
+// LAYER MATRIX API //
+
 EXPORT LayerMatrix *CreateLayerMatrix();
 EXPORT void LayerMatrixSet(LayerMatrix *layer_matrix, uint32_t x, uint32_t y);
 EXPORT void DestroyLayerMatrix(LayerMatrix *layer_matrix);
 
-EXPORT Pipeline *CreateFrameSolver(LayerMatrix *collision_matrix,
-                                   MotionSystem::Integrator integrator);
-EXPORT void FrameSolverStep(Pipeline *frame_solver, float frame_time,
-                            int frame_no, Frame *frame, Event *input,
-                            size_t input_sz, EventBuffer *event_buffer);
-EXPORT void DestroyFrameSolver(Pipeline *frame_solver);
+// TIMELINE API //
+
+EXPORT Timeline *CreateTimeline(Frame *frame, int first_frame_no,
+                                LayerMatrix *collision_matrix, float frame_time,
+                                int key_frame_period,
+                                MotionSystem::Integrator integrator);
+EXPORT int TimelineSimulate(Timeline *timeline, float time_budget);
+EXPORT const Frame *TimelineGetFrame(Timeline *timeline, int frame_no);
+EXPORT void TimelineGetEvents(Timeline *timeline, int frame_no,
+                              EventBuffer *buffer);
+EXPORT void TimelineGetEventRange(Timeline *timeline, int first_frame_no,
+                                  int last_frame_no, EventBuffer *buffer);
+EXPORT void DestroyTimeline(Timeline *timeline);
 }
 }  // namespace vstr
 

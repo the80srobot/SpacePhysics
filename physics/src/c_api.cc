@@ -2,12 +2,14 @@
 
 #include <absl/types/span.h>
 
+#include <chrono>
+
 namespace vstr {
 extern "C" {
 
 Frame *CreateFrame() { return new Frame(); }
 
-int FrameCoreCount(Frame *frame) { return frame->positions.size(); }
+int FrameSize(Frame *frame) { return frame->positions.size(); }
 
 void FrameResize(Frame *frame, int count) {
   frame->positions.resize(count);
@@ -18,9 +20,41 @@ void FrameResize(Frame *frame, int count) {
   frame->flags.resize(count);
 }
 
-Position *FrameGetPositions(Frame *frame, int *count) {
+Position *FrameGetMutablePositions(Frame *frame, int *count) {
   *count = frame->positions.size();
   return frame->positions.data();
+}
+
+Mass *FrameGetMutableMass(Frame *frame, int *count) {
+  *count = frame->mass.size();
+  return frame->mass.data();
+}
+
+Motion *FrameGetMutableMotion(Frame *frame, int *count) {
+  *count = frame->motion.size();
+  return frame->motion.data();
+}
+
+Collider *FrameGetMutableColliders(Frame *frame, int *count) {
+  *count = frame->colliders.size();
+  return frame->colliders.data();
+}
+
+Glue *FrameGetMutableGlue(Frame *frame, int *count) {
+  *count = frame->glue.size();
+  return frame->glue.data();
+}
+
+Flags *FrameGetMutableFlags(Frame *frame, int *count) {
+  *count = frame->flags.size();
+  return frame->flags.data();
+}
+
+void FrameResizeOrbits(Frame *frame, int count) { frame->orbits.resize(count); }
+
+Orbit *FrameGetMutableOrbits(Frame *frame, int *count) {
+  *count = frame->orbits.size();
+  return frame->orbits.data();
 }
 
 void DestroyFrame(Frame *frame) { delete frame; }
@@ -47,13 +81,43 @@ Pipeline *CreateFrameSolver(LayerMatrix *collision_matrix,
   return new Pipeline(*collision_matrix, integrator);
 }
 
-void FrameSolverStep(Pipeline *frame_solver, const float frame_time,
-                     const int frame_no, Frame *frame, Event *input,
-                     const size_t input_sz, EventBuffer *event_buffer) {
-  frame_solver->Step(frame_time, frame_no, *frame,
-                     absl::MakeSpan(input, input_sz), *event_buffer);
+Timeline *CreateTimeline(Frame *frame, int first_frame_no,
+                         LayerMatrix *collision_matrix, float frame_time,
+                         int key_frame_period,
+                         MotionSystem::Integrator integrator) {
+  return new Timeline(*frame, first_frame_no, *collision_matrix, frame_time,
+                      key_frame_period, integrator);
 }
 
-void DestroyFrameSolver(Pipeline *frame_solver) { delete frame_solver; }
+int TimelineSimulate(Timeline *timeline, float time_budget) {
+  auto now = std::chrono::steady_clock::now();
+  auto start = now;
+  timeline->Simulate();
+  now = std::chrono::steady_clock::now();
+  auto cost = 1.5 * (now - start);
+  auto deadline = start + std::chrono::duration<float>(time_budget);
+  int frames = 1;
+  while (now + cost < deadline) {
+    timeline->Simulate();
+    now = std::chrono::steady_clock::now();
+    ++frames;
+  }
+  return frames;
+}
+
+const Frame *TimelineGetFrame(Timeline *timeline, int frame_no) {
+  return timeline->GetFrame(frame_no);
+}
+
+void TimelineGetEvents(Timeline *timeline, int frame_no, EventBuffer *buffer) {
+  timeline->GetEvents(frame_no, *buffer);
+}
+
+void TimelineGetEventRange(Timeline *timeline, int first_frame_no,
+                           int last_frame_no, EventBuffer *buffer) {
+  timeline->GetEvents(first_frame_no, last_frame_no, *buffer);
+}
+
+void DestroyTimeline(Timeline *timeline) { delete timeline; }
 }
 }  // namespace vstr

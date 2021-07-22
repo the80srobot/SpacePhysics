@@ -37,6 +37,8 @@ struct Collider {
   float radius;
 };
 
+static_assert(std::is_standard_layout<Collider>());
+
 inline bool operator==(const Collider &a, const Collider &b) {
   return a.layer == b.layer && a.radius == b.radius;
 }
@@ -46,6 +48,8 @@ std::ostream &operator<<(std::ostream &os, const Collider &collider);
 struct Position {
   Vector3 value;
 };
+
+static_assert(std::is_standard_layout<Position>());
 
 inline bool operator==(const Position &a, const Position &b) {
   return a.value == b.value;
@@ -57,6 +61,8 @@ struct Mass {
   float rest;
   float effective;
 };
+
+static_assert(std::is_standard_layout<Mass>());
 
 inline bool operator==(const Mass &a, const Mass &b) {
   return a.rest == b.rest && a.effective == b.effective;
@@ -81,6 +87,8 @@ struct Motion {
   }
 };
 
+static_assert(std::is_standard_layout<Motion>());
+
 inline bool operator==(const Motion &a, const Motion &b) {
   return a.velocity == b.velocity && a.new_position == b.new_position;
 }
@@ -90,6 +98,8 @@ std::ostream &operator<<(std::ostream &os, const Motion &motion);
 struct Glue {
   int32_t parent_id;
 };
+
+static_assert(std::is_standard_layout<Glue>());
 
 inline bool operator==(const Glue &a, const Glue &b) {
   return a.parent_id == b.parent_id;
@@ -104,6 +114,8 @@ struct Flags {
   static constexpr uint32_t kGlued = 1 << 1;
   static constexpr uint32_t kOrbiting = 1 << 2;
 };
+
+static_assert(std::is_standard_layout<Flags>());
 
 inline bool operator==(const Flags &a, const Flags &b) {
   return a.value == b.value;
@@ -129,6 +141,8 @@ struct Orbit {
   Kepler epoch;
   Kepler delta;
 };
+
+static_assert(std::is_standard_layout<Orbit>());
 
 inline bool operator==(const Orbit::Kepler &a, const Orbit::Kepler &b) {
   return a.semi_major_axis == b.semi_major_axis &&
@@ -178,6 +192,8 @@ struct Collision {
   float first_frame_offset_seconds;
 };
 
+static_assert(std::is_standard_layout<Collision>());
+
 inline bool operator==(const Collision &a, const Collision &b) {
   return a.first_id == b.first_id && a.second_id == b.second_id &&
          a.first_frame_offset_seconds == b.first_frame_offset_seconds;
@@ -188,6 +204,8 @@ std::ostream &operator<<(std::ostream &os, const Collision &collision);
 struct Input {
   Vector3 acceleration;
 };
+
+static_assert(std::is_standard_layout<Input>());
 
 inline bool operator==(const Input &a, const Input &b) {
   return a.acceleration == b.acceleration;
@@ -216,6 +234,7 @@ struct Event {
   };
 };
 
+static_assert(std::is_standard_layout<Event>());
 static_assert(std::is_move_assignable<Event>());
 static_assert(std::is_move_constructible<Event>());
 
