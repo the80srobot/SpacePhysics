@@ -44,7 +44,7 @@ EXPORT Orbit *FrameGetMutableOrbits(Frame *frame, int *count);
 
 EXPORT void DestroyFrame(Frame *frame);
 
-// EVENT BUFFER API //
+// EVENT API //
 
 using EventBuffer = std::vector<Event>;
 

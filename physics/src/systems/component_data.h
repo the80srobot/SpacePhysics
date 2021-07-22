@@ -32,19 +32,6 @@ namespace vstr {
 
 // Core components:
 
-struct Collider {
-  uint32_t layer;
-  float radius;
-};
-
-static_assert(std::is_standard_layout<Collider>());
-
-inline bool operator==(const Collider &a, const Collider &b) {
-  return a.layer == b.layer && a.radius == b.radius;
-}
-
-std::ostream &operator<<(std::ostream &os, const Collider &collider);
-
 struct Position {
   Vector3 value;
 };
@@ -94,6 +81,19 @@ inline bool operator==(const Motion &a, const Motion &b) {
 }
 
 std::ostream &operator<<(std::ostream &os, const Motion &motion);
+
+struct Collider {
+  uint32_t layer;
+  float radius;
+};
+
+static_assert(std::is_standard_layout<Collider>());
+
+inline bool operator==(const Collider &a, const Collider &b) {
+  return a.layer == b.layer && a.radius == b.radius;
+}
+
+std::ostream &operator<<(std::ostream &os, const Collider &collider);
 
 struct Glue {
   int32_t parent_id;
