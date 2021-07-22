@@ -29,6 +29,7 @@ add_library(
 target_link_libraries(
     timeline
     pipeline
+    interval_tree
 )
 
 add_executable(

@@ -177,9 +177,14 @@ class IntervalTree {
     for (auto it = Overlap(Interval(interval.low - 1, interval.high));
          it != end; ++it) {
       if (it->second == value) {
+        // This might look like it does nothing, but the equality operator for T
+        // might ignore certain metadata that we'd prefer to keep.
+        const T old_value = it->second;
         interval.low = std::min(it->first.low, interval.low);
         interval.high = std::max(it->first.high, interval.high);
         Delete(it);
+        Insert(interval, old_value);
+        return;
       }
     }
 

@@ -27,7 +27,16 @@ class Timeline {
  public:
   Timeline(const Frame &scene, int first_frame_no, LayerMatrix collision_matrix,
            float frame_time = 1.0f / 60, int key_frame_period = 30,
-           MotionSystem::Integrator integrator = MotionSystem::kVelocityVerlet);
+           MotionSystem::Integrator integrator = MotionSystem::kVelocityVerlet)
+      : head_(first_frame_no),
+        head_frame_(scene),
+        tail_(first_frame_no),
+        frame_time_(frame_time),
+        key_frame_period_(key_frame_period),
+        frame_no_{first_frame_no},
+        frame_{scene},
+        key_frames_{scene},
+        pipeline_(std::make_shared<Pipeline>(collision_matrix)) {}
   Timeline() = delete;
 
   const Frame *GetFrame(int frame_no);
@@ -39,8 +48,8 @@ class Timeline {
   void Simulate();
 
  private:
-  Timeline(const Frame &scene, int first_frame_no, float frame_time,
-           int key_frame_period, std::shared_ptr<Pipeline> solver);
+  // Timeline(const Frame &scene, int first_frame_no, float frame_time,
+  //          int key_frame_period, std::shared_ptr<Pipeline> solver);
 
   bool Replay(int frame_no);
 
@@ -61,6 +70,7 @@ class Timeline {
 
   std::vector<Event> simulate_buffer_;
   std::vector<Event> replay_buffer_;
+  std::vector<Event> input_buffer_;
 };
 
 }  // namespace vstr

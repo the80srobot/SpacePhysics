@@ -13,7 +13,7 @@
 namespace vstr {
 namespace {
 
-TEST(PipelineTest, SimulateFallingSphere) {
+TEST(PipelineTest, FallingSphere) {
   Pipeline pipeline(LayerMatrix({{1, 1}}));
   const float dt = 0.001;
   // The spheres should take about 111 seconds to come into contact.

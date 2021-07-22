@@ -23,11 +23,11 @@ const Frame *Timeline::GetFrame(const int frame_no) {
 }
 
 bool Timeline::GetEvents(const int frame_no, std::vector<Event> &buffer) const {
-  if (frame_no == head_) {
-    buffer.insert(buffer.end(), simulate_buffer_.begin(),
-                  simulate_buffer_.end());
-    return true;
-  }
+  // if (frame_no == head_) {
+  //   buffer.insert(buffer.end(), simulate_buffer_.begin(),
+  //                 simulate_buffer_.end());
+  //   return true;
+  // }
   if (frame_no < tail_ || frame_no > head_) return false;
   events_.Overlap(frame_no, buffer);
   return true;
@@ -57,6 +57,10 @@ void Timeline::Truncate(int new_head) {
 
   auto d = std::div(new_head - tail_, key_frame_period_);
   head_frame_ = key_frames_[d.quot];
+
+  int i = new_head / 50 + 1;
+  key_frames_.erase(key_frames_.begin() + i, key_frames_.end());
+  // key_frames_.  RemoveRange(i, _keyFrames.Count - i);
 }
 
 void Timeline::InputEvent(const int frame_no, const Event &event) {
@@ -66,19 +70,23 @@ void Timeline::InputEvent(const int frame_no, const Event &event) {
 
 void Timeline::Simulate() {
   ++head_;
-  replay_buffer_.clear();
+  input_buffer_.clear();
   simulate_buffer_.clear();
 
   auto end = events_.End();
   for (auto it = events_.Overlap(head_); it != end; ++it) {
     if (it->second.type == Event::kInput) {
-      replay_buffer_.push_back(it->second);
+      input_buffer_.push_back(it->second);
     }
   }
   pipeline_->Step(frame_time_, head_, head_frame_,
-                  absl::MakeSpan(replay_buffer_), simulate_buffer_);
+                  absl::MakeSpan(input_buffer_), simulate_buffer_);
   for (const auto &event : simulate_buffer_) {
     events_.MergeInsert(Interval{head_, head_ + 1}, event);
+  }
+
+  if ((head_ % key_frame_period_) == 0) {
+    key_frames_.push_back(head_frame_);
   }
 }
 
@@ -86,6 +94,7 @@ bool Timeline::Replay(int frame_no) {
   if (frame_no_ > head_) return false;
 
   const auto d = std::div(frame_no - tail_, key_frame_period_);
+  assert(key_frames_.size() > d.quot);
   frame_ = key_frames_[d.quot];
 
   for (int f = tail_ + d.quot * key_frame_period_; f < frame_no; ++f) {
@@ -93,6 +102,7 @@ bool Timeline::Replay(int frame_no) {
     events_.Overlap(f, replay_buffer_);
     pipeline_->Replay(frame_time_, f, frame_, absl::MakeSpan(replay_buffer_));
   }
+  return true;
 }
 
 }  // namespace vstr

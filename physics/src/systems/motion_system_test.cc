@@ -81,7 +81,7 @@ struct MotionTestCase {
   const std::vector<Motion> expect_motion;
 };
 
-TEST(MotionSystemTest, VerletFalling) {
+TEST(MotionSystemTest, FallingPointMass) {
   // Point particle 0 of negligible mass is falling towards a massive point
   // particle 1 in a vaccum. They start out 100 meters apart and particle 1
   // weighs 100 kg. Note that the motion system sets G=1 for simplicity. (It's
@@ -143,7 +143,7 @@ TEST(MotionSystemTest, VerletFalling) {
   EXPECT_GT(positions[0].value.y, 0);
 }
 
-TEST(MotionSystemTest, VerletHover) {
+TEST(MotionSystemTest, PointMassHover) {
   // Point particle 0 of neglibile mass is hovering 100 meters over point
   // particle 1 which has 100 kg of mass. Input each frame sets acceleration of
   // point particle 0 to counteract the gravitational influence of particle 1.

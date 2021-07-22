@@ -64,8 +64,16 @@ float CollisionTime(const std::vector<Position> &positions,
   // 2) If d(0) == d(dt/2) == d(dt) then the lines are parallel.
   // 3) Otherwise the function is V-shaped.
   float d0 = DistanceToCollision(positions, colliders, motion, a, b, 0);
+
+  // The objects are already in collision.
+  if (d0 <= 0) {
+    return 0;
+  }
+
   float d1 = DistanceToCollision(positions, colliders, motion, a, b, dt / 2);
   float d2 = DistanceToCollision(positions, colliders, motion, a, b, dt);
+
+  // TODO(adam): The floating point comparisons suffer from rounding errors.
 
   if (d0 == d1 && d0 == d2) {
     // The lines are parallel. The objects are either already in collision, or
@@ -107,6 +115,11 @@ float CollisionTime(const std::vector<Position> &positions,
     // Solve for t: d0 + slope * t = 0
     // -> t = d0/slope (we know slope != 0).
     return d0 / slope;
+  } else {
+    // The lines are either parallel, or the function is linear and the objects
+    // are receding. Either way, d0 is the closest approach this frame and we
+    // already know d0 > 0.
+    // return std::numeric_limits<float>::infinity();
   }
 
   // The function is V-shaped: the objects approach and then recede. The
