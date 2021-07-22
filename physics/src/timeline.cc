@@ -23,11 +23,9 @@ const Frame *Timeline::GetFrame(const int frame_no) {
 }
 
 bool Timeline::GetEvents(const int frame_no, std::vector<Event> &buffer) const {
-  // if (frame_no == head_) {
-  //   buffer.insert(buffer.end(), simulate_buffer_.begin(),
-  //                 simulate_buffer_.end());
-  //   return true;
-  // }
+  // TODO(adam): This can be optimized if frame_no == head_, which is a hot
+  // path. The simulate_buffer_ might have subtly different contents from what
+  // Overlap returns, though.
   if (frame_no < tail_ || frame_no > head_) return false;
   events_.Overlap(frame_no, buffer);
   return true;
