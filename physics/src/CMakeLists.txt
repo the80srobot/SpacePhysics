@@ -11,7 +11,7 @@ add_library(
 
 target_link_libraries(
     vstr_c_api
-    pipeline
+    timeline
 )
 
 set_target_properties(vstr_c_api PROPERTIES
