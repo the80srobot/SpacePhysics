@@ -58,7 +58,6 @@ void Timeline::Truncate(int new_head) {
 
   int i = new_head / 50 + 1;
   key_frames_.erase(key_frames_.begin() + i, key_frames_.end());
-  // key_frames_.  RemoveRange(i, _keyFrames.Count - i);
 }
 
 void Timeline::InputEvent(const int frame_no, const Event &event) {
