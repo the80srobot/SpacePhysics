@@ -8,7 +8,6 @@
 #include "timeline.h"
 
 namespace vstr {
-namespace {}
 
 const Frame *Timeline::GetFrame(const int frame_no) {
   if (frame_no == frame_no_) return &frame_;

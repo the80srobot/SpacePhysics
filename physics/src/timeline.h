@@ -71,7 +71,6 @@ class Timeline {
 
   std::vector<Event> simulate_buffer_;
   std::vector<Event> replay_buffer_;
-  // std::vector<IntervalTree<Event>::KV> replay_buffer_;
   std::vector<Event> input_buffer_;
 };
 
