@@ -23,8 +23,8 @@ enum IntegrationMethod {
 
 // Updates the Motion and Acceleration components, except where kGlued,
 // kOrbiting or kDestroyed are in effect. Does not update Position
-// (UpdatePositions does that). Separate systems update Motion for objects that
-// are otherwise controlled: GlueSystem and OrbitSystem.
+// (UpdatePositions does that). Call UpdateOrbitalMotion and UpdateGluedMotion
+// for objects that don't accelerate freely.
 //
 // Input must be sorted in ascending order of object ID.
 void Accelerate(IntegrationMethod integrator, float dt, absl::Span<Event> input,

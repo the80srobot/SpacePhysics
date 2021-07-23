@@ -178,12 +178,13 @@ bool Eligible(const std::vector<Collider> &colliders,
 
 };  // namespace
 
-void CollisionSystem::Solve(const std::vector<Position> &positions,
-                            const std::vector<Collider> &colliders,
-                            const std::vector<Motion> &motion,
-                            const std::vector<Flags> &flags,
-                            const std::vector<Glue> &glue, const float dt,
-                            std::vector<Event> &out_events) {
+void CollisionSystem::DetectCollisions(const std::vector<Position> &positions,
+                                       const std::vector<Collider> &colliders,
+                                       const std::vector<Motion> &motion,
+                                       const std::vector<Flags> &flags,
+                                       const std::vector<Glue> &glue,
+                                       const float dt,
+                                       std::vector<Event> &out_events) {
   cache_bvh_kvs_.clear();
   cache_object_swept_bounds_.clear();
   for (int id = 0; id < colliders.size(); ++id) {

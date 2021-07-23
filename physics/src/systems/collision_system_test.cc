@@ -30,8 +30,9 @@ class CollisionSystemTest : public testing::TestWithParam<TestCase> {};
 TEST_P(CollisionSystemTest, CollisionSystemTest) {
   CollisionSystem system(GetParam().matrix);
   std::vector<Event> events;
-  system.Solve(GetParam().positions, GetParam().colliders, GetParam().motion,
-               GetParam().flags, GetParam().glue, GetParam().deltaTime, events);
+  system.DetectCollisions(GetParam().positions, GetParam().colliders,
+                          GetParam().motion, GetParam().flags, GetParam().glue,
+                          GetParam().deltaTime, events);
   EXPECT_THAT(events, testing::UnorderedElementsAreArray(GetParam().expect));
 }
 

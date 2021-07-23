@@ -73,8 +73,8 @@ void BM_CollisionSystem(benchmark::State& state) {
   std::vector<Event> buffer;
   int collisions = 0;
   for (auto _ : state) {
-    solver.Solve(frame.positions, frame.colliders, frame.motion, frame.flags,
-                 frame.glue, kDeltaTime, buffer);
+    solver.DetectCollisions(frame.positions, frame.colliders, frame.motion,
+                            frame.flags, frame.glue, kDeltaTime, buffer);
     collisions += buffer.size();
     buffer.clear();
   }

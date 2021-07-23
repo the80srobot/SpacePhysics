@@ -19,11 +19,12 @@ namespace vstr {
 class CollisionSystem {
  public:
   CollisionSystem(LayerMatrix layer_matrix) : matrix_(layer_matrix) {}
-  void Solve(const std::vector<Position> &positions,
-             const std::vector<Collider> &colliders,
-             const std::vector<Motion> &motion, const std::vector<Flags> &flags,
-             const std::vector<Glue> &glue, float dt,
-             std::vector<Event> &out_events);
+  void DetectCollisions(const std::vector<Position> &positions,
+                        const std::vector<Collider> &colliders,
+                        const std::vector<Motion> &motion,
+                        const std::vector<Flags> &flags,
+                        const std::vector<Glue> &glue, float dt,
+                        std::vector<Event> &out_events);
 
   const inline LayerMatrix &matrix() const { return matrix_; }
 
