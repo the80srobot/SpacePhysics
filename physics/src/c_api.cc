@@ -89,6 +89,15 @@ Timeline *CreateTimeline(Frame *frame, int first_frame_no,
                       key_frame_period, integrator);
 }
 
+void TimelineInputEvent(Timeline *timeline, int frame_no, Event *event) {
+  timeline->InputEvent(frame_no, *event);
+}
+
+void TimelineInputEventRange(Timeline *timeline, int first_frame_no,
+                             int last_frame_no, Event *event) {
+  timeline->InputEvent(first_frame_no, last_frame_no, *event);
+}
+
 int TimelineSimulate(Timeline *timeline, float time_budget) {
   auto now = std::chrono::steady_clock::now();
   auto start = now;
