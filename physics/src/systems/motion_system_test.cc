@@ -31,9 +31,9 @@ class GravityTest : public testing::TestWithParam<GravityTestCase> {};
 
 TEST_P(GravityTest, GravityTest) {
   std::vector<std::pair<int, Vector3>> components;
-  Vector3 force = MotionSystem::GravityComponentsOn(
-      GetParam().positions, GetParam().mass, GetParam().flags,
-      GetParam().object_id, components);
+  Vector3 force =
+      GravityComponentsOn(GetParam().positions, GetParam().mass,
+                          GetParam().flags, GetParam().object_id, components);
   EXPECT_EQ(force, GetParam().expect_force);
   EXPECT_THAT(components,
               testing::UnorderedElementsAreArray(GetParam().expect_components));
@@ -68,7 +68,7 @@ INSTANTIATE_TEST_SUITE_P(
 struct MotionTestCase {
   const std::string comment;
   const std::vector<Event> input;
-  const MotionSystem::Integrator integrator;
+  const IntegrationMethod integrator;
   const float deltaTime;
   const int rounds;
 
@@ -96,7 +96,6 @@ TEST(MotionSystemTest, FallingPointMass) {
   // over-estimates the time needed to fall by a distance, but the error should
   // be smaller with smaller steps.
 
-  MotionSystem system(MotionSystem::kVelocityVerlet);
   const float coarse_dt = 1;
   const float fine_dt = 0.001;
   const float time_to_fall = 111;
@@ -119,8 +118,8 @@ TEST(MotionSystemTest, FallingPointMass) {
   };
 
   for (float t = 0; t < time_to_fall; t += coarse_dt) {
-    system.FirstPass(coarse_dt, {}, positions, mass, flags, motion);
-    system.SecondPass(motion, positions);
+    Accelerate(kVelocityVerlet, coarse_dt, {}, positions, mass, flags, motion);
+    UpdatePositions(motion, positions);
   }
 
   // Integration in large steps should get within the ballpark.
@@ -133,8 +132,8 @@ TEST(MotionSystemTest, FallingPointMass) {
 
   // Run again in small steps.
   for (float t = 0; t < time_to_fall; t += fine_dt) {
-    system.FirstPass(fine_dt, {}, positions, mass, flags, motion);
-    system.SecondPass(motion, positions);
+    Accelerate(kVelocityVerlet, fine_dt, {}, positions, mass, flags, motion);
+    UpdatePositions(motion, positions);
   }
 
   // This should still under-estimate velocities, but the error should be much
@@ -148,7 +147,6 @@ TEST(MotionSystemTest, PointMassHover) {
   // particle 1 which has 100 kg of mass. Input each frame sets acceleration of
   // point particle 0 to counteract the gravitational influence of particle 1.
 
-  MotionSystem system(MotionSystem::kVelocityVerlet);
   const float dt = 0.001;
   const float duration = 100;
 
@@ -176,8 +174,9 @@ TEST(MotionSystemTest, PointMassHover) {
   };
 
   for (float f = 0; f < duration; f += dt) {
-    system.FirstPass(dt, absl::MakeSpan(input), positions, mass, flags, motion);
-    system.SecondPass(motion, positions);
+    Accelerate(kVelocityVerlet, dt, absl::MakeSpan(input), positions, mass,
+               flags, motion);
+    UpdatePositions(motion, positions);
   }
 
   EXPECT_EQ(positions[0].value.y, 100);
@@ -188,8 +187,9 @@ TEST(MotionSystemTest, PointMassHover) {
   input.push_back(Event(1, Acceleration{Vector3{0, -0.01, 0}}));
 
   for (float f = 0; f < duration; f += dt) {
-    system.FirstPass(dt, absl::MakeSpan(input), positions, mass, flags, motion);
-    system.SecondPass(motion, positions);
+    Accelerate(kVelocityVerlet, dt, absl::MakeSpan(input), positions, mass,
+               flags, motion);
+    UpdatePositions(motion, positions);
   }
 
   EXPECT_GT(positions[0].value.y, 100);

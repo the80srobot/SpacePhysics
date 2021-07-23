@@ -71,6 +71,8 @@ Vector3 ComputeAcceleration(const std::vector<Position> &positions,
   return result + GravityAt(positions, mass, flags, id, nullptr);
 }
 
+}  // namespace
+
 void IntegrateFirstOrderEuler(const float dt, absl::Span<Event> input,
                               const std::vector<Position> &positions,
                               const std::vector<Mass> &mass,
@@ -109,14 +111,11 @@ void IntegrateVelocityVerlet(const float dt, absl::Span<Event> input,
   }
 }
 
-}  // namespace
-
-void MotionSystem::FirstPass(float dt, absl::Span<Event> input,
-                             const std::vector<Position> &positions,
-                             const std::vector<Mass> &mass,
-                             const std::vector<Flags> &flags,
-                             std::vector<Motion> &motion) {
-  switch (integrator_) {
+void Accelerate(IntegrationMethod integrator, float dt, absl::Span<Event> input,
+                const std::vector<Position> &positions,
+                const std::vector<Mass> &mass, const std::vector<Flags> &flags,
+                std::vector<Motion> &motion) {
+  switch (integrator) {
     case kFirstOrderEuler:
       IntegrateFirstOrderEuler(dt, input, positions, mass, flags, motion);
       break;
@@ -128,22 +127,21 @@ void MotionSystem::FirstPass(float dt, absl::Span<Event> input,
   }
 }
 
-void MotionSystem::SecondPass(const std::vector<Motion> &motion,
-                              std::vector<Position> &positions) {
+void UpdatePositions(const std::vector<Motion> &motion,
+                     std::vector<Position> &positions) {
   const int count = positions.size();
   for (int i = 0; i < count; ++i) {
     positions[i].value = motion[i].new_position;
   }
 }
 
-Vector3 MotionSystem::GravityForceOn(const std::vector<Position> &positions,
-                                     const std::vector<Mass> &mass,
-                                     const std::vector<Flags> &flags,
-                                     int object_id) {
+Vector3 GravityForceOn(const std::vector<Position> &positions,
+                       const std::vector<Mass> &mass,
+                       const std::vector<Flags> &flags, int object_id) {
   return GravityAt(positions, mass, flags, object_id, nullptr);
 }
 
-Vector3 MotionSystem::GravityComponentsOn(
+Vector3 GravityComponentsOn(
     const std::vector<Position> &positions, const std::vector<Mass> &mass,
     const std::vector<Flags> &flags, const int object_id,
     std::vector<std::pair<int, Vector3>> &contributions) {

@@ -22,14 +22,15 @@ void Pipeline::Step(const float dt, const int frame_no, Frame &frame,
   // TODO: compute effective mass
   std::sort(input.begin(), input.end(),
             [](const Event &a, const Event &b) -> bool { return a.id < b.id; });
-  motion_system_.FirstPass(dt, input, frame.positions, frame.mass, frame.flags,
-                           frame.motion);
+  Accelerate(integrator_, dt, input, frame.positions, frame.mass, frame.flags,
+             frame.motion);
+
   // glue_system_.Step(frame.positions, frame.glue, frame.motion);
 
   collision_system_.Solve(frame.positions, frame.colliders, frame.motion,
                           frame.flags, frame.glue, dt, out_events);
   // TODO: Should collisions be processed here, first?
-  motion_system_.SecondPass(frame.motion, frame.positions);
+  UpdatePositions(frame.motion, frame.positions);
 }
 
 void Pipeline::Replay(const float dt, const int frame_no, Frame &frame,
@@ -45,14 +46,14 @@ void Pipeline::Replay(const float dt, const int frame_no, Frame &frame,
   }
   std::sort(event_buffer_.begin(), event_buffer_.end(),
             [](const Event &a, const Event &b) -> bool { return a.id < b.id; });
-  motion_system_.FirstPass(dt, absl::MakeSpan(event_buffer_), frame.positions,
-                           frame.mass, frame.flags, frame.motion);
+  Accelerate(integrator_, dt, absl::MakeSpan(event_buffer_), frame.positions,
+             frame.mass, frame.flags, frame.motion);
 
   glue_system_.Step(frame.positions, frame.glue, frame.motion);
 
   // HERE RESOLVE COLLISION EVENTS
 
-  motion_system_.SecondPass(frame.motion, frame.positions);
+  UpdatePositions(frame.motion, frame.positions);
 }
 
 }  // namespace vstr

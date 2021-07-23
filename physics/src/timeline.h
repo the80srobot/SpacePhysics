@@ -27,7 +27,7 @@ class Timeline {
  public:
   Timeline(const Frame &scene, int first_frame_no, LayerMatrix collision_matrix,
            float frame_time = 1.0f / 60, int key_frame_period = 30,
-           MotionSystem::Integrator integrator = MotionSystem::kVelocityVerlet)
+           IntegrationMethod integrator = kVelocityVerlet)
       : head_(first_frame_no),
         head_frame_(scene),
         tail_(first_frame_no),

@@ -23,15 +23,12 @@ namespace vstr {
 
 class Pipeline {
  public:
-  explicit Pipeline(
-      LayerMatrix collision_matrix,
-      MotionSystem::Integrator integrator = MotionSystem::kVelocityVerlet)
-      : collision_system_(collision_matrix), motion_system_(integrator) {}
+  explicit Pipeline(LayerMatrix collision_matrix,
+                    IntegrationMethod integrator = kVelocityVerlet)
+      : collision_system_(collision_matrix), integrator_(integrator) {}
   void Step(float dt, int frame_no, Frame &frame, absl::Span<Event> input,
             std::vector<Event> &out_events);
   void Replay(float dt, int frame_no, Frame &frame, absl::Span<Event> events);
-
-  inline MotionSystem &motion_system() { return motion_system_; }
 
   inline CollisionSystem &collision_system() { return collision_system_; }
 
@@ -40,7 +37,7 @@ class Pipeline {
   inline OrbitSystem &orbit_system() { return orbit_system_; }
 
  private:
-  MotionSystem motion_system_;
+  IntegrationMethod integrator_;
   CollisionSystem collision_system_;
   GlueSystem glue_system_;
   OrbitSystem orbit_system_;

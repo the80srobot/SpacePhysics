@@ -63,7 +63,7 @@ EXPORT void DestroyLayerMatrix(LayerMatrix *layer_matrix);
 EXPORT Timeline *CreateTimeline(Frame *frame, int first_frame_no,
                                 LayerMatrix *collision_matrix, float frame_time,
                                 int key_frame_period,
-                                MotionSystem::Integrator integrator);
+                                IntegrationMethod integrator);
 EXPORT void TimelineInputEvent(Timeline *timeline, int frame_no, Event *event);
 EXPORT void TimelineInputEventRange(Timeline *timeline, int first_frame_no,
                                     int last_frame_no, Event *event);

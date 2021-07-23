@@ -16,44 +16,47 @@
 
 namespace vstr {
 
-class MotionSystem {
- public:
-  enum Integrator {
-    kFirstOrderEuler,
-    kVelocityVerlet,
-  };
-
-  explicit MotionSystem(Integrator integrator = kVelocityVerlet)
-      : integrator_(integrator) {}
-
-  // Updates the Motion and Acceleration components, except where kGlued,
-  // kOrbiting or kDestroyed are in effect. Does not update Position (SecondPass
-  // does that). Separate systems update Motion for objects that are otherwise
-  // controlled: GlueSystem and OrbitSystem.
-  //
-  // Input must be sorted in ascending order of object ID.
-  void FirstPass(float dt, absl::Span<Event> input,
-                 const std::vector<Position> &positions,
-                 const std::vector<Mass> &mass, const std::vector<Flags> &flags,
-                 std::vector<Motion> &motion);
-
-  // Copies Motion.next_position to Position.value.
-  void SecondPass(const std::vector<Motion> &motion,
-                  std::vector<Position> &positions);
-
-  static Vector3 GravityForceOn(const std::vector<Position> &positions,
-                                const std::vector<Mass> &mass,
-                                const std::vector<Flags> &flags, int object_id);
-  static Vector3 GravityComponentsOn(
-      const std::vector<Position> &positions, const std::vector<Mass> &mass,
-      const std::vector<Flags> &flags, int object_id,
-      std::vector<std::pair<int, Vector3>> &contributions);
-
-  inline const Integrator integrator() const { return integrator_; }
-
- private:
-  Integrator integrator_;
+enum IntegrationMethod {
+  kFirstOrderEuler = 0,
+  kVelocityVerlet = 1,
 };
+
+// Updates the Motion and Acceleration components, except where kGlued,
+// kOrbiting or kDestroyed are in effect. Does not update Position
+// (UpdatePositions does that). Separate systems update Motion for objects that
+// are otherwise controlled: GlueSystem and OrbitSystem.
+//
+// Input must be sorted in ascending order of object ID.
+void Accelerate(IntegrationMethod integrator, float dt, absl::Span<Event> input,
+                const std::vector<Position> &positions,
+                const std::vector<Mass> &mass, const std::vector<Flags> &flags,
+                std::vector<Motion> &motion);
+
+// Copies Motion.next_position to Position.value.
+void UpdatePositions(const std::vector<Motion> &motion,
+                     std::vector<Position> &positions);
+
+Vector3 GravityForceOn(const std::vector<Position> &positions,
+                       const std::vector<Mass> &mass,
+                       const std::vector<Flags> &flags, int object_id);
+
+Vector3 GravityComponentsOn(
+    const std::vector<Position> &positions, const std::vector<Mass> &mass,
+    const std::vector<Flags> &flags, int object_id,
+    std::vector<std::pair<int, Vector3>> &contributions);
+
+void IntegrateFirstOrderEuler(float dt, absl::Span<Event> input,
+                              const std::vector<Position> &positions,
+                              const std::vector<Mass> &mass,
+                              const std::vector<Flags> &flags,
+                              std::vector<Motion> &motion);
+
+void IntegrateVelocityVerlet(float dt, absl::Span<Event> input,
+                             const std::vector<Position> &positions,
+                             const std::vector<Mass> &mass,
+                             const std::vector<Flags> &flags,
+                             std::vector<Motion> &motion);
+
 }  // namespace vstr
 
 #endif

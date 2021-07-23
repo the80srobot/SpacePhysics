@@ -77,14 +77,13 @@ void LayerMatrixSet(LayerMatrix *layer_matrix, uint32_t x, uint32_t y) {
 void DestroyLayerMatrix(LayerMatrix *layer_matrix) { delete layer_matrix; }
 
 Pipeline *CreateFrameSolver(LayerMatrix *collision_matrix,
-                            MotionSystem::Integrator integrator) {
+                            IntegrationMethod integrator) {
   return new Pipeline(*collision_matrix, integrator);
 }
 
 Timeline *CreateTimeline(Frame *frame, int first_frame_no,
                          LayerMatrix *collision_matrix, float frame_time,
-                         int key_frame_period,
-                         MotionSystem::Integrator integrator) {
+                         int key_frame_period, IntegrationMethod integrator) {
   return new Timeline(*frame, first_frame_no, *collision_matrix, frame_time,
                       key_frame_period, integrator);
 }
