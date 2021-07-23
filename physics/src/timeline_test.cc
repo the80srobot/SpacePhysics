@@ -94,7 +94,7 @@ MATCHER_P(Vector3ApproxEq, other, "") {
 }
 
 TEST(TimelineTest, AccelerateRewindAccelerate) {
-  const float dt = 0.02;
+  const float dt = 0.01;
 
   std::vector<Position> positions{
       Position{Vector3{0, 100, 0}},

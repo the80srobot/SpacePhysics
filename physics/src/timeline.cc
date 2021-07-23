@@ -58,7 +58,7 @@ void Timeline::Truncate(int new_head) {
   head_frame_ = key_frames_[d.quot];
   key_frames_.erase(key_frames_.begin() + d.quot + 1, key_frames_.end());
 
-  for (head_ = d.quot; head_ < new_head; ++head_) {
+  for (head_ = d.quot * key_frame_period_; head_ < new_head; ++head_) {
     replay_buffer_.clear();
     events_.Overlap(head_, replay_buffer_);
     pipeline_->Replay(frame_time_, head_, head_frame_,
