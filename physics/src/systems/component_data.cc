@@ -63,7 +63,23 @@ std::ostream &operator<<(std::ostream &os, const Input &input) {
 bool operator==(const Event &a, const Event &b) {
   // Intentionally don't check the value of the event - each event can only
   // occur once per unique pair of interval and object.
-  return a.id == b.id && a.type == b.type;
+  if (!(a.id == b.id && a.type == b.type)) {
+    return false;
+  }
+
+  switch (a.type) {
+    case Event::kInput:
+      return a.input == b.input;
+    case Event::kGlue:
+      return a.glue == b.glue;
+    case Event::kFlags:
+      return a.flags == b.flags;
+    case Event::kCollision:
+      return a.collision == b.collision;
+    default:
+      assert(false);  // Programmer error - unreachable.
+      return true;
+  }
 }
 
 bool operator>(const Event &a, const Event &b) {
@@ -80,7 +96,7 @@ std::ostream &operator<<(std::ostream &os, const Event::Type event_type) {
       return os << "input";
     case Event::Type::kGlue:
       return os << "glue";
-    case Event::Type::kDestroyed:
+    case Event::Type::kFlags:
       return os << "destroyed";
     case Event::Type::kCollision:
       return os << "collision";
@@ -96,8 +112,8 @@ std::ostream &operator<<(std::ostream &os, const Event &event) {
       return os << ", /*input=*/" << event.input << "}";
     case Event::Type::kGlue:
       return os << ", /*glue=*/" << event.glue << "}";
-    case Event::Type::kDestroyed:
-      return os << ", /*destroyed=*/" << event.destroyed << "}";
+    case Event::Type::kFlags:
+      return os << ", /*destroyed=*/" << event.flags << "}";
     case Event::Type::kCollision:
       return os << ", /*collision=*/" << event.collision << "}";
     default:

@@ -45,6 +45,7 @@ class Timeline {
                  std::vector<Event> &buffer) const;
   void Truncate(int new_head);
   void InputEvent(int frame_no, const Event &event);
+  void InputEvent(int first_frame_no, int last_frame_no, const Event &event);
   void Simulate();
 
  private:
@@ -70,6 +71,7 @@ class Timeline {
 
   std::vector<Event> simulate_buffer_;
   std::vector<Event> replay_buffer_;
+  // std::vector<IntervalTree<Event>::KV> replay_buffer_;
   std::vector<Event> input_buffer_;
 };
 

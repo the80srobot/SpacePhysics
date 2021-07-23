@@ -195,8 +195,10 @@ struct Collision {
 static_assert(std::is_standard_layout<Collision>());
 
 inline bool operator==(const Collision &a, const Collision &b) {
-  return a.first_id == b.first_id && a.second_id == b.second_id &&
-         a.first_frame_offset_seconds == b.first_frame_offset_seconds;
+  // Intentionally don't compare the offset on the first frame. It turns out
+  // many operations (like merging event intervals) are greatly simplified if we
+  // consider that to be just metadata.
+  return a.first_id == b.first_id && a.second_id == b.second_id;
 }
 
 std::ostream &operator<<(std::ostream &os, const Collision &collision);
@@ -214,7 +216,7 @@ inline bool operator==(const Input &a, const Input &b) {
 std::ostream &operator<<(std::ostream &os, const Input &input);
 
 struct Event {
-  enum Type { kInput, kGlue, kDestroyed, kCollision };
+  enum Type { kInput, kGlue, kFlags, kCollision };
 
   Event(Collision &&collision)
       : type(kCollision),
@@ -229,7 +231,7 @@ struct Event {
   union {
     Input input;
     Glue glue;
-    Flags destroyed;
+    Flags flags;
     Collision collision;
   };
 };

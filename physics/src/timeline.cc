@@ -41,10 +41,11 @@ bool Timeline::GetEvents(const int first_frame_no, const int last_frame_no,
 
 void Timeline::Truncate(int new_head) {
   if (new_head == head_) return;
+  assert(new_head < head_);
   // TODO(adam): this could be about 5-10 times faster and require no allocation
   // if the tree was right-aligned, instead of left-aligned.
   std::vector<IntervalTree<Event>::KV> to_delete;
-  events_.Overlap(Interval(new_head, events_.MaxPoint()));
+  events_.Overlap(Interval(new_head, events_.MaxPoint()), to_delete);
   for (auto &kv : to_delete) {
     events_.Delete(kv);
     if (kv.first.low < new_head) {
@@ -55,14 +56,25 @@ void Timeline::Truncate(int new_head) {
 
   auto d = std::div(new_head - tail_, key_frame_period_);
   head_frame_ = key_frames_[d.quot];
+  key_frames_.erase(key_frames_.begin() + d.quot + 1, key_frames_.end());
 
-  int i = new_head / 50 + 1;
-  key_frames_.erase(key_frames_.begin() + i, key_frames_.end());
+  for (head_ = d.quot; head_ < new_head; ++head_) {
+    replay_buffer_.clear();
+    events_.Overlap(head_, replay_buffer_);
+    pipeline_->Replay(frame_time_, head_, head_frame_,
+                      absl::MakeSpan(replay_buffer_));
+  }
 }
 
 void Timeline::InputEvent(const int frame_no, const Event &event) {
   Truncate(frame_no);
   events_.MergeInsert(Interval(frame_no, frame_no + 1), event);
+}
+
+void Timeline::InputEvent(int first_frame_no, int last_frame_no,
+                          const Event &event) {
+  Truncate(first_frame_no);
+  events_.MergeInsert(Interval(first_frame_no, last_frame_no + 1), event);
 }
 
 void Timeline::Simulate() {

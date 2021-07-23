@@ -83,5 +83,77 @@ TEST(TimelineTest, FallingSphere) {
   EXPECT_GT(frame->positions[0].value.y, 0);
 }
 
+bool FloatEq(const float x, const float y) {
+  constexpr float kEpsilon = 0.005f;
+  return std::fabs(x - y) < kEpsilon;
+}
+
+MATCHER_P(Vector3ApproxEq, other, "") {
+  return FloatEq(arg.x, other.x) && FloatEq(arg.y, other.y) &&
+         FloatEq(arg.z, other.z);
+}
+
+TEST(TimelineTest, AccelerateRewindAccelerate) {
+  const float dt = 0.02;
+
+  std::vector<Position> positions{
+      Position{Vector3{0, 100, 0}},
+      Position{Vector3{0, 0, 0}},
+  };
+  std::vector<Mass> mass{
+      Mass{},
+      Mass{},
+  };
+  std::vector<Motion> motion{
+      Motion{},
+      Motion{},
+  };
+  std::vector<Collider> colliders{
+      Collider{1, 1},
+      Collider{1, 1},
+  };
+  std::vector<Glue> glue{
+      Glue{},
+      Glue{},
+  };
+  std::vector<Flags> flags{
+      Flags{},
+      Flags{},
+  };
+
+  Frame initial_frame{positions, mass, motion, colliders, glue, flags};
+  LayerMatrix matrix({{1, 1}});
+
+  Timeline timeline(initial_frame, 0, matrix, dt, 30);
+
+  // One-second 10 ms/s/s burn in the direction of sphere 1. After 1 second, the
+  // speed of sphere 0 should be 10 m/s.
+  timeline.InputEvent(0, 1.0f / dt, Event(0, Input{Vector3{0, -10, 0}}));
+
+  // After two seconds, sphere 0 should be on its way towards sphere 1.
+  int frame_no = 0;
+  for (float t = 0; t < 2; t += dt) {
+    timeline.Simulate();
+    ++frame_no;
+  }
+
+  const Frame* frame = timeline.GetFrame(frame_no);
+  ASSERT_NE(frame, nullptr);
+  EXPECT_THAT(frame->motion[0].velocity, Vector3ApproxEq(Vector3{0, -10, 0}));
+
+  // Rewind the clock to 0.5 second and burn in the opposite direction. The
+  // resulting speed should be 0.
+  timeline.InputEvent(0.5f / dt, 1.0f / dt, Event(0, Input{Vector3{0, 10, 0}}));
+  frame_no = 0.5f / dt;
+  for (float t = 0.5; t < 2; t += dt) {
+    timeline.Simulate();
+    ++frame_no;
+  }
+
+  frame = timeline.GetFrame(frame_no);
+  ASSERT_NE(frame, nullptr);
+  EXPECT_THAT(frame->motion[0].velocity, Vector3ApproxEq(Vector3{0, 0, 0}));
+}
+
 }  // namespace
 }  // namespace vstr
