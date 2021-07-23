@@ -35,7 +35,7 @@ target_link_libraries(
 
 add_library(
     motion_system
-    motion_system.cc
+    motion.cc
 )
 
 target_link_libraries(
@@ -47,7 +47,7 @@ target_link_libraries(
 
 add_executable(
     motion_system_test
-    motion_system_test.cc
+    motion_test.cc
 )
 
 target_link_libraries(

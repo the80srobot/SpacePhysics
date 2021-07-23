@@ -5,7 +5,7 @@
 //
 // Author(s): Adam Sindelar <adam@wowsignal.io>
 
-#include "motion_system.h"
+#include "motion.h"
 
 #include "component_data.h"
 

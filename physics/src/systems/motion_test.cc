@@ -5,12 +5,12 @@
 //
 // Author(s): Adam Sindelar <adam@wowsignal.io>
 
-#include "motion_system.h"
-
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 
 #include <random>
+
+#include "motion.h"
 
 namespace vstr {
 namespace {
