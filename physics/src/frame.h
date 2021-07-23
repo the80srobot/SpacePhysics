@@ -15,8 +15,8 @@
 #include "systems/collision_system.h"
 #include "systems/component_data.h"
 #include "systems/glue_system.h"
+#include "systems/kepler.h"
 #include "systems/motion.h"
-#include "systems/orbit_system.h"
 
 namespace vstr {
 

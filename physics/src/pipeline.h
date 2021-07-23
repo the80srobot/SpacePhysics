@@ -16,8 +16,8 @@
 #include "systems/collision_system.h"
 #include "systems/component_data.h"
 #include "systems/glue_system.h"
+#include "systems/kepler.h"
 #include "systems/motion.h"
-#include "systems/orbit_system.h"
 
 namespace vstr {
 
@@ -34,13 +34,10 @@ class Pipeline {
 
   inline GlueSystem &glue_system() { return glue_system_; }
 
-  inline OrbitSystem &orbit_system() { return orbit_system_; }
-
  private:
   IntegrationMethod integrator_;
   CollisionSystem collision_system_;
   GlueSystem glue_system_;
-  OrbitSystem orbit_system_;
 
   std::vector<Event> event_buffer_;
 };

@@ -5,11 +5,11 @@
 //
 // Author(s): Adam Sindelar <adam@wowsignal.io>
 
-#include "orbit_system.h"
+#include "kepler.h"
 
 namespace vstr {
 
-Vector3 OrbitSystem::EllipticalPosition(const Orbit::Kepler &kepler) {
+Vector3 EllipticalPosition(const Orbit::Kepler &kepler) {
   // It's called elliptical position. We don't take kindly to no parabolas or
   // hyperboles 'round these parts.
   assert(kepler.eccentricity < 1);
@@ -69,9 +69,9 @@ Vector3 OrbitSystem::EllipticalPosition(const Orbit::Kepler &kepler) {
   return Vector3{x, y, z};
 }
 
-void OrbitSystem::Step(const float t, const std::vector<Position> &positions,
-                       const std::vector<Orbit> &orbits,
-                       std::vector<Motion> &motion) {
+void UpdateOrbitalMotion(const float t, const std::vector<Position> &positions,
+                         const std::vector<Orbit> &orbits,
+                         std::vector<Motion> &motion) {
   for (const auto &orbit : orbits) {
     const Orbit::Kepler current = orbit.epoch + orbit.delta * t;
     motion[orbit.id].new_position = EllipticalPosition(current);

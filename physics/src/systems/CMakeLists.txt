@@ -22,7 +22,7 @@ target_link_libraries(
 
 add_library(
     orbit_system
-    orbit_system.cc
+    kepler.cc
 )
 
 target_link_libraries(

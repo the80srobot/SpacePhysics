@@ -17,8 +17,8 @@ namespace {
 
 void Pipeline::Step(const float dt, const int frame_no, Frame &frame,
                     absl::Span<Event> input, std::vector<Event> &out_events) {
-  orbit_system_.Step(dt * frame_no, frame.positions, frame.orbits,
-                     frame.motion);
+  UpdateOrbitalMotion(dt * frame_no, frame.positions, frame.orbits,
+                      frame.motion);
   // TODO: compute effective mass
   std::sort(input.begin(), input.end(),
             [](const Event &a, const Event &b) -> bool { return a.id < b.id; });
@@ -35,8 +35,8 @@ void Pipeline::Step(const float dt, const int frame_no, Frame &frame,
 
 void Pipeline::Replay(const float dt, const int frame_no, Frame &frame,
                       absl::Span<Event> events) {
-  orbit_system_.Step(dt * frame_no, frame.positions, frame.orbits,
-                     frame.motion);
+  UpdateOrbitalMotion(dt * frame_no, frame.positions, frame.orbits,
+                      frame.motion);
   // TODO: compute effective mass
 
   // The motion system just wants input events sorted by ID.

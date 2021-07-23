@@ -17,12 +17,6 @@
 
 namespace vstr {
 
-// struct KeyFrame {
-//   Frame frame;
-//   // Events sorted by time.
-//   std::vector<Event> events;
-// };
-
 class Timeline {
  public:
   Timeline(const Frame &scene, int first_frame_no, LayerMatrix collision_matrix,

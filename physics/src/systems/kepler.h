@@ -16,15 +16,10 @@
 #include "geometry/vector3.h"
 
 namespace vstr {
-class OrbitSystem {
- public:
-  static Vector3 EllipticalPosition(const Orbit::Kepler &kepler);
-
-  void Step(float t, const std::vector<Position> &positions,
-            const std::vector<Orbit> &orbits, std::vector<Motion> &motion);
-
- private:
-};
+Vector3 EllipticalPosition(const Orbit::Kepler &kepler);
+void UpdateOrbitalMotion(float t, const std::vector<Position> &positions,
+                         const std::vector<Orbit> &orbits,
+                         std::vector<Motion> &motion);
 
 }  // namespace vstr
 
