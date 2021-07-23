@@ -203,33 +203,34 @@ inline bool operator==(const Collision &a, const Collision &b) {
 
 std::ostream &operator<<(std::ostream &os, const Collision &collision);
 
-struct Input {
+struct Acceleration {
   Vector3 acceleration;
 };
 
-static_assert(std::is_standard_layout<Input>());
+static_assert(std::is_standard_layout<Acceleration>());
 
-inline bool operator==(const Input &a, const Input &b) {
+inline bool operator==(const Acceleration &a, const Acceleration &b) {
   return a.acceleration == b.acceleration;
 }
 
-std::ostream &operator<<(std::ostream &os, const Input &input);
+std::ostream &operator<<(std::ostream &os, const Acceleration &input);
 
 struct Event {
-  enum Type { kInput, kGlue, kFlags, kCollision };
+  enum Type { kAcceleration, kGlue, kFlags, kCollision };
 
   Event(Collision &&collision)
       : type(kCollision),
         id(collision.first_id),
         collision(std::move(collision)) {}
 
-  Event(int id, Input &&input) : id(id), type(kInput), input(input) {}
+  Event(int id, Acceleration &&acceleration)
+      : id(id), type(kAcceleration), acceleration(acceleration) {}
 
   int32_t id;
   Type type;
 
   union {
-    Input input;
+    Acceleration acceleration;
     Glue glue;
     Flags flags;
     Collision collision;

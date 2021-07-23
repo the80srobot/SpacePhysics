@@ -63,7 +63,7 @@ Vector3 ComputeAcceleration(const std::vector<Position> &positions,
   }
   Vector3 result;
   if (input.size() != 0 && input[0].id == id) {
-    result = input[0].input.acceleration;
+    result = input[0].acceleration.acceleration;
   } else {
     result = Vector3{0, 0, 0};
   }

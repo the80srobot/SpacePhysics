@@ -84,7 +84,7 @@ void Timeline::Simulate() {
 
   auto end = events_.End();
   for (auto it = events_.Overlap(head_); it != end; ++it) {
-    if (it->second.type == Event::kInput) {
+    if (it->second.type == Event::kAcceleration) {
       input_buffer_.push_back(it->second);
     }
   }

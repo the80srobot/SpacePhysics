@@ -128,7 +128,7 @@ TEST(TimelineTest, AccelerateRewindAccelerate) {
 
   // One-second 10 ms/s/s burn in the direction of sphere 1. After 1 second, the
   // speed of sphere 0 should be 10 m/s.
-  timeline.InputEvent(0, 1.0f / dt, Event(0, Input{Vector3{0, -10, 0}}));
+  timeline.InputEvent(0, 1.0f / dt, Event(0, Acceleration{Vector3{0, -10, 0}}));
 
   // After two seconds, sphere 0 should be on its way towards sphere 1.
   int frame_no = 0;
@@ -143,7 +143,8 @@ TEST(TimelineTest, AccelerateRewindAccelerate) {
 
   // Rewind the clock to 0.5 second and burn in the opposite direction. The
   // resulting speed should be 0.
-  timeline.InputEvent(0.5f / dt, 1.0f / dt, Event(0, Input{Vector3{0, 10, 0}}));
+  timeline.InputEvent(0.5f / dt, 1.0f / dt,
+                      Event(0, Acceleration{Vector3{0, 10, 0}}));
   frame_no = 0.5f / dt;
   for (float t = 0.5; t < 2; t += dt) {
     timeline.Simulate();

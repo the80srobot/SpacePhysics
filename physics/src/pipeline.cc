@@ -41,7 +41,7 @@ void Pipeline::Replay(const float dt, const int frame_no, Frame &frame,
   // The motion system just wants input events sorted by ID.
   event_buffer_.clear();
   for (const auto &event : events) {
-    if (event.type == Event::kInput) event_buffer_.push_back(event);
+    if (event.type == Event::kAcceleration) event_buffer_.push_back(event);
   }
   std::sort(event_buffer_.begin(), event_buffer_.end(),
             [](const Event &a, const Event &b) -> bool { return a.id < b.id; });

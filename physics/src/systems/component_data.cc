@@ -56,7 +56,7 @@ std::ostream &operator<<(std::ostream &os, const Collision &collision) {
             << collision.first_frame_offset_seconds << "}";
 }
 
-std::ostream &operator<<(std::ostream &os, const Input &input) {
+std::ostream &operator<<(std::ostream &os, const Acceleration &input) {
   return os << "Input{/*acceleration=*/" << input.acceleration << "}";
 }
 
@@ -68,8 +68,8 @@ bool operator==(const Event &a, const Event &b) {
   }
 
   switch (a.type) {
-    case Event::kInput:
-      return a.input == b.input;
+    case Event::kAcceleration:
+      return a.acceleration == b.acceleration;
     case Event::kGlue:
       return a.glue == b.glue;
     case Event::kFlags:
@@ -92,7 +92,7 @@ bool operator<(const Event &a, const Event &b) {
 
 std::ostream &operator<<(std::ostream &os, const Event::Type event_type) {
   switch (event_type) {
-    case Event::Type::kInput:
+    case Event::Type::kAcceleration:
       return os << "input";
     case Event::Type::kGlue:
       return os << "glue";
@@ -108,8 +108,8 @@ std::ostream &operator<<(std::ostream &os, const Event::Type event_type) {
 std::ostream &operator<<(std::ostream &os, const Event &event) {
   os << "Event{/*id=*/" << event.id << ", /*type=*/" << event.type;
   switch (event.type) {
-    case Event::Type::kInput:
-      return os << ", /*input=*/" << event.input << "}";
+    case Event::Type::kAcceleration:
+      return os << ", /*input=*/" << event.acceleration << "}";
     case Event::Type::kGlue:
       return os << ", /*glue=*/" << event.glue << "}";
     case Event::Type::kFlags:

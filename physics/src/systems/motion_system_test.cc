@@ -172,7 +172,7 @@ TEST(MotionSystemTest, PointMassHover) {
   // The acceleration due to gravity at point particle 0 is 100 / 100^2. The
   // inverse input should exactly counter.
   std::vector<Event> input{
-      Event(0, Input{Vector3{0, 0.01, 0}}),
+      Event(0, Acceleration{Vector3{0, 0.01, 0}}),
   };
 
   for (float f = 0; f < duration; f += dt) {
@@ -185,7 +185,7 @@ TEST(MotionSystemTest, PointMassHover) {
   // If we now also apply acceleration to particle 1, the force of gravity
   // acting on particle 0 should decrease and its own acceleration should allow
   // it to escape.
-  input.push_back(Event(1, Input{Vector3{0, -0.01, 0}}));
+  input.push_back(Event(1, Acceleration{Vector3{0, -0.01, 0}}));
 
   for (float f = 0; f < duration; f += dt) {
     system.FirstPass(dt, absl::MakeSpan(input), positions, mass, flags, motion);
