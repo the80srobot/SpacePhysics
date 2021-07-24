@@ -49,15 +49,23 @@ std::ostream &operator<<(std::ostream &os, const Flags &flags) {
   return os << "Flags{" << flags.value << "}";
 }
 
+std::ostream &operator<<(std::ostream &os, const Acceleration &acceleration) {
+  return os << "Acceleration{/*acceleration=*/" << acceleration.value << "}";
+}
+
 std::ostream &operator<<(std::ostream &os, const Collision &collision) {
-  return os << "CollisionEvent{/*first_id=*/" << collision.first_id
+  return os << "Collision{/*first_id=*/" << collision.first_id
             << ", /*second_id=*/" << collision.second_id
             << ", /*first_frame_offset_seconds=*/"
             << collision.first_frame_offset_seconds << "}";
 }
 
-std::ostream &operator<<(std::ostream &os, const Acceleration &input) {
-  return os << "Input{/*acceleration=*/" << input.acceleration << "}";
+std::ostream &operator<<(std::ostream &os, const AttachTo &attach_to) {
+  return os << "AttachTo{/*parent_id=*/" << attach_to.parent_id << "}";
+}
+
+std::ostream &operator<<(std::ostream &os, const SetDestroyed &set_destroyed) {
+  return os << "SetDestroyed{/*value=*/" << set_destroyed.value << "}";
 }
 
 bool operator==(const Event &a, const Event &b) {
@@ -70,10 +78,10 @@ bool operator==(const Event &a, const Event &b) {
   switch (a.type) {
     case Event::kAcceleration:
       return a.acceleration == b.acceleration;
-    case Event::kGlue:
-      return a.glue == b.glue;
-    case Event::kFlags:
-      return a.flags == b.flags;
+    case Event::kAttachTo:
+      return a.attach_to == b.attach_to;
+    case Event::kSetDestroyed:
+      return a.set_destroyed == b.set_destroyed;
     case Event::kCollision:
       return a.collision == b.collision;
     default:
@@ -94,10 +102,10 @@ std::ostream &operator<<(std::ostream &os, const Event::Type event_type) {
   switch (event_type) {
     case Event::Type::kAcceleration:
       return os << "input";
-    case Event::Type::kGlue:
-      return os << "glue";
-    case Event::Type::kFlags:
-      return os << "destroyed";
+    case Event::Type::kAttachTo:
+      return os << "attach_to";
+    case Event::Type::kSetDestroyed:
+      return os << "set_destroyed";
     case Event::Type::kCollision:
       return os << "collision";
     default:
@@ -110,10 +118,10 @@ std::ostream &operator<<(std::ostream &os, const Event &event) {
   switch (event.type) {
     case Event::Type::kAcceleration:
       return os << ", /*input=*/" << event.acceleration << "}";
-    case Event::Type::kGlue:
-      return os << ", /*glue=*/" << event.glue << "}";
-    case Event::Type::kFlags:
-      return os << ", /*destroyed=*/" << event.flags << "}";
+    case Event::Type::kAttachTo:
+      return os << ", /*attach_to=*/" << event.attach_to << "}";
+    case Event::Type::kSetDestroyed:
+      return os << ", /*set_destroyed=*/" << event.set_destroyed << "}";
     case Event::Type::kCollision:
       return os << ", /*collision=*/" << event.collision << "}";
     default:

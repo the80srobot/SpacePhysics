@@ -186,6 +186,18 @@ std::ostream &operator<<(std::ostream &os, const Orbit &glue);
 
 // Events:
 
+struct Acceleration {
+  Vector3 value;
+};
+
+static_assert(std::is_standard_layout<Acceleration>());
+
+inline bool operator==(const Acceleration &a, const Acceleration &b) {
+  return a.value == b.value;
+}
+
+std::ostream &operator<<(std::ostream &os, const Acceleration &acceleration);
+
 struct Collision {
   int32_t first_id;
   int32_t second_id;
@@ -203,20 +215,32 @@ inline bool operator==(const Collision &a, const Collision &b) {
 
 std::ostream &operator<<(std::ostream &os, const Collision &collision);
 
-struct Acceleration {
-  Vector3 acceleration;
+struct AttachTo {
+  int32_t parent_id;
 };
 
-static_assert(std::is_standard_layout<Acceleration>());
+static_assert(std::is_standard_layout<AttachTo>());
 
-inline bool operator==(const Acceleration &a, const Acceleration &b) {
-  return a.acceleration == b.acceleration;
+inline bool operator==(const AttachTo &a, const AttachTo &b) {
+  return a.parent_id == b.parent_id;
 }
 
-std::ostream &operator<<(std::ostream &os, const Acceleration &input);
+std::ostream &operator<<(std::ostream &os, const AttachTo &attach_to);
+
+struct SetDestroyed {
+  int32_t value;
+};
+
+static_assert(std::is_standard_layout<SetDestroyed>());
+
+inline bool operator==(const SetDestroyed &a, const SetDestroyed &b) {
+  return a.value == b.value;
+}
+
+std::ostream &operator<<(std::ostream &os, const SetDestroyed &set_destroyed);
 
 struct Event {
-  enum Type { kAcceleration, kGlue, kFlags, kCollision };
+  enum Type { kAcceleration, kCollision, kAttachTo, kSetDestroyed };
 
   Event(Collision &&collision)
       : type(kCollision),
@@ -231,9 +255,9 @@ struct Event {
 
   union {
     Acceleration acceleration;
-    Glue glue;
-    Flags flags;
     Collision collision;
+    AttachTo attach_to;
+    SetDestroyed set_destroyed;
   };
 };
 
