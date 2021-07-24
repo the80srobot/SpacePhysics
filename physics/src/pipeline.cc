@@ -12,11 +12,38 @@
 namespace vstr {
 namespace {
 
-// Compute forces
+void ApplyPointEvents(absl::Span<Event> events, Frame &frame) {
+  for (const auto &event : events) {
+    switch (event.type) {
+      case Event::kSetDestroyed:
+        if (event.set_destroyed.value) {
+          frame.flags[event.id].value |= Flags::kDestroyed;
+        } else {
+          frame.flags[event.id].value &= ~Flags::kDestroyed;
+        }
+        break;
+      case Event::kAttachTo:
+        if (event.attach_to.parent_id >= 0) {
+          frame.flags[event.id].value |= Flags::kGlued;
+          frame.glue[event.id].parent_id = event.attach_to.parent_id;
+        } else {
+          frame.flags[event.id].value &= ~Flags::kGlued;
+          frame.glue[event.id].parent_id = 0;
+        }
+        break;
+      default:
+        // Acceleration is handled when computing motion and collisions are
+        // output-only.
+        break;
+    }
+  }
 }
+
+}  // namespace
 
 void Pipeline::Step(const float dt, const int frame_no, Frame &frame,
                     absl::Span<Event> input, std::vector<Event> &out_events) {
+  ApplyPointEvents(input, frame);
   UpdateOrbitalMotion(dt * frame_no, frame.positions, frame.orbits,
                       frame.motion);
   // TODO: compute effective mass
@@ -36,6 +63,7 @@ void Pipeline::Step(const float dt, const int frame_no, Frame &frame,
 
 void Pipeline::Replay(const float dt, const int frame_no, Frame &frame,
                       absl::Span<Event> events) {
+  ApplyPointEvents(events, frame);
   UpdateOrbitalMotion(dt * frame_no, frame.positions, frame.orbits,
                       frame.motion);
   // TODO: compute effective mass

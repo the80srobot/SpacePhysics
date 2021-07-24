@@ -19,14 +19,17 @@ TEST(MotionTest, GravityForceOn) {
   std::vector<Position> positions{
       Position{Vector3{0, 100, 0}},
       Position{Vector3{0, 0, 0}},
+      Position{Vector3{0, 0, 0}},
   };
   std::vector<Mass> mass{
       Mass{},
+      Mass{100, 100},
       Mass{100, 100},
   };
   std::vector<Flags> flags{
       Flags{},
       Flags{},
+      Flags{Flags::kDestroyed},
   };
 
   std::vector<std::pair<int, Vector3>> contributions;

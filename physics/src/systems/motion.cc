@@ -57,15 +57,16 @@ Vector3 GravityAt(const std::vector<Position> &positions,
 Vector3 ComputeAcceleration(const std::vector<Position> &positions,
                             const std::vector<Mass> &mass,
                             const std::vector<Flags> &flags, const int id,
-                            absl::Span<Event> input) {
+                            absl::Span<Event> &input) {
   while (input.size() != 0 && input[0].id < id) {
     input = input.subspan(1);
   }
-  Vector3 result;
-  if (input.size() != 0 && input[0].id == id) {
-    result = input[0].acceleration.value;
-  } else {
-    result = Vector3{0, 0, 0};
+  Vector3 result = Vector3{0, 0, 0};
+  while (input.size() != 0 && input[0].id == id) {
+    if (input[0].type == Event::kAcceleration) {
+      result += input[0].acceleration.value;
+    }
+    input = input.subspan(1);
   }
 
   return result + GravityAt(positions, mass, flags, id, nullptr);

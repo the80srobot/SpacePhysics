@@ -250,6 +250,9 @@ struct Event {
   Event(int id, Acceleration &&acceleration)
       : id(id), type(kAcceleration), acceleration(acceleration) {}
 
+  Event(int id, SetDestroyed &&set_destroyed)
+      : id(id), type(kSetDestroyed), set_destroyed(set_destroyed) {}
+
   int32_t id;
   Type type;
 

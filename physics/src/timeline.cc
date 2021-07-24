@@ -39,8 +39,8 @@ bool Timeline::GetEvents(const int first_frame_no, const int last_frame_no,
 }
 
 void Timeline::Truncate(int new_head) {
-  if (new_head == head_) return;
-  assert(new_head < head_);
+  if (new_head >= head_) return;
+
   // TODO(adam): this could be about 5-10 times faster and require no allocation
   // if the tree was right-aligned, instead of left-aligned.
   std::vector<IntervalTree<Event>::KV> to_delete;
@@ -81,12 +81,7 @@ void Timeline::Simulate() {
   input_buffer_.clear();
   simulate_buffer_.clear();
 
-  auto end = events_.End();
-  for (auto it = events_.Overlap(head_); it != end; ++it) {
-    if (it->second.type == Event::kAcceleration) {
-      input_buffer_.push_back(it->second);
-    }
-  }
+  events_.Overlap(head_, input_buffer_);
   pipeline_->Step(frame_time_, head_, head_frame_,
                   absl::MakeSpan(input_buffer_), simulate_buffer_);
   for (const auto &event : simulate_buffer_) {
