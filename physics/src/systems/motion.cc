@@ -141,10 +141,10 @@ Vector3 GravityForceOn(const std::vector<Position> &positions,
   return GravityAt(positions, mass, flags, object_id, nullptr);
 }
 
-Vector3 GravityComponentsOn(
-    const std::vector<Position> &positions, const std::vector<Mass> &mass,
-    const std::vector<Flags> &flags, const int object_id,
-    std::vector<std::pair<int, Vector3>> &contributions) {
+Vector3 GravityForceOn(const std::vector<Position> &positions,
+                       const std::vector<Mass> &mass,
+                       const std::vector<Flags> &flags, const int object_id,
+                       std::vector<std::pair<int, Vector3>> &contributions) {
   return GravityAt(positions, mass, flags, object_id, &contributions);
 }
 

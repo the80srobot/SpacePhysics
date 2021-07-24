@@ -15,71 +15,26 @@
 namespace vstr {
 namespace {
 
-struct GravityTestCase {
-  const std::string comment;
-  const int object_id;
+TEST(MotionTest, GravityForceOn) {
+  std::vector<Position> positions{
+      Position{Vector3{0, 100, 0}},
+      Position{Vector3{0, 0, 0}},
+  };
+  std::vector<Mass> mass{
+      Mass{},
+      Mass{100, 100},
+  };
+  std::vector<Flags> flags{
+      Flags{},
+      Flags{},
+  };
 
-  const std::vector<Position> positions;
-  const std::vector<Mass> mass;
-  const std::vector<Flags> flags;
-
-  const Vector3 expect_force;
-  const std::vector<std::pair<int, Vector3>> expect_components;
-};
-
-class GravityTest : public testing::TestWithParam<GravityTestCase> {};
-
-TEST_P(GravityTest, GravityTest) {
-  std::vector<std::pair<int, Vector3>> components;
-  Vector3 force =
-      GravityComponentsOn(GetParam().positions, GetParam().mass,
-                          GetParam().flags, GetParam().object_id, components);
-  EXPECT_EQ(force, GetParam().expect_force);
-  EXPECT_THAT(components,
-              testing::UnorderedElementsAreArray(GetParam().expect_components));
+  std::vector<std::pair<int, Vector3>> contributions;
+  Vector3 force = GravityForceOn(positions, mass, flags, 0, contributions);
+  EXPECT_EQ(force, (Vector3{0, -100.0f / (100 * 100), 0}));
+  EXPECT_THAT(contributions, testing::UnorderedElementsAre(std::make_pair(
+                                 1, Vector3{0, -100.0f / (100 * 100), 0})));
 }
-
-INSTANTIATE_TEST_SUITE_P(
-    GravityTest, GravityTest,
-    testing::Values(GravityTestCase{
-        "one_attractor",
-        0,
-        std::vector<Position>{
-            Position{Vector3{0, 100, 0}},
-            Position{Vector3{0, 0, 0}},
-        },
-        std::vector<Mass>{
-            Mass{},
-            Mass{100, 100},
-        },
-        std::vector<Flags>{
-            Flags{},
-            Flags{},
-        },
-        Vector3{0, -100.0f / (100 * 100), 0},
-        std::vector<std::pair<int, Vector3>>{
-            std::make_pair(1, Vector3{0, -100.0f / (100 * 100), 0}),
-        },
-    }),
-    [](const testing::TestParamInfo<GravityTest::ParamType>& tc) {
-      return tc.param.comment;
-    });
-
-struct MotionTestCase {
-  const std::string comment;
-  const std::vector<Event> input;
-  const IntegrationMethod integrator;
-  const float deltaTime;
-  const int rounds;
-
-  const std::vector<Position> positions;
-  const std::vector<Mass> mass;
-  const std::vector<Motion> motion;
-  const std::vector<Flags> flags;
-
-  const std::vector<Position> expect_positions;
-  const std::vector<Motion> expect_motion;
-};
 
 TEST(MotionTest, FallingPointMass) {
   // Point particle 0 of negligible mass is falling towards a massive point
