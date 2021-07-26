@@ -97,7 +97,9 @@ void TimelineInputEventRange(Timeline *timeline, int first_frame_no,
   timeline->InputEvent(first_frame_no, last_frame_no, *event);
 }
 
-int TimelineSimulate(Timeline *timeline, float time_budget) {
+int TimelineSimulate(Timeline *timeline, float time_budget, int limit) {
+  const int max_frames = limit - timeline->head();
+  if (max_frames <= 0) return 0;
   auto now = std::chrono::steady_clock::now();
   auto start = now;
   timeline->Simulate();
@@ -105,13 +107,15 @@ int TimelineSimulate(Timeline *timeline, float time_budget) {
   auto cost = 1.5 * (now - start);
   auto deadline = start + std::chrono::duration<float>(time_budget);
   int frames = 1;
-  while (now + cost < deadline) {
+  while (now + cost < deadline && frames < max_frames) {
     timeline->Simulate();
     now = std::chrono::steady_clock::now();
     ++frames;
   }
-  return frames;
+  return frames - 1;
 }
+
+int TimelineGetHead(Timeline *timeline) { return timeline->head(); }
 
 const Frame *TimelineGetFrame(Timeline *timeline, int frame_no) {
   return timeline->GetFrame(frame_no);

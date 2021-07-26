@@ -42,6 +42,9 @@ class Timeline {
   void InputEvent(int first_frame_no, int last_frame_no, const Event &event);
   void Simulate();
 
+  inline int head() const { return head_; }
+  inline int tail() const { return tail_; }
+
  private:
   // Timeline(const Frame &scene, int first_frame_no, float frame_time,
   //          int key_frame_period, std::shared_ptr<Pipeline> solver);
