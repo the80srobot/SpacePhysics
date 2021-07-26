@@ -22,7 +22,7 @@ TEST(TimelineTest, FallingSphere) {
 
   std::vector<Position> positions{
       Position{Vector3{0, 100, 0}},
-      Position{Vector3{0, 0, 0}},
+      Position{Vector3{0, 200, 0}},
   };
   std::vector<Mass> mass{
       Mass{},
@@ -60,8 +60,8 @@ TEST(TimelineTest, FallingSphere) {
   // FallingSphere PipelineTest.
   const Frame* frame = timeline.GetFrame(frame_no);
   EXPECT_NE(frame, nullptr);
-  EXPECT_LT(frame->positions[0].value.y, 1);
-  EXPECT_GT(frame->positions[0].value.y, 0);
+  EXPECT_LT(frame->positions[0].value.y, 200);
+  EXPECT_GT(frame->positions[0].value.y, 199);
 
   // A collision event should have been recorded by now.
   std::vector<Event> buffer;
@@ -79,8 +79,8 @@ TEST(TimelineTest, FallingSphere) {
 
   frame = timeline.GetFrame(frame_no);
   EXPECT_NE(frame, nullptr);
-  EXPECT_LT(frame->positions[0].value.y, 1);
-  EXPECT_GT(frame->positions[0].value.y, 0);
+  EXPECT_LT(frame->positions[0].value.y, 200);
+  EXPECT_GT(frame->positions[0].value.y, 199);
 }
 
 bool FloatEq(const float x, const float y) {

@@ -39,6 +39,35 @@ TEST(MotionTest, GravityForceOn) {
                                  1, Vector3{0, -100.0f / (100 * 100), 0})));
 }
 
+// Tests that the Verlet velocity integrator takes velocity input.
+TEST(MotionTest, ObjectStaysInMotion) {
+  const float dt = 1.0f / 60;
+  std::vector<Position> positions{
+      Position{Vector3{0, 100, 0}},
+      Position{Vector3{0, 0, 0}},
+  };
+  std::vector<Mass> mass{
+      Mass{},
+      Mass{},
+  };
+  std::vector<Motion> motion{
+      Motion{},
+      Motion{Vector3{0, 1, 0}},
+  };
+  std::vector<Flags> flags{
+      Flags{},
+      Flags{},
+  };
+
+  for (float t = 0; t < 100; t += dt) {
+    Accelerate(kVelocityVerlet, dt, {}, positions, mass, flags, motion);
+    UpdatePositions(motion, positions);
+  }
+
+  EXPECT_GT(positions[1].value.y, 99.9);
+  EXPECT_LT(positions[1].value.y, 100.1);
+}
+
 TEST(MotionTest, FallingPointMass) {
   // Point particle 0 of negligible mass is falling towards a massive point
   // particle 1 in a vaccum. They start out 100 meters apart and particle 1
