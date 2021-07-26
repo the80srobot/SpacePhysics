@@ -112,10 +112,12 @@ void IntegrateVelocityVerlet(const float dt, absl::Span<Event> input,
   }
 }
 
-void Accelerate(IntegrationMethod integrator, float dt, absl::Span<Event> input,
-                const std::vector<Position> &positions,
-                const std::vector<Mass> &mass, const std::vector<Flags> &flags,
-                std::vector<Motion> &motion) {
+void IntegrateMotion(IntegrationMethod integrator, float dt,
+                     absl::Span<Event> input,
+                     const std::vector<Position> &positions,
+                     const std::vector<Mass> &mass,
+                     const std::vector<Flags> &flags,
+                     std::vector<Motion> &motion) {
   switch (integrator) {
     case kFirstOrderEuler:
       IntegrateFirstOrderEuler(dt, input, positions, mass, flags, motion);

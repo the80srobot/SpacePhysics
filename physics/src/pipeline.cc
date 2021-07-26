@@ -49,8 +49,8 @@ void Pipeline::Step(const float dt, const int frame_no, Frame &frame,
   // TODO: compute effective mass
   std::sort(input.begin(), input.end(),
             [](const Event &a, const Event &b) -> bool { return a.id < b.id; });
-  Accelerate(integrator_, dt, input, frame.positions, frame.mass, frame.flags,
-             frame.motion);
+  IntegrateMotion(integrator_, dt, input, frame.positions, frame.mass,
+                  frame.flags, frame.motion);
 
   // glue_system_.Step(frame.positions, frame.glue, frame.motion);
 
@@ -75,8 +75,8 @@ void Pipeline::Replay(const float dt, const int frame_no, Frame &frame,
   }
   std::sort(event_buffer_.begin(), event_buffer_.end(),
             [](const Event &a, const Event &b) -> bool { return a.id < b.id; });
-  Accelerate(integrator_, dt, absl::MakeSpan(event_buffer_), frame.positions,
-             frame.mass, frame.flags, frame.motion);
+  IntegrateMotion(integrator_, dt, absl::MakeSpan(event_buffer_),
+                  frame.positions, frame.mass, frame.flags, frame.motion);
 
   glue_system_.UpdateGluedMotion(frame.positions, frame.glue, frame.flags,
                                  frame.motion);

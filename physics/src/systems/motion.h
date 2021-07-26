@@ -27,10 +27,12 @@ enum IntegrationMethod {
 // for objects that don't accelerate freely.
 //
 // Input must be sorted in ascending order of object ID.
-void Accelerate(IntegrationMethod integrator, float dt, absl::Span<Event> input,
-                const std::vector<Position> &positions,
-                const std::vector<Mass> &mass, const std::vector<Flags> &flags,
-                std::vector<Motion> &motion);
+void IntegrateMotion(IntegrationMethod integrator, float dt,
+                     absl::Span<Event> input,
+                     const std::vector<Position> &positions,
+                     const std::vector<Mass> &mass,
+                     const std::vector<Flags> &flags,
+                     std::vector<Motion> &motion);
 
 // Copies Motion.next_position to Position.value.
 void UpdatePositions(const std::vector<Motion> &motion,

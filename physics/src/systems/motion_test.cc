@@ -60,7 +60,7 @@ TEST(MotionTest, ObjectStaysInMotion) {
   };
 
   for (float t = 0; t < 100; t += dt) {
-    Accelerate(kVelocityVerlet, dt, {}, positions, mass, flags, motion);
+    IntegrateMotion(kVelocityVerlet, dt, {}, positions, mass, flags, motion);
     UpdatePositions(motion, positions);
   }
 
@@ -105,7 +105,8 @@ TEST(MotionTest, FallingPointMass) {
   };
 
   for (float t = 0; t < time_to_fall; t += coarse_dt) {
-    Accelerate(kVelocityVerlet, coarse_dt, {}, positions, mass, flags, motion);
+    IntegrateMotion(kVelocityVerlet, coarse_dt, {}, positions, mass, flags,
+                    motion);
     UpdatePositions(motion, positions);
   }
 
@@ -119,7 +120,8 @@ TEST(MotionTest, FallingPointMass) {
 
   // Run again in small steps.
   for (float t = 0; t < time_to_fall; t += fine_dt) {
-    Accelerate(kVelocityVerlet, fine_dt, {}, positions, mass, flags, motion);
+    IntegrateMotion(kVelocityVerlet, fine_dt, {}, positions, mass, flags,
+                    motion);
     UpdatePositions(motion, positions);
   }
 
@@ -161,8 +163,8 @@ TEST(MotionTest, PointMassHover) {
   };
 
   for (float f = 0; f < duration; f += dt) {
-    Accelerate(kVelocityVerlet, dt, absl::MakeSpan(input), positions, mass,
-               flags, motion);
+    IntegrateMotion(kVelocityVerlet, dt, absl::MakeSpan(input), positions, mass,
+                    flags, motion);
     UpdatePositions(motion, positions);
   }
 
@@ -174,8 +176,8 @@ TEST(MotionTest, PointMassHover) {
   input.push_back(Event(1, Acceleration{Vector3{0, -0.01, 0}}));
 
   for (float f = 0; f < duration; f += dt) {
-    Accelerate(kVelocityVerlet, dt, absl::MakeSpan(input), positions, mass,
-               flags, motion);
+    IntegrateMotion(kVelocityVerlet, dt, absl::MakeSpan(input), positions, mass,
+                    flags, motion);
     UpdatePositions(motion, positions);
   }
 
