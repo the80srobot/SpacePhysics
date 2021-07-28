@@ -20,8 +20,8 @@ Vector3 GravityContributionFrom(const std::vector<Position> &positions,
   //
   // The acceleration from force on a point mass is a = F / m.
   //
-  // As a simplification, we assume G = 1 (the actual value is 11 orders of
-  // magnitude less.)
+  // As a simplification, we assume G = 1, where the actual value is 11 orders
+  // of magnitude less. If you don't like it call the cops.
   //
   // So the acceleration of point mass 1 due to gravity from point mass 2 is:
   //

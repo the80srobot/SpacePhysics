@@ -135,5 +135,12 @@ void TimelineGetEventRange(Timeline *timeline, int first_frame_no,
 }
 
 void DestroyTimeline(Timeline *timeline) { delete timeline; }
+
+bool TimelineRunQuery(Timeline *timeline, TimelineQuery *query) {
+  auto trajectories =
+      absl::MakeSpan(query->trajectory_buffer, query->trajectory_buffer_sz);
+  auto status = timeline->Query(query->resolution, trajectories);
+  return status.ok();
+}
 }
 }  // namespace vstr

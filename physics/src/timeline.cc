@@ -94,18 +94,86 @@ void Timeline::Simulate() {
 }
 
 bool Timeline::Replay(int frame_no) {
-  if (frame_no_ > head_) return false;
+  if (frame_no > head_) return false;
 
   const auto d = std::div(frame_no - tail_, key_frame_period_);
   assert(key_frames_.size() > d.quot);
-  frame_ = key_frames_[d.quot];
-
-  for (int f = tail_ + d.quot * key_frame_period_; f < frame_no; ++f) {
-    replay_buffer_.clear();
-    events_.Overlap(f, replay_buffer_);
-    pipeline_->Replay(frame_time_, f, frame_, absl::MakeSpan(replay_buffer_));
+  if (d.quot != (frame_no_ - tail_) / key_frame_period_ ||
+      frame_no_ > frame_no) {
+    frame_ = key_frames_[d.quot];
+    frame_no_ = tail_ + d.quot * key_frame_period_;
   }
+
+  for (; frame_no_ < frame_no; ++frame_no_) {
+    replay_buffer_.clear();
+    events_.Overlap(frame_no_, replay_buffer_);
+    pipeline_->Replay(frame_time_, frame_no_, frame_,
+                      absl::MakeSpan(replay_buffer_));
+  }
+
   return true;
+}
+
+absl::Status Timeline::Query(int resolution,
+                             absl::Span<Trajectory> trajectories) {
+  if (trajectories.empty()) return absl::OkStatus();
+
+  // AKA the population count. Tells us how many attributes are requested. The
+  // required buffer size for each trajectory is 'frame_count' *
+  // 'attribute_count'
+  int hamming_weights[trajectories.size()];
+
+  // First pass: find the minimum and maximum frame requested.
+  int first = head_;
+  int last = tail_;
+  for (int i = 0; i < trajectories.size(); ++i) {
+    const auto &query = trajectories[i];
+    hamming_weights[i] =
+        std::bitset<sizeof(Trajectory::Attribute)>(query.attribute).count();
+
+    if ((query.first_frame_no % resolution) != 0) {
+      return absl::InvalidArgumentError("query not aligned to resolution");
+    }
+
+    assert(query.buffer_sz / hamming_weights[i] < head_ / resolution);
+
+    first = std::min(first, query.first_frame_no);
+    last = std::max(last,
+                    query.first_frame_no + static_cast<int>(query.buffer_sz) *
+                                               resolution / hamming_weights[i]);
+  }
+
+  if (first < tail_) {
+    return absl::OutOfRangeError(
+        absl::StrCat("first frame ", first, "< tail ", tail_));
+  }
+  if (last > head_) {
+    return absl::OutOfRangeError(
+        absl::StrCat("last frame ", last, " > head ", head_));
+  }
+
+  // Second pass: load the attribute data requested.
+  for (int frame_no = first; frame_no <= last; frame_no += resolution) {
+    Replay(frame_no);
+    for (int i = 0; i < trajectories.size(); ++i) {
+      auto &query = trajectories[i];
+      int buffer_off =
+          (frame_no - query.first_frame_no) / resolution * hamming_weights[i];
+
+      if (buffer_off < 0 || buffer_off >= query.buffer_sz) continue;
+
+      if (query.attribute & Trajectory::Attribute::kPosition) {
+        query.buffer[buffer_off] = frame_.positions[query.id].value;
+        ++buffer_off;
+      }
+      if (query.attribute & Trajectory::Attribute::kVelocity) {
+        query.buffer[buffer_off] = frame_.motion[query.id].velocity;
+        ++buffer_off;
+      }
+    }
+  }
+
+  return absl::OkStatus();
 }
 
 }  // namespace vstr

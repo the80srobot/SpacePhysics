@@ -10,6 +10,7 @@
 
 #include <vector>
 
+#include "absl/status/status.h"
 #include "dsa/interval_tree.h"
 #include "frame.h"
 #include "pipeline.h"
@@ -30,7 +31,7 @@ class Timeline {
         frame_no_{first_frame_no},
         frame_{scene},
         key_frames_{scene},
-        pipeline_(std::make_shared<Pipeline>(collision_matrix)) {}
+        pipeline_(std::make_shared<Pipeline>(collision_matrix, integrator)) {}
   Timeline() = delete;
 
   const Frame *GetFrame(int frame_no);
@@ -41,6 +42,19 @@ class Timeline {
   void InputEvent(int frame_no, const Event &event);
   void InputEvent(int first_frame_no, int last_frame_no, const Event &event);
   void Simulate();
+
+  struct Trajectory {
+    enum Attribute { kPosition = 1 << 0, kVelocity = 1 << 1 };
+    int id;
+    int first_frame_no;
+    Attribute attribute;
+    // This is a size and a pointer for compatibility with the C foreign
+    // function API.
+    size_t buffer_sz;
+    Vector3 *buffer;
+  };
+
+  absl::Status Query(int resolution, absl::Span<Trajectory> trajectories);
 
   inline int head() const { return head_; }
   inline int tail() const { return tail_; }

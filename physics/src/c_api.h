@@ -79,6 +79,16 @@ EXPORT void TimelineGetEvents(Timeline *timeline, int frame_no,
 EXPORT void TimelineGetEventRange(Timeline *timeline, int first_frame_no,
                                   int last_frame_no, EventBuffer *buffer);
 EXPORT void DestroyTimeline(Timeline *timeline);
+
+// Timeline query API //
+
+struct TimelineQuery {
+  int resolution;
+  Timeline::Trajectory *trajectory_buffer;
+  size_t trajectory_buffer_sz;
+};
+
+EXPORT bool TimelineRunQuery(Timeline *timeline, TimelineQuery *query);
 }
 }  // namespace vstr
 

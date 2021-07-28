@@ -83,14 +83,18 @@ TEST(TimelineTest, FallingSphere) {
   EXPECT_GT(frame->positions[0].value.y, 199);
 }
 
-bool FloatEq(const float x, const float y) {
-  constexpr float kEpsilon = 0.005f;
-  return std::fabs(x - y) < kEpsilon;
+bool FloatEq(const float x, const float y, const float epsilon = 0.005f) {
+  return std::fabs(x - y) < epsilon;
 }
 
 MATCHER_P(Vector3ApproxEq, other, "") {
   return FloatEq(arg.x, other.x) && FloatEq(arg.y, other.y) &&
          FloatEq(arg.z, other.z);
+}
+
+MATCHER_P2(Vector3ApproxEq, other, epsilon, "") {
+  return FloatEq(arg.x, other.x, epsilon) && FloatEq(arg.y, other.y, epsilon) &&
+         FloatEq(arg.z, other.z, epsilon);
 }
 
 TEST(TimelineTest, AccelerateRewindAccelerate) {
@@ -239,6 +243,167 @@ TEST(TimelineTest, DestroyAttractor) {
   EXPECT_EQ(buffer[0].id, 0);
   EXPECT_EQ(buffer[0].collision.second_id, 1);
 }
+
+struct TestCase {
+  const std::string comment;
+  const int resolution;
+  // The test will allocate a buffer of appropriate size.
+  const std::vector<Timeline::Trajectory> input;
+  const std::vector<std::vector<Vector3>> expect;
+  const absl::StatusCode expectCode;
+};
+
+class QueryTest : public testing::TestWithParam<TestCase> {};
+
+TEST_P(QueryTest, QueryTest) {
+  std::vector<Position> positions{
+      Position{Vector3{0, 100, 0}},
+      Position{Vector3{0, 0, 0}},
+      Position{Vector3{100, 0, 0}},
+  };
+  std::vector<Mass> mass{
+      Mass{},
+      Mass{10000, 10000},
+      Mass{},
+  };
+  std::vector<Motion> motion{
+      Motion{},
+      Motion{},
+      Motion{},
+  };
+  std::vector<Collider> colliders{
+      Collider{1, 1},
+      Collider{1, 1},
+      Collider{1, 1},
+  };
+  std::vector<Glue> glue{
+      Glue{},
+      Glue{},
+      Glue{},
+  };
+  std::vector<Flags> flags{
+      Flags{},
+      Flags{},
+      Flags{},
+  };
+
+  // Allocate the storage for the Trajectory queries.
+  std::vector<std::vector<Vector3>> storage;
+  std::vector<Timeline::Trajectory> queries = GetParam().input;
+  for (auto& query : queries) {
+    storage.push_back(std::vector<Vector3>(query.buffer_sz));
+    query.buffer = storage.back().data();
+  }
+
+  Frame initial_frame{positions, mass, motion, colliders, glue, flags};
+  LayerMatrix matrix({{1, 1}});
+
+  const float dt = 0.1;  // 10 FPS
+  Timeline timeline(initial_frame, 0, matrix, dt, 30);
+
+  // One-second 1 ms/s/s burn in the direction away from the attractor should
+  // exactly cancel the gravitational pull for the fist 10 frames.
+  timeline.InputEvent(0, 1.0f / dt, Event(0, Acceleration{Vector3{1, 0, 0}}));
+
+  // Simulate 10 seconds = 100 frames.
+  int frame_no = 0;
+  for (float t = 0; t < 10; t += dt) {
+    timeline.Simulate();
+    ++frame_no;
+  }
+
+  absl::Status status =
+      timeline.Query(GetParam().resolution, absl::MakeSpan(queries));
+  EXPECT_EQ(status.code(), GetParam().expectCode) << status;
+  for (int i = 0; i < GetParam().expect.size(); ++i) {
+    for (int j = 0; j < queries[i].buffer_sz; ++j) {
+      EXPECT_THAT(queries[i].buffer[j],
+                  Vector3ApproxEq(GetParam().expect[i][j], 0.1))
+          << "query #" << i << " element #" << j;
+    }
+  }
+}
+
+INSTANTIATE_TEST_SUITE_P(
+    QueryTest, QueryTest,
+    testing::Values(
+        TestCase{
+            "empty_query",
+            1,
+            std::vector<Timeline::Trajectory>{},
+            std::vector<std::vector<Vector3>>{},
+            absl::StatusCode::kOk,
+        },
+        TestCase{
+            "object_1_position",
+            2,
+            std::vector<Timeline::Trajectory>{
+                Timeline::Trajectory{
+                    1,
+                    0,
+                    Timeline::Trajectory::kPosition,
+                    5,
+                },
+            },
+            std::vector<std::vector<Vector3>>{
+                std::vector<Vector3>{
+                    Vector3{0, 0, 0},
+                    Vector3{0, 0, 0},
+                    Vector3{0, 0, 0},
+                    Vector3{0, 0, 0},
+                    Vector3{0, 0, 0},
+                },
+            },
+            absl::StatusCode::kOk,
+        },
+        TestCase{
+            "object_2_position_misaligned_query",
+            2,
+            std::vector<Timeline::Trajectory>{
+                Timeline::Trajectory{
+                    1,
+                    1,
+                    Timeline::Trajectory::kPosition,
+                    5,
+                },
+            },
+            std::vector<std::vector<Vector3>>{},
+            absl::StatusCode::kInvalidArgument,
+        },
+        TestCase{
+            "object_2_position_and_velocity",
+            10,
+            std::vector<Timeline::Trajectory>{
+                Timeline::Trajectory{
+                    2,
+                    0,
+                    static_cast<Timeline::Trajectory::Attribute>(
+                        Timeline::Trajectory::kPosition |
+                        Timeline::Trajectory::kVelocity),
+                    10,
+                },
+            },
+            std::vector<std::vector<Vector3>>{
+                std::vector<Vector3>{
+                    // These approximate values fall out of the equation of the
+                    // falling body.
+                    Vector3{100, 0, 0},
+                    Vector3{0, 0, 0},
+                    Vector3{99.5, 0, 0},
+                    Vector3{-0.95, 0, 0},
+                    Vector3{98, 0, 0},
+                    Vector3{-2, 0, 0},
+                    Vector3{95.6, 0, 0},
+                    Vector3{-3, 0, 0},
+                    Vector3{92, 0, 0},
+                    Vector3{-4.1, 0, 0},
+                },
+            },
+            absl::StatusCode::kOk,
+        }),
+    [](const testing::TestParamInfo<QueryTest::ParamType>& tc) {
+      return tc.param.comment;
+    });
 
 }  // namespace
 }  // namespace vstr

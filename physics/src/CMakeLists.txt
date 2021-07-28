@@ -30,6 +30,8 @@ target_link_libraries(
     timeline
     pipeline
     interval_tree
+    absl::status
+    absl::strings
 )
 
 add_executable(
