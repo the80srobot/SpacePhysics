@@ -84,8 +84,8 @@ EXPORT void DestroyTimeline(Timeline *timeline);
 
 struct TimelineQuery {
   int resolution;
-  Timeline::Trajectory *trajectory_buffer;
   size_t trajectory_buffer_sz;
+  Timeline::Trajectory *trajectory_buffer;
 };
 
 EXPORT bool TimelineRunQuery(Timeline *timeline, TimelineQuery *query);
