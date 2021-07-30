@@ -121,6 +121,8 @@ int TimelineSimulate(Timeline *timeline, float time_budget, int limit) {
 
 int TimelineGetHead(Timeline *timeline) { return timeline->head(); }
 
+int TimelineGetTail(Timeline *timeline) { return timeline->tail(); }
+
 const Frame *TimelineGetFrame(Timeline *timeline, int frame_no) {
   return timeline->GetFrame(frame_no);
 }
