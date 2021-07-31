@@ -74,7 +74,7 @@ void UpdateOrbitalMotion(const float t, const std::vector<Position> &positions,
                          std::vector<Motion> &motion) {
   for (const auto &orbit : orbits) {
     const Orbit::Kepler current = orbit.epoch + orbit.delta * t;
-    motion[orbit.id].new_position = EllipticalPosition(current);
+    motion[orbit.id].new_position = orbit.focus + EllipticalPosition(current);
     motion[orbit.id].velocity =
         motion[orbit.id].new_position - positions[orbit.id].value;
   }
