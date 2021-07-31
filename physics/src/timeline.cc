@@ -43,13 +43,15 @@ void Timeline::Truncate(int new_head) {
 
   // TODO(adam): this could be about 5-10 times faster and require no allocation
   // if the tree was right-aligned, instead of left-aligned.
-  std::vector<IntervalTree<Event>::KV> to_delete;
-  events_.Overlap(Interval(new_head, events_.MaxPoint()), to_delete);
-  for (auto &kv : to_delete) {
-    events_.Delete(kv);
-    if (kv.first.low < new_head) {
-      kv.first.high = new_head;
-      events_.Insert(kv.first, kv.second);
+  if (events_.Count() > 0) {
+    std::vector<IntervalTree<Event>::KV> to_delete;
+    events_.Overlap(Interval(new_head, events_.MaxPoint()), to_delete);
+    for (auto &kv : to_delete) {
+      events_.Delete(kv);
+      if (kv.first.low < new_head) {
+        kv.first.high = new_head;
+        events_.Insert(kv.first, kv.second);
+      }
     }
   }
 
@@ -135,7 +137,9 @@ absl::Status Timeline::Query(int resolution,
       return absl::InvalidArgumentError("query not aligned to resolution");
     }
 
-    assert(query.buffer_sz / hamming_weights[i] < head_ / resolution);
+    if (hamming_weights[i] == 0) {
+      return absl::InvalidArgumentError("no data requested in query");
+    }
 
     first = std::min(first, query.first_frame_no);
     last = std::max(last,

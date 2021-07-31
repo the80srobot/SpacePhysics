@@ -240,7 +240,12 @@ inline bool operator==(const SetDestroyed &a, const SetDestroyed &b) {
 std::ostream &operator<<(std::ostream &os, const SetDestroyed &set_destroyed);
 
 struct Event {
-  enum Type { kAcceleration, kCollision, kAttachTo, kSetDestroyed };
+  enum Type {
+    kAcceleration = 1,
+    kCollision = 2,
+    kAttachTo = 3,
+    kSetDestroyed = 4
+  };
 
   Event(Collision &&collision)
       : type(kCollision),

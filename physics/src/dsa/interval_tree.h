@@ -159,8 +159,8 @@ class IntervalTree {
 
   int Count() const { return nodes_.size(); }
 
-  // Returns the maximum point held in the tree. Must only be called if Count is
-  // > 0 (otherwise throws range exception).
+  // Returns the maximum point held in the tree. MUST NOT be called with an
+  // empty tree.
   int MaxPoint() const { return nodes_[root_].max; }
 
   bool Insert(const Interval interval, const T value) {
