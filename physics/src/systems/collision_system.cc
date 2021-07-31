@@ -176,6 +176,14 @@ bool Eligible(const std::vector<Collider> &colliders,
   return true;
 }
 
+Vector3 CollisionLocation(const std::vector<Position> &positions,
+                          const std::vector<Motion> &motion, const float t,
+                          const int a, const int b) {
+  Vector3 a_pos = positions[a].value + motion[a].velocity * t;
+  Vector3 b_pos = positions[b].value + motion[b].velocity * t;
+  return (a_pos + b_pos) / 2;
+}
+
 };  // namespace
 
 void CollisionSystem::DetectCollisions(const std::vector<Position> &positions,
@@ -206,7 +214,9 @@ void CollisionSystem::DetectCollisions(const std::vector<Position> &positions,
       if (Eligible(colliders, flags, glue, matrix_, id, kv.value)) {
         float t = CollisionTime(positions, colliders, motion, id, kv.value, dt);
         if (t <= dt) {
-          out_events.push_back(Event(Collision{id, kv.value, t}));
+          out_events.push_back(
+              Event(CollisionLocation(positions, motion, t, id, kv.value),
+                    Collision{id, kv.value, t}));
         }
       }
     }

@@ -247,9 +247,10 @@ struct Event {
     kSetDestroyed = 4
   };
 
-  Event(Collision &&collision)
+  Event(Vector3 position, Collision &&collision)
       : type(kCollision),
         id(collision.first_id),
+        position(position),
         collision(std::move(collision)) {}
 
   Event(int id, Acceleration &&acceleration)
@@ -260,6 +261,7 @@ struct Event {
 
   int32_t id;
   Type type;
+  Vector3 position;
 
   union {
     Acceleration acceleration;

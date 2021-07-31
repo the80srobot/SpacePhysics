@@ -33,7 +33,13 @@ TEST_P(CollisionSystemTest, CollisionSystemTest) {
   system.DetectCollisions(GetParam().positions, GetParam().colliders,
                           GetParam().motion, GetParam().flags, GetParam().glue,
                           GetParam().deltaTime, events);
-  EXPECT_THAT(events, testing::UnorderedElementsAreArray(GetParam().expect));
+
+  EXPECT_THAT(events, testing::ElementsAreArray(GetParam().expect));
+  // Because operator== considers event position to be just "metadata", the
+  // above check doesn't actually verify that it's set.
+  EXPECT_THAT(events, testing::Each(testing::Field(
+                          &Event::position, testing::Ne(Vector3::Zero()))))
+      << "event position should be set";
 }
 
 INSTANTIATE_TEST_SUITE_P(
@@ -67,7 +73,7 @@ INSTANTIATE_TEST_SUITE_P(
             LayerMatrix(std::vector<std::pair<uint32_t, uint32_t>>{
                 std::make_pair(1, 1)}),
             std::vector<Event>{
-                Collision{0, 1, 0.9},
+                Event(Vector3::Zero(), Collision{0, 1, 0.9}),
             },
         },
         TestCase{
@@ -98,7 +104,7 @@ INSTANTIATE_TEST_SUITE_P(
             LayerMatrix(std::vector<std::pair<uint32_t, uint32_t>>{
                 std::make_pair(1, 1)}),
             std::vector<Event>{
-                Collision{0, 1, 0},
+                Event(Vector3::Zero(), Collision{0, 1, 0}),
             },
         },
         TestCase{
@@ -129,7 +135,7 @@ INSTANTIATE_TEST_SUITE_P(
             LayerMatrix(std::vector<std::pair<uint32_t, uint32_t>>{
                 std::make_pair(1, 1)}),
             std::vector<Event>{
-                Collision{0, 1, 0},
+                Event(Vector3::Zero(), Collision{0, 1, 0}),
             },
         },
         TestCase{
@@ -168,7 +174,8 @@ INSTANTIATE_TEST_SUITE_P(
                 //
                 // It takes 1.0 seconds to travel the 10 units, leading to the
                 // final formula.
-                Collision{0, 1, 1.0f - (1.0f / std::sqrtf(2)) / 10.0f},
+                Event(Vector3::Zero(),
+                      Collision{0, 1, 1.0f - (1.0f / std::sqrtf(2)) / 10.0f}),
             },
         },
         TestCase{
@@ -199,7 +206,7 @@ INSTANTIATE_TEST_SUITE_P(
             LayerMatrix(std::vector<std::pair<uint32_t, uint32_t>>{
                 std::make_pair(1, 1)}),
             std::vector<Event>{
-                Collision{0, 1, 0},
+                Event(Vector3::Zero(), Collision{0, 1, 0}),
             },
         },
         TestCase{

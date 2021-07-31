@@ -69,8 +69,11 @@ std::ostream &operator<<(std::ostream &os, const SetDestroyed &set_destroyed) {
 }
 
 bool operator==(const Event &a, const Event &b) {
-  // Intentionally don't check the value of the event - each event can only
-  // occur once per unique pair of interval and object.
+  // TODO(adam): we currently ignore the event position. This is a hack, but it
+  // allows MergeInsert to work with Events even when the previous event
+  // position is unknown, which is most of the time. Possibly the IntervalTree
+  // should support a separate protocol for matching events on their
+  // identifiers, without considering metadata.
   if (!(a.id == b.id && a.type == b.type)) {
     return false;
   }
@@ -114,7 +117,8 @@ std::ostream &operator<<(std::ostream &os, const Event::Type event_type) {
 }
 
 std::ostream &operator<<(std::ostream &os, const Event &event) {
-  os << "Event{/*id=*/" << event.id << ", /*type=*/" << event.type;
+  os << "Event{/*id=*/" << event.id << ", /*type=*/" << event.type
+     << ", /*position=*/" << event.position;
   switch (event.type) {
     case Event::Type::kAcceleration:
       return os << ", /*input=*/" << event.acceleration << "}";
