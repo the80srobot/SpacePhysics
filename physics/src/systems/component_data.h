@@ -215,37 +215,32 @@ inline bool operator==(const Collision &a, const Collision &b) {
 
 std::ostream &operator<<(std::ostream &os, const Collision &collision);
 
-struct AttachTo {
+struct Stick {
   int32_t parent_id;
 };
 
-static_assert(std::is_standard_layout<AttachTo>());
+static_assert(std::is_standard_layout<Stick>());
 
-inline bool operator==(const AttachTo &a, const AttachTo &b) {
+inline bool operator==(const Stick &a, const Stick &b) {
   return a.parent_id == b.parent_id;
 }
 
-std::ostream &operator<<(std::ostream &os, const AttachTo &attach_to);
+std::ostream &operator<<(std::ostream &os, const Stick &stick);
 
-struct SetDestroyed {
+struct Destruction {
   int32_t value;
 };
 
-static_assert(std::is_standard_layout<SetDestroyed>());
+static_assert(std::is_standard_layout<Destruction>());
 
-inline bool operator==(const SetDestroyed &a, const SetDestroyed &b) {
+inline bool operator==(const Destruction &a, const Destruction &b) {
   return a.value == b.value;
 }
 
-std::ostream &operator<<(std::ostream &os, const SetDestroyed &set_destroyed);
+std::ostream &operator<<(std::ostream &os, const Destruction &destruction);
 
 struct Event {
-  enum Type {
-    kAcceleration = 1,
-    kCollision = 2,
-    kAttachTo = 3,
-    kSetDestroyed = 4
-  };
+  enum Type { kAcceleration = 1, kCollision = 2, kStick = 3, kDestruction = 4 };
 
   Event(Vector3 position, Collision &&collision)
       : type(kCollision),
@@ -256,8 +251,8 @@ struct Event {
   Event(int id, Acceleration &&acceleration)
       : id(id), type(kAcceleration), acceleration(acceleration) {}
 
-  Event(int id, SetDestroyed &&set_destroyed)
-      : id(id), type(kSetDestroyed), set_destroyed(set_destroyed) {}
+  Event(int id, Destruction &&destruction)
+      : id(id), type(kDestruction), destruction(destruction) {}
 
   int32_t id;
   Type type;
@@ -266,8 +261,8 @@ struct Event {
   union {
     Acceleration acceleration;
     Collision collision;
-    AttachTo attach_to;
-    SetDestroyed set_destroyed;
+    Stick stick;
+    Destruction destruction;
   };
 };
 

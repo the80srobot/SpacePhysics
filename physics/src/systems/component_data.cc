@@ -60,12 +60,12 @@ std::ostream &operator<<(std::ostream &os, const Collision &collision) {
             << collision.first_frame_offset_seconds << "}";
 }
 
-std::ostream &operator<<(std::ostream &os, const AttachTo &attach_to) {
-  return os << "AttachTo{/*parent_id=*/" << attach_to.parent_id << "}";
+std::ostream &operator<<(std::ostream &os, const Stick &stick) {
+  return os << "Stick{/*parent_id=*/" << stick.parent_id << "}";
 }
 
-std::ostream &operator<<(std::ostream &os, const SetDestroyed &set_destroyed) {
-  return os << "SetDestroyed{/*value=*/" << set_destroyed.value << "}";
+std::ostream &operator<<(std::ostream &os, const Destruction &destruction) {
+  return os << "Destruction{/*value=*/" << destruction.value << "}";
 }
 
 bool operator==(const Event &a, const Event &b) {
@@ -81,10 +81,10 @@ bool operator==(const Event &a, const Event &b) {
   switch (a.type) {
     case Event::kAcceleration:
       return a.acceleration == b.acceleration;
-    case Event::kAttachTo:
-      return a.attach_to == b.attach_to;
-    case Event::kSetDestroyed:
-      return a.set_destroyed == b.set_destroyed;
+    case Event::kStick:
+      return a.stick == b.stick;
+    case Event::kDestruction:
+      return a.destruction == b.destruction;
     case Event::kCollision:
       return a.collision == b.collision;
     default:
@@ -105,10 +105,10 @@ std::ostream &operator<<(std::ostream &os, const Event::Type event_type) {
   switch (event_type) {
     case Event::Type::kAcceleration:
       return os << "input";
-    case Event::Type::kAttachTo:
-      return os << "attach_to";
-    case Event::Type::kSetDestroyed:
-      return os << "set_destroyed";
+    case Event::Type::kStick:
+      return os << "stick";
+    case Event::Type::kDestruction:
+      return os << "destruction";
     case Event::Type::kCollision:
       return os << "collision";
     default:
@@ -122,10 +122,10 @@ std::ostream &operator<<(std::ostream &os, const Event &event) {
   switch (event.type) {
     case Event::Type::kAcceleration:
       return os << ", /*input=*/" << event.acceleration << "}";
-    case Event::Type::kAttachTo:
-      return os << ", /*attach_to=*/" << event.attach_to << "}";
-    case Event::Type::kSetDestroyed:
-      return os << ", /*set_destroyed=*/" << event.set_destroyed << "}";
+    case Event::Type::kStick:
+      return os << ", /*stick=*/" << event.stick << "}";
+    case Event::Type::kDestruction:
+      return os << ", /*destruction=*/" << event.destruction << "}";
     case Event::Type::kCollision:
       return os << ", /*collision=*/" << event.collision << "}";
     default:

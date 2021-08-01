@@ -15,17 +15,17 @@ namespace {
 void ApplyPointEvents(absl::Span<Event> events, Frame &frame) {
   for (const auto &event : events) {
     switch (event.type) {
-      case Event::kSetDestroyed:
-        if (event.set_destroyed.value) {
+      case Event::kDestruction:
+        if (event.destruction.value) {
           frame.flags[event.id].value |= Flags::kDestroyed;
         } else {
           frame.flags[event.id].value &= ~Flags::kDestroyed;
         }
         break;
-      case Event::kAttachTo:
-        if (event.attach_to.parent_id >= 0) {
+      case Event::kStick:
+        if (event.stick.parent_id >= 0) {
           frame.flags[event.id].value |= Flags::kGlued;
-          frame.glue[event.id].parent_id = event.attach_to.parent_id;
+          frame.glue[event.id].parent_id = event.stick.parent_id;
         } else {
           frame.flags[event.id].value &= ~Flags::kGlued;
           frame.glue[event.id].parent_id = 0;

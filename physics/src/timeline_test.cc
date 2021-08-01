@@ -193,7 +193,7 @@ TEST(TimelineTest, DestroyAttractor) {
 
   Timeline timeline(initial_frame, 0, matrix, dt, 30);
 
-  timeline.InputEvent(30.0f / dt, Event(1, SetDestroyed{true}));
+  timeline.InputEvent(30.0f / dt, Event(1, Destruction{true}));
 
   int frame_no = 0;
   for (float t = 0; t < 40.0f; t += dt) {
@@ -234,7 +234,7 @@ TEST(TimelineTest, DestroyAttractor) {
   EXPECT_EQ(buffer.size(), 0);
 
   // Undestroying the sphere should trigger a collision due to overlap.
-  timeline.InputEvent(frame_no + 1, Event(1, SetDestroyed{false}));
+  timeline.InputEvent(frame_no + 1, Event(1, Destruction{false}));
   timeline.Simulate();
   ++frame_no;
   EXPECT_TRUE(timeline.GetEvents(frame_no, buffer));
