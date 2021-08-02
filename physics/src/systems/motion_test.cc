@@ -15,6 +15,15 @@
 namespace vstr {
 namespace {
 
+bool FloatEq(const float x, const float y, const float epsilon = 0.005f) {
+  return std::fabs(x - y) < epsilon;
+}
+
+MATCHER_P2(Vector3ApproxEq, other, epsilon, "") {
+  return FloatEq(arg.x, other.x, epsilon) && FloatEq(arg.y, other.y, epsilon) &&
+         FloatEq(arg.z, other.z, epsilon);
+}
+
 TEST(MotionTest, GravityForceOn) {
   std::vector<Position> positions{
       Position{Vector3{0, 100, 0}},
@@ -159,7 +168,7 @@ TEST(MotionTest, PointMassHover) {
   // The acceleration due to gravity at point particle 0 is 100 / 100^2. The
   // inverse input should exactly counter.
   std::vector<Event> input{
-      Event(0, Acceleration{Vector3{0, 0.01, 0}}),
+      Event(0, Acceleration{Vector3{0, 0.01, 0}, Acceleration::kNone}),
   };
 
   for (float f = 0; f < duration; f += dt) {
@@ -183,6 +192,50 @@ TEST(MotionTest, PointMassHover) {
 
   EXPECT_GT(positions[0].value.y, 100);
   EXPECT_LT(positions[1].value.y, 0);
+}
+
+TEST(MotionTest, ForceImpulse) {
+  constexpr float dt = 1.0 / 60;
+
+  std::vector<Position> positions{
+      Position{Vector3{0, 100, 0}},
+      Position{Vector3{0, 0, 0}},
+  };
+  std::vector<Mass> mass{
+      Mass{100, 0},
+      Mass{},
+  };
+  std::vector<Motion> motion{
+      Motion{},
+      Motion{},
+  };
+  std::vector<Flags> flags{
+      Flags{},
+      Flags{},
+  };
+
+  for (float t = 0; t < 1; t += dt) {
+    IntegrateMotion(kFirstOrderEuler, dt, {}, positions, mass, flags, motion);
+    UpdatePositions(motion, positions);
+  }
+
+  EXPECT_EQ(positions[0].value, (Vector3{0, 100, 0}));
+
+  std::vector<Event> input{
+      Event(0, Acceleration{Vector3{0, 100, 0}, static_cast<Acceleration::Flag>(
+                                                    Acceleration::kImpulse |
+                                                    Acceleration::kForce)}),
+  };
+  IntegrateMotion(kFirstOrderEuler, dt, absl::MakeSpan(input), positions, mass,
+                  flags, motion);
+  for (float t = 0; t < 10; t += dt) {
+    UpdatePositions(motion, positions);
+    IntegrateMotion(kFirstOrderEuler, dt, {}, positions, mass, flags, motion);
+  }
+  UpdatePositions(motion, positions);
+
+  EXPECT_EQ(motion[0].velocity, (Vector3{0, 1, 0}));
+  EXPECT_THAT(positions[0].value, Vector3ApproxEq(Vector3{0, 110, 0}, 0.1));
 }
 
 }  // namespace

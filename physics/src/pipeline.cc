@@ -46,7 +46,7 @@ void Pipeline::Step(const float dt, const int frame_no, Frame &frame,
   ApplyPointEvents(input, frame);
   UpdateOrbitalMotion(dt * frame_no, frame.positions, frame.orbits,
                       frame.motion);
-  // TODO: compute effective mass
+  // TODO: compute active mass
   std::sort(input.begin(), input.end(),
             [](const Event &a, const Event &b) -> bool { return a.id < b.id; });
   IntegrateMotion(integrator_, dt, input, frame.positions, frame.mass,
@@ -66,7 +66,7 @@ void Pipeline::Replay(const float dt, const int frame_no, Frame &frame,
   ApplyPointEvents(events, frame);
   UpdateOrbitalMotion(dt * frame_no, frame.positions, frame.orbits,
                       frame.motion);
-  // TODO: compute effective mass
+  // TODO: compute active mass
 
   // The motion system just wants input events sorted by ID.
   event_buffer_.clear();

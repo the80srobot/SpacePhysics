@@ -30,7 +30,7 @@ Vector3 GravityContributionFrom(const std::vector<Position> &positions,
   // Which is the same as a = m_1 / r².
   Vector3 f = positions[attractor_id].value - other_position;
   float rSquare = Vector3::SqrMagnitude(f);
-  return Vector3::Normalize(f) * ((mass[attractor_id].effective) / rSquare);
+  return Vector3::Normalize(f) * ((mass[attractor_id].active) / rSquare);
 }
 
 Vector3 GravityAt(const std::vector<Position> &positions,
@@ -41,7 +41,7 @@ Vector3 GravityAt(const std::vector<Position> &positions,
   const int count = positions.size();
   for (int i = 0; i < count; ++i) {
     if (i == id) continue;
-    if (mass[i].effective == 0) continue;
+    if (mass[i].active == 0) continue;
     if (flags[i].value & (Flags::kDestroyed | Flags::kGlued)) continue;
     const Vector3 f =
         GravityContributionFrom(positions, mass, i, positions[id].value);
@@ -54,22 +54,33 @@ Vector3 GravityAt(const std::vector<Position> &positions,
   return result;
 }
 
-Vector3 ComputeAcceleration(const std::vector<Position> &positions,
-                            const std::vector<Mass> &mass,
-                            const std::vector<Flags> &flags, const int id,
-                            absl::Span<Event> &input) {
+void ComputeForces(const std::vector<Position> &positions,
+                   const std::vector<Mass> &mass,
+                   const std::vector<Flags> &flags, const int id,
+                   absl::Span<Event> &input, Vector3 &out_acceleration,
+                   Vector3 &out_impulse) {
   while (input.size() != 0 && input[0].id < id) {
     input = input.subspan(1);
   }
-  Vector3 result = Vector3{0, 0, 0};
+  out_acceleration = Vector3{0, 0, 0};
+  out_impulse = Vector3{0, 0, 0};
   while (input.size() != 0 && input[0].id == id) {
     if (input[0].type == Event::kAcceleration) {
-      result += input[0].acceleration.value;
+      Vector3 value = input[0].acceleration.value;
+      if (input[0].acceleration.flags & Acceleration::Flag::kForce &&
+          mass[id].intertial != 0) {
+        value /= mass[id].intertial;
+      }
+      if (input[0].acceleration.flags & Acceleration::Flag::kImpulse) {
+        out_impulse += value;
+      } else {
+        out_acceleration += input[0].acceleration.value;
+      }
     }
     input = input.subspan(1);
   }
 
-  return result + GravityAt(positions, mass, flags, id, nullptr);
+  out_acceleration += GravityAt(positions, mass, flags, id, nullptr);
 }
 
 }  // namespace
@@ -84,9 +95,10 @@ void IntegrateFirstOrderEuler(const float dt, absl::Span<Event> input,
     if (flags[i].value & (Flags::kDestroyed | Flags::kGlued | Flags::kOrbiting))
       continue;
 
-    motion[i].acceleration =
-        ComputeAcceleration(positions, mass, flags, i, input);
-    motion[i].velocity += motion[i].acceleration * dt;
+    Vector3 impulse;
+    ComputeForces(positions, mass, flags, i, input, motion[i].acceleration,
+                  impulse);
+    motion[i].velocity += impulse + motion[i].acceleration * dt;
     motion[i].new_position = positions[i].value + motion[i].velocity * dt;
   }
 }
@@ -105,9 +117,11 @@ void IntegrateVelocityVerlet(const float dt, absl::Span<Event> input,
     motion[i].new_position = positions[i].value + motion[i].velocity * dt +
                              motion[i].acceleration * (dt * half_dt);
 
-    Vector3 new_acceleration =
-        ComputeAcceleration(positions, mass, flags, i, input);
-    motion[i].velocity += (new_acceleration + motion[i].acceleration) * half_dt;
+    Vector3 new_acceleration;
+    Vector3 impulse;
+    ComputeForces(positions, mass, flags, i, input, new_acceleration, impulse);
+    motion[i].velocity +=
+        (new_acceleration + motion[i].acceleration) * half_dt + impulse;
     motion[i].acceleration = new_acceleration;
   }
 }

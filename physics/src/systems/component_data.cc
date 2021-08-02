@@ -19,8 +19,8 @@ std::ostream &operator<<(std::ostream &os, const Position &position) {
 }
 
 std::ostream &operator<<(std::ostream &os, const Mass &mass) {
-  return os << "Mass{/*rest=*/" << mass.rest << ", /*effective=*/"
-            << mass.effective << "}";
+  return os << "Mass{/*intertial=*/" << mass.intertial << ", /*active=*/"
+            << mass.active << "}";
 }
 
 std::ostream &operator<<(std::ostream &os, const Motion &motion) {
@@ -50,7 +50,11 @@ std::ostream &operator<<(std::ostream &os, const Flags &flags) {
 }
 
 std::ostream &operator<<(std::ostream &os, const Acceleration &acceleration) {
-  return os << "Acceleration{/*acceleration=*/" << acceleration.value << "}";
+  return os << "Acceleration{/*acceleration=*/" << acceleration.value
+            << ", /*impulse=*/"
+            << (acceleration.flags & Acceleration::Flag::kImpulse)
+            << ", /*force=*/"
+            << (acceleration.flags & Acceleration::Flag::kForce) << "}";
 }
 
 std::ostream &operator<<(std::ostream &os, const Collision &collision) {

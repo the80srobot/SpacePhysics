@@ -45,14 +45,14 @@ inline bool operator==(const Position &a, const Position &b) {
 std::ostream &operator<<(std::ostream &os, const Position &position);
 
 struct Mass {
-  float rest;
-  float effective;
+  float intertial;
+  float active;
 };
 
 static_assert(std::is_standard_layout<Mass>());
 
 inline bool operator==(const Mass &a, const Mass &b) {
-  return a.rest == b.rest && a.effective == b.effective;
+  return a.intertial == b.intertial && a.active == b.active;
 }
 
 std::ostream &operator<<(std::ostream &os, const Mass &mass);
@@ -187,7 +187,15 @@ std::ostream &operator<<(std::ostream &os, const Orbit &glue);
 // Events:
 
 struct Acceleration {
+  enum Flag {
+    kNone = 0,
+    // Apply the entire value on the first frame, insted of dividing by delta t.
+    kImpulse = 1 << 0,
+    // Divide the value by mass to obtain acceleration.
+    kForce = 1 << 1,
+  };
   Vector3 value;
+  Flag flags;
 };
 
 static_assert(std::is_standard_layout<Acceleration>());
