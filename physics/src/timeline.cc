@@ -38,6 +38,21 @@ bool Timeline::GetEvents(const int first_frame_no, const int last_frame_no,
   return true;
 }
 
+bool Timeline::GetEvents(const int frame_no,
+                         std::vector<IntervalTree<Event>::KV> &buffer) const {
+  if (frame_no < tail_ || frame_no > head_) return false;
+  events_.Overlap(frame_no, buffer);
+  return true;
+}
+
+bool Timeline::GetEvents(const int first_frame_no, const int last_frame_no,
+                         std::vector<IntervalTree<Event>::KV> &buffer) const {
+  assert(last_frame_no > first_frame_no);
+  if (first_frame_no < tail_ || last_frame_no > head_) return false;
+  events_.Overlap(Interval{first_frame_no, last_frame_no}, buffer);
+  return true;
+}
+
 void Timeline::Truncate(int new_head) {
   if (new_head >= head_) return;
 

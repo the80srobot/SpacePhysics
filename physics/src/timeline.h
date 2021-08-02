@@ -38,6 +38,11 @@ class Timeline {
   bool GetEvents(int frame_no, std::vector<Event> &buffer) const;
   bool GetEvents(int first_frame_no, int last_frame_no,
                  std::vector<Event> &buffer) const;
+  bool GetEvents(int frame_no,
+                 std::vector<IntervalTree<Event>::KV> &buffer) const;
+  bool GetEvents(int first_frame_no, int last_frame_no,
+                 std::vector<IntervalTree<Event>::KV> &buffer) const;
+
   void Truncate(int new_head);
   void InputEvent(int frame_no, const Event &event);
   void InputEvent(int first_frame_no, int last_frame_no, const Event &event);

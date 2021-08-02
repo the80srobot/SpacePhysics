@@ -65,7 +65,10 @@ Vector3 KeplerEllipticalPosition(Orbit::Kepler *kepler) {
 
 EventBuffer *CreateEventBuffer() { return new EventBuffer(); }
 
-Event *EventBufferGetEvents(EventBuffer *event_buffer, int *count) {
+void EventBufferClear(EventBuffer *event_buffer) { event_buffer->clear(); }
+
+IntervalTree<Event>::KV *EventBufferGetEvents(EventBuffer *event_buffer,
+                                              int *count) {
   *count = event_buffer->size();
   return event_buffer->data();
 }

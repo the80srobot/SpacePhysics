@@ -50,10 +50,12 @@ EXPORT Vector3 KeplerEllipticalPosition(Orbit::Kepler *kepler);
 
 // EVENT API //
 
-using EventBuffer = std::vector<Event>;
+using EventBuffer = std::vector<IntervalTree<Event>::KV>;
 
 EXPORT EventBuffer *CreateEventBuffer();
-EXPORT Event *EventBufferGetEvents(EventBuffer *event_buffer, int *count);
+EXPORT void EventBufferClear(EventBuffer *event_buffer);
+EXPORT IntervalTree<Event>::KV *EventBufferGetEvents(EventBuffer *event_buffer,
+                                                     int *count);
 EXPORT void DestroyEventBuffer(EventBuffer *event_buffer);
 
 // LAYER MATRIX API //

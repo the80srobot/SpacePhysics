@@ -274,6 +274,7 @@ struct Event {
   };
 };
 
+static_assert(sizeof(Event) == 36);
 static_assert(std::is_standard_layout<Event>());
 static_assert(std::is_move_assignable<Event>());
 static_assert(std::is_move_constructible<Event>());
