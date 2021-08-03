@@ -46,7 +46,7 @@ EXPORT void DestroyFrame(Frame *frame);
 
 // ORBIT API //
 
-EXPORT Vector3 KeplerEllipticalPosition(Orbit::Kepler *kepler);
+EXPORT Vector3 KeplerEllipticalPosition(Orbit::Kepler kepler);
 
 // EVENT API //
 

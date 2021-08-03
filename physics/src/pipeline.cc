@@ -57,7 +57,9 @@ void Pipeline::Step(const float dt, const int frame_no, Frame &frame,
   collision_system_.DetectCollisions(frame.positions, frame.colliders,
                                      frame.motion, frame.flags, frame.glue, dt,
                                      out_events);
-  // TODO: Should collisions be processed here, first?
+
+  // HERE RESOLVE COLLISION EVENTS
+
   UpdatePositions(frame.motion, frame.positions);
 }
 
@@ -78,10 +80,8 @@ void Pipeline::Replay(const float dt, const int frame_no, Frame &frame,
   IntegrateMotion(integrator_, dt, absl::MakeSpan(event_buffer_),
                   frame.positions, frame.mass, frame.flags, frame.motion);
 
-  glue_system_.UpdateGluedMotion(frame.positions, frame.glue, frame.flags,
-                                 frame.motion);
-
-  // HERE RESOLVE COLLISION EVENTS
+  // glue_system_.UpdateGluedMotion(frame.positions, frame.glue, frame.flags,
+  //                                frame.motion);
 
   UpdatePositions(frame.motion, frame.positions);
 }

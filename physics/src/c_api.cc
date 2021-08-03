@@ -59,8 +59,8 @@ Orbit *FrameGetMutableOrbits(Frame *frame, int *count) {
 
 void DestroyFrame(Frame *frame) { delete frame; }
 
-Vector3 KeplerEllipticalPosition(Orbit::Kepler *kepler) {
-  return EllipticalPosition(*kepler);
+Vector3 KeplerEllipticalPosition(Orbit::Kepler kepler) {
+  return EllipticalPosition(kepler);
 }
 
 EventBuffer *CreateEventBuffer() { return new EventBuffer(); }

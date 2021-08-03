@@ -12,7 +12,9 @@ namespace vstr {
 Vector3 EllipticalPosition(const Orbit::Kepler &kepler) {
   // It's called elliptical position. We don't take kindly to no parabolas or
   // hyperboles 'round these parts.
-  assert(kepler.eccentricity < 1);
+  if (kepler.eccentricity >= 1 || kepler.eccentricity < 0) {
+    return Vector3::Zero();
+  }
 
   // For explanation, see: https://ssd.jpl.nasa.gov/txt/aprx_pos_planets.pdf
 
