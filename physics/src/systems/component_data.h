@@ -105,7 +105,7 @@ inline bool operator==(const Glue &a, const Glue &b) {
   return a.parent_id == b.parent_id;
 }
 
-std::ostream &operator<<(std::ostream &os, const Glue &glue);
+std::ostream &operator<<(std::ostream &os, const Glue &orbit);
 
 struct Flags {
   uint32_t value;
@@ -182,7 +182,18 @@ inline bool operator==(const Orbit &a, const Orbit &b) {
   return a.epoch == b.delta && a.focus == b.focus;
 }
 
-std::ostream &operator<<(std::ostream &os, const Orbit &glue);
+std::ostream &operator<<(std::ostream &os, const Orbit &orbit);
+
+struct Durability {
+  int32_t id;
+  int32_t value;
+};
+
+inline bool operator==(const Durability &a, const Durability &b) {
+  return a.id == b.id && a.value == b.value;
+}
+
+std::ostream &operator<<(std::ostream &os, const Durability &durability);
 
 // Events:
 

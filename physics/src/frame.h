@@ -31,6 +31,7 @@ struct Frame {
 
   // Optional components:
   std::vector<Orbit> orbits;
+  std::vector<Durability> durability;
 };
 
 }  // namespace vstr

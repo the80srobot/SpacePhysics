@@ -37,8 +37,14 @@ std::ostream &operator<<(std::ostream &os, const Orbit::Kepler &kepler) {
 }
 
 std::ostream &operator<<(std::ostream &os, const Orbit &orbit) {
-  return os << "Orbit{/*focus=*/" << orbit.focus << ", /*initial=*/"
-            << orbit.epoch << ", /*delta=*/" << orbit.delta << "}";
+  return os << "Orbit{/*id=*/" << orbit.id << "/*focus=*/" << orbit.focus
+            << ", /*initial=*/" << orbit.epoch << ", /*delta=*/" << orbit.delta
+            << "}";
+}
+
+std::ostream &operator<<(std::ostream &os, const Durability &durability) {
+  return os << "Durability{/*id=*/" << durability.id << ", /*value=*/"
+            << durability.value << "}";
 }
 
 std::ostream &operator<<(std::ostream &os, const Glue &glue) {
