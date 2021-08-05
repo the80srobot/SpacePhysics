@@ -258,8 +258,26 @@ inline bool operator==(const Destruction &a, const Destruction &b) {
 
 std::ostream &operator<<(std::ostream &os, const Destruction &destruction);
 
+struct Damage {
+  int32_t value;
+};
+
+static_assert(std::is_standard_layout<Damage>());
+
+inline bool operator==(const Damage &a, const Damage &b) {
+  return a.value == b.value;
+}
+
+std::ostream &operator<<(std::ostream &os, const Damage &damage);
+
 struct Event {
-  enum Type { kAcceleration = 1, kCollision = 2, kStick = 3, kDestruction = 4 };
+  enum Type {
+    kAcceleration = 1,
+    kCollision = 2,
+    kStick = 3,
+    kDestruction = 4,
+    kDamage = 5
+  };
 
   Event(Vector3 position, Collision &&collision)
       : type(kCollision),
@@ -282,6 +300,7 @@ struct Event {
     Collision collision;
     Stick stick;
     Destruction destruction;
+    Damage damage;
   };
 };
 

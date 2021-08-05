@@ -78,6 +78,10 @@ std::ostream &operator<<(std::ostream &os, const Destruction &destruction) {
   return os << "Destruction{/*value=*/" << destruction.value << "}";
 }
 
+std::ostream &operator<<(std::ostream &os, const Damage &damage) {
+  return os << "Damage{/*value=*/" << damage.value << "}";
+}
+
 bool operator==(const Event &a, const Event &b) {
   // TODO(adam): we currently ignore the event position. This is a hack, but it
   // allows MergeInsert to work with Events even when the previous event
@@ -97,6 +101,8 @@ bool operator==(const Event &a, const Event &b) {
       return a.destruction == b.destruction;
     case Event::kCollision:
       return a.collision == b.collision;
+    case Event::kDamage:
+      return a.damage == b.damage;
     default:
       assert(false);  // Programmer error - unreachable.
       return true;
@@ -121,6 +127,8 @@ std::ostream &operator<<(std::ostream &os, const Event::Type event_type) {
       return os << "destruction";
     case Event::Type::kCollision:
       return os << "collision";
+    case Event::Type::kDamage:
+      return os << "damage";
     default:
       assert("not reachable");
   }
@@ -138,6 +146,8 @@ std::ostream &operator<<(std::ostream &os, const Event &event) {
       return os << ", /*destruction=*/" << event.destruction << "}";
     case Event::Type::kCollision:
       return os << ", /*collision=*/" << event.collision << "}";
+    case Event::Type::kDamage:
+      return os << ", /*damage=*/" << event.damage << "}";
     default:
       assert("not reachable");
   }
