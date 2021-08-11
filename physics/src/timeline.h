@@ -21,7 +21,8 @@ namespace vstr {
 class Timeline {
  public:
   Timeline(const Frame &scene, int first_frame_no, LayerMatrix collision_matrix,
-           float frame_time = 1.0f / 60, int key_frame_period = 30,
+           const RuleSet &rule_set, float frame_time = 1.0f / 60,
+           int key_frame_period = 30,
            IntegrationMethod integrator = kVelocityVerlet)
       : head_(first_frame_no),
         head_frame_(scene),
@@ -31,7 +32,8 @@ class Timeline {
         frame_no_{first_frame_no},
         frame_{scene},
         key_frames_{scene},
-        pipeline_(std::make_shared<Pipeline>(collision_matrix, integrator)) {}
+        pipeline_(std::make_shared<Pipeline>(collision_matrix, rule_set,
+                                             integrator)) {}
   Timeline() = delete;
 
   const Frame *GetFrame(int frame_no);
@@ -64,9 +66,15 @@ class Timeline {
   inline int head() const { return head_; }
   inline int tail() const { return tail_; }
 
+  struct Label {
+    char label[8];
+  };
+
+  void SetLabel(int id, Label label);
+
  private:
-  // Timeline(const Frame &scene, int first_frame_no, float frame_time,
-  //          int key_frame_period, std::shared_ptr<Pipeline> solver);
+  // Labels do nothing - they can be optionally set and then read back out.
+  std::vector<Label> labels_;
 
   bool Replay(int frame_no);
 

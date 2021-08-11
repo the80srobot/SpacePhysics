@@ -10,6 +10,7 @@
 #include <limits>
 
 #include "geometry/aabb.h"
+#include "geometry/float.h"
 #include "geometry/layer_matrix.h"
 #include "geometry/vector3.h"
 
@@ -25,11 +26,6 @@ float DistanceToCollision(const std::vector<Position> &positions,
   Vector3 b_pos = positions[b].value + motion[b].velocity * t;
   return Vector3::Magnitude(a_pos - b_pos) - colliders[a].radius -
          colliders[b].radius;
-}
-
-bool FloatEq(const float x, const float y) {
-  constexpr float kEpsilon = 0.005f;
-  return std::fabs(x - y) < kEpsilon;
 }
 
 // Returns the earliest time objects a and b will collide based on their current
@@ -181,6 +177,7 @@ Vector3 CollisionLocation(const std::vector<Position> &positions,
                           const int a, const int b) {
   Vector3 a_pos = positions[a].value + motion[a].velocity * t;
   Vector3 b_pos = positions[b].value + motion[b].velocity * t;
+  // TODO this doesn't work when the colliders have different radii.
   return (a_pos + b_pos) / 2;
 }
 

@@ -43,6 +43,7 @@ target_link_libraries(
     geometry
     components
     absl::span
+    absl::flat_hash_map
 )
 
 add_executable(
@@ -91,4 +92,29 @@ target_link_libraries(
     collision_system_benchmark
     collision_system
     benchmark::benchmark
+)
+
+add_library(
+    rules
+    rules.cc
+)
+
+target_link_libraries(
+    rules
+    components
+    geometry
+    absl::span
+    absl::flat_hash_map
+)
+
+add_executable(
+    rules_test
+    rules_test.cc
+)
+
+target_link_libraries(
+    rules_test
+    rules
+    gtest_main
+    gmock_main
 )

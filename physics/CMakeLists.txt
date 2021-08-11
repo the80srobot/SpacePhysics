@@ -3,7 +3,7 @@ cmake_minimum_required(VERSION 3.14)
 project(VSTRPhysics)
 
 # GoogleTest requires C++11, but we like std::optional and friends.
-set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_FLAGS_DEBUG "-O0 -ggdb -g2")
 set(CMAKE_C_FLAGS_DEBUG "-O0 -ggdb -g2")
 

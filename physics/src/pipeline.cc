@@ -7,12 +7,14 @@
 
 #include "pipeline.h"
 
+#include <algorithm>
+
 #include "geometry/vector3.h"
 
 namespace vstr {
 namespace {
 
-void ApplyPointEvents(absl::Span<Event> events, Frame &frame) {
+void ApplyEventEffects(absl::Span<Event> events, Frame &frame) {
   for (const auto &event : events) {
     switch (event.type) {
       case Event::kDestruction:
@@ -31,9 +33,34 @@ void ApplyPointEvents(absl::Span<Event> events, Frame &frame) {
           frame.glue[event.id].parent_id = 0;
         }
         break;
+      case Event::kDamage: {
+        auto it = std::lower_bound(
+            frame.durability.begin(), frame.durability.end(),
+            Durability{event.id}, [](const Durability &a, const Durability &b) {
+              return a.id < b.id;
+            });
+        if (it != frame.durability.end() && it->id == event.id) {
+          it->value -= event.damage.value;
+          if (it->value <= 0) {
+            frame.flags[event.id].value |= Flags::kDestroyed;
+          }
+        }
+        break;
+      }
+      case Event::kAcceleration:
+        // Nothing to do, acceleration was already used for motion integration.
+        break;
+      case Event::kCollision:
+        // Nothing to do here - collisions effects are already included as other
+        // events.
+        break;
+      case Event::kTeleportation:
+        frame.positions[event.id].value = event.teleportation.new_position;
+        frame.motion[event.id].new_position = event.teleportation.new_position;
+        frame.motion[event.id].velocity = event.teleportation.new_velocity;
+        break;
       default:
-        // Acceleration is handled when computing motion and collisions are
-        // output-only.
+
         break;
     }
   }
@@ -43,34 +70,45 @@ void ApplyPointEvents(absl::Span<Event> events, Frame &frame) {
 
 void Pipeline::Step(const float dt, const int frame_no, Frame &frame,
                     absl::Span<Event> input, std::vector<Event> &out_events) {
-  ApplyPointEvents(input, frame);
+  // The frame pipeline is as follows:
+  //
+  // 1) Compute closed-form orbital motion
+  // 2) Compute forces from acceleration input and gravity, from them velocities
+  // 3) Compute motion of glued objects
+  // 4) Detect collisions <- SKIPPED ON REPLAY
+  // 5) Convert collision events to their effects <- SKIPPED ON REPLAY
+  // 6) Apply computed velocities and update positions
+  // 7) Apply events, including effects of collisions
+
   UpdateOrbitalMotion(dt * frame_no, frame.positions, frame.orbits,
                       frame.motion);
-  // TODO: compute active mass
+
+  // The motion system wants input events sorted by ID.
   std::sort(input.begin(), input.end(),
             [](const Event &a, const Event &b) -> bool { return a.id < b.id; });
   IntegrateMotion(integrator_, dt, input, frame.positions, frame.mass,
                   frame.flags, frame.motion);
 
-  // glue_system_.Step(frame.positions, frame.glue, frame.motion);
+  // TODO: apply glue motion
 
   collision_system_.DetectCollisions(frame.positions, frame.colliders,
                                      frame.motion, frame.flags, frame.glue, dt,
                                      out_events);
 
-  // HERE RESOLVE COLLISION EVENTS
+  // convert collision events to effects
+  rule_set_.Apply(frame.positions, frame.mass, frame.motion, frame.colliders,
+                  out_events);
 
   UpdatePositions(frame.motion, frame.positions);
+  // apply effects of events
+  ApplyEventEffects(input, frame);
+  ApplyEventEffects(absl::MakeSpan(out_events), frame);
 }
 
 void Pipeline::Replay(const float dt, const int frame_no, Frame &frame,
                       absl::Span<Event> events) {
-  ApplyPointEvents(events, frame);
   UpdateOrbitalMotion(dt * frame_no, frame.positions, frame.orbits,
                       frame.motion);
-  // TODO: compute active mass
-
-  // The motion system just wants input events sorted by ID.
   event_buffer_.clear();
   for (const auto &event : events) {
     if (event.type == Event::kAcceleration) event_buffer_.push_back(event);
@@ -80,10 +118,9 @@ void Pipeline::Replay(const float dt, const int frame_no, Frame &frame,
   IntegrateMotion(integrator_, dt, absl::MakeSpan(event_buffer_),
                   frame.positions, frame.mass, frame.flags, frame.motion);
 
-  // glue_system_.UpdateGluedMotion(frame.positions, frame.glue, frame.flags,
-  //                                frame.motion);
-
   UpdatePositions(frame.motion, frame.positions);
+  // apply effects of events
+  ApplyEventEffects(events, frame);
 }
 
 }  // namespace vstr

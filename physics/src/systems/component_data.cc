@@ -19,7 +19,7 @@ std::ostream &operator<<(std::ostream &os, const Position &position) {
 }
 
 std::ostream &operator<<(std::ostream &os, const Mass &mass) {
-  return os << "Mass{/*intertial=*/" << mass.intertial << ", /*active=*/"
+  return os << "Mass{/*inertial=*/" << mass.inertial << ", /*active=*/"
             << mass.active << "}";
 }
 
@@ -82,6 +82,11 @@ std::ostream &operator<<(std::ostream &os, const Damage &damage) {
   return os << "Damage{/*value=*/" << damage.value << "}";
 }
 
+std::ostream &operator<<(std::ostream &os, const Teleportation &teleportation) {
+  return os << "Teleportation{/*new_position=*/" << teleportation.new_position
+            << ", /*new_velocity=*/" << teleportation.new_velocity << "}";
+}
+
 bool operator==(const Event &a, const Event &b) {
   // TODO(adam): we currently ignore the event position. This is a hack, but it
   // allows MergeInsert to work with Events even when the previous event
@@ -103,6 +108,8 @@ bool operator==(const Event &a, const Event &b) {
       return a.collision == b.collision;
     case Event::kDamage:
       return a.damage == b.damage;
+    case Event::kTeleportation:
+      return a.teleportation == b.teleportation;
     default:
       assert(false);  // Programmer error - unreachable.
       return true;
@@ -129,6 +136,8 @@ std::ostream &operator<<(std::ostream &os, const Event::Type event_type) {
       return os << "collision";
     case Event::Type::kDamage:
       return os << "damage";
+    case Event::Type::kTeleportation:
+      return os << "teleportation";
     default:
       assert("not reachable");
   }
@@ -148,6 +157,8 @@ std::ostream &operator<<(std::ostream &os, const Event &event) {
       return os << ", /*collision=*/" << event.collision << "}";
     case Event::Type::kDamage:
       return os << ", /*damage=*/" << event.damage << "}";
+    case Event::Type::kTeleportation:
+      return os << ", /*teleportation=*/" << event.teleportation << "}";
     default:
       assert("not reachable");
   }

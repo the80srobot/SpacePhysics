@@ -11,6 +11,7 @@
 #include <gtest/gtest.h>
 
 #include "systems/component_data.h"
+#include "test_matchers/vector3.h"
 
 namespace vstr {
 namespace {
@@ -48,7 +49,7 @@ TEST(TimelineTest, FallingSphere) {
   Frame initial_frame{positions, mass, motion, colliders, glue, flags};
   LayerMatrix matrix({{1, 1}});
 
-  Timeline timeline(initial_frame, 0, matrix, dt, 30);
+  Timeline timeline(initial_frame, 0, matrix, {}, dt, 30);
 
   int frame_no = 0;
   for (float t = 0; t < duration; t += dt) {
@@ -83,20 +84,6 @@ TEST(TimelineTest, FallingSphere) {
   EXPECT_GT(frame->positions[0].value.y, 199);
 }
 
-bool FloatEq(const float x, const float y, const float epsilon = 0.005f) {
-  return std::fabs(x - y) < epsilon;
-}
-
-MATCHER_P(Vector3ApproxEq, other, "") {
-  return FloatEq(arg.x, other.x) && FloatEq(arg.y, other.y) &&
-         FloatEq(arg.z, other.z);
-}
-
-MATCHER_P2(Vector3ApproxEq, other, epsilon, "") {
-  return FloatEq(arg.x, other.x, epsilon) && FloatEq(arg.y, other.y, epsilon) &&
-         FloatEq(arg.z, other.z, epsilon);
-}
-
 TEST(TimelineTest, AccelerateRewindAccelerate) {
   const float dt = 0.01;
 
@@ -128,11 +115,12 @@ TEST(TimelineTest, AccelerateRewindAccelerate) {
   Frame initial_frame{positions, mass, motion, colliders, glue, flags};
   LayerMatrix matrix({{1, 1}});
 
-  Timeline timeline(initial_frame, 0, matrix, dt, 30);
+  Timeline timeline(initial_frame, 0, matrix, {}, dt, 30);
 
   // One-second 10 ms/s/s burn in the direction of sphere 1. After 1 second, the
   // speed of sphere 0 should be 10 m/s.
-  timeline.InputEvent(0, 1.0f / dt, Event(0, Acceleration{Vector3{0, -10, 0}}));
+  timeline.InputEvent(0, 1.0f / dt,
+                      Event(0, {}, Acceleration{Vector3{0, -10, 0}}));
 
   // After two seconds, sphere 0 should be on its way towards sphere 1.
   int frame_no = 0;
@@ -148,7 +136,7 @@ TEST(TimelineTest, AccelerateRewindAccelerate) {
   // Rewind the clock to 0.5 second and burn in the opposite direction. The
   // resulting speed should be 0.
   timeline.InputEvent(0.5f / dt, 1.0f / dt,
-                      Event(0, Acceleration{Vector3{0, 10, 0}}));
+                      Event(0, {}, Acceleration{Vector3{0, 10, 0}}));
   frame_no = 0.5f / dt;
   for (float t = 0.5; t < 2; t += dt) {
     timeline.Simulate();
@@ -191,9 +179,9 @@ TEST(TimelineTest, DestroyAttractor) {
   Frame initial_frame{positions, mass, motion, colliders, glue, flags};
   LayerMatrix matrix({{1, 1}});
 
-  Timeline timeline(initial_frame, 0, matrix, dt, 30);
+  Timeline timeline(initial_frame, 0, matrix, {}, dt, 30);
 
-  timeline.InputEvent(30.0f / dt, Event(1, Destruction{true}));
+  timeline.InputEvent(30.0f / dt, Event(1, {}, Destruction{true}));
 
   int frame_no = 0;
   for (float t = 0; t < 40.0f; t += dt) {
@@ -234,9 +222,16 @@ TEST(TimelineTest, DestroyAttractor) {
   EXPECT_EQ(buffer.size(), 0);
 
   // Undestroying the sphere should trigger a collision due to overlap.
-  timeline.InputEvent(frame_no + 1, Event(1, Destruction{false}));
+  timeline.InputEvent(frame_no + 1, Event(1, {}, Destruction{false}));
+
+  // We have to take two steps, because events take effect at the end of the
+  // frame, which means the attractor still cannot participate in collisions on
+  // the first frame.
   timeline.Simulate();
   ++frame_no;
+  timeline.Simulate();
+  ++frame_no;
+
   EXPECT_TRUE(timeline.GetEvents(frame_no, buffer));
   EXPECT_GE(buffer.size(), 1);
   EXPECT_EQ(buffer[0].type, Event::kCollision);
@@ -250,7 +245,7 @@ struct TestCase {
   // The test will allocate a buffer of appropriate size.
   const std::vector<Timeline::Trajectory> input;
   const std::vector<std::vector<Vector3>> expect;
-  const absl::StatusCode expectCode;
+  const absl::StatusCode expect_code;
 };
 
 class QueryTest : public testing::TestWithParam<TestCase> {};
@@ -299,11 +294,12 @@ TEST_P(QueryTest, QueryTest) {
   LayerMatrix matrix({{1, 1}});
 
   const float dt = 0.1;  // 10 FPS
-  Timeline timeline(initial_frame, 0, matrix, dt, 30);
+  Timeline timeline(initial_frame, 0, matrix, {}, dt, 30);
 
   // One-second 1 ms/s/s burn in the direction away from the attractor should
   // exactly cancel the gravitational pull for the fist 10 frames.
-  timeline.InputEvent(0, 1.0f / dt, Event(0, Acceleration{Vector3{1, 0, 0}}));
+  timeline.InputEvent(0, 1.0f / dt,
+                      Event(0, {}, Acceleration{Vector3{1, 0, 0}}));
 
   // Simulate 10 seconds = 100 frames.
   int frame_no = 0;
@@ -314,7 +310,7 @@ TEST_P(QueryTest, QueryTest) {
 
   absl::Status status =
       timeline.Query(GetParam().resolution, absl::MakeSpan(queries));
-  EXPECT_EQ(status.code(), GetParam().expectCode) << status;
+  EXPECT_EQ(status.code(), GetParam().expect_code) << status;
   for (int i = 0; i < GetParam().expect.size(); ++i) {
     for (int j = 0; j < queries[i].buffer_sz; ++j) {
       EXPECT_THAT(queries[i].buffer[j],

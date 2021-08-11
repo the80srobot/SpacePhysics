@@ -195,4 +195,13 @@ absl::Status Timeline::Query(int resolution,
   return absl::OkStatus();
 }
 
+void Timeline::SetLabel(const int id, Label label) {
+  if (labels_.size() <= id) {
+    labels_.reserve(id * 2);
+    labels_.resize(id + 1, {0});
+  }
+  label.label[7] = 0;
+  labels_[id] = label;
+}
+
 }  // namespace vstr

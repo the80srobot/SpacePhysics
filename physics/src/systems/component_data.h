@@ -29,6 +29,10 @@ namespace vstr {
 // Finally events occur over some interval (possibly just one frame), during
 // which they affect the state of an object. Examples of events are:
 // destruction, acceleration from user input and collisions.
+//
+// For simplicity, core components are always ordered as in this file: Position,
+// Mass, Motion, Collider, Glue, Flags. A mnemonic: point mass moves clumsily,
+// gets fragged.
 
 // Core components:
 
@@ -45,14 +49,14 @@ inline bool operator==(const Position &a, const Position &b) {
 std::ostream &operator<<(std::ostream &os, const Position &position);
 
 struct Mass {
-  float intertial;
+  float inertial;
   float active;
 };
 
 static_assert(std::is_standard_layout<Mass>());
 
 inline bool operator==(const Mass &a, const Mass &b) {
-  return a.intertial == b.intertial && a.active == b.active;
+  return a.inertial == b.inertial && a.active == b.active;
 }
 
 std::ostream &operator<<(std::ostream &os, const Mass &mass);
@@ -270,26 +274,55 @@ inline bool operator==(const Damage &a, const Damage &b) {
 
 std::ostream &operator<<(std::ostream &os, const Damage &damage);
 
+struct Teleportation {
+  Vector3 new_position;
+  Vector3 new_velocity;
+};
+
+static_assert(std::is_standard_layout<Teleportation>());
+
+inline bool operator==(const Teleportation &a, const Teleportation &b) {
+  return a.new_position == b.new_position && a.new_velocity == b.new_velocity;
+}
+
+std::ostream &operator<<(std::ostream &os, const Teleportation &teleportation);
+
 struct Event {
   enum Type {
     kAcceleration = 1,
     kCollision = 2,
     kStick = 3,
     kDestruction = 4,
-    kDamage = 5
+    kDamage = 5,
+    kTeleportation = 6,
   };
 
-  Event(Vector3 position, Collision &&collision)
+  explicit Event(Vector3 position, Collision &&collision)
       : type(kCollision),
         id(collision.first_id),
         position(position),
         collision(std::move(collision)) {}
 
-  Event(int id, Acceleration &&acceleration)
-      : id(id), type(kAcceleration), acceleration(acceleration) {}
+  explicit Event(int id, Vector3 position, Acceleration &&acceleration)
+      : id(id),
+        type(kAcceleration),
+        acceleration(acceleration),
+        position(position) {}
 
-  Event(int id, Destruction &&destruction)
-      : id(id), type(kDestruction), destruction(destruction) {}
+  explicit Event(int id, Vector3 position, Destruction &&destruction)
+      : id(id),
+        type(kDestruction),
+        destruction(destruction),
+        position(position) {}
+
+  explicit Event(int id, Vector3 position, Damage &&damage)
+      : id(id), type(kDamage), damage(damage), position(position) {}
+
+  explicit Event(int id, Vector3 position, Teleportation &&teleportation)
+      : id(id),
+        position(position),
+        type(kTeleportation),
+        teleportation(teleportation) {}
 
   int32_t id;
   Type type;
@@ -301,10 +334,11 @@ struct Event {
     Stick stick;
     Destruction destruction;
     Damage damage;
+    Teleportation teleportation;
   };
 };
 
-static_assert(sizeof(Event) == 36);
+static_assert(sizeof(Event) == 44);
 static_assert(std::is_standard_layout<Event>());
 static_assert(std::is_move_assignable<Event>());
 static_assert(std::is_move_constructible<Event>());

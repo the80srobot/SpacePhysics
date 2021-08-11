@@ -12,17 +12,10 @@
 
 #include <random>
 
+#include "test_matchers/vector3.h"
+
 namespace vstr {
 namespace {
-
-bool FloatEq(const float x, const float y, const float epsilon = 0.005f) {
-  return std::fabs(x - y) < epsilon;
-}
-
-MATCHER_P2(Vector3ApproxEq, other, epsilon, "") {
-  return FloatEq(arg.x, other.x, epsilon) && FloatEq(arg.y, other.y, epsilon) &&
-         FloatEq(arg.z, other.z, epsilon);
-}
 
 TEST(MotionTest, GravityForceOn) {
   std::vector<Position> positions{
@@ -168,7 +161,7 @@ TEST(MotionTest, PointMassHover) {
   // The acceleration due to gravity at point particle 0 is 100 / 100^2. The
   // inverse input should exactly counter.
   std::vector<Event> input{
-      Event(0, Acceleration{Vector3{0, 0.01, 0}, Acceleration::kNone}),
+      Event(0, {}, Acceleration{Vector3{0, 0.01, 0}, Acceleration::kNone}),
   };
 
   for (float f = 0; f < duration; f += dt) {
@@ -182,7 +175,7 @@ TEST(MotionTest, PointMassHover) {
   // If we now also apply acceleration to particle 1, the force of gravity
   // acting on particle 0 should decrease and its own acceleration should allow
   // it to escape.
-  input.push_back(Event(1, Acceleration{Vector3{0, -0.01, 0}}));
+  input.push_back(Event(1, {}, Acceleration{Vector3{0, -0.01, 0}}));
 
   for (float f = 0; f < duration; f += dt) {
     IntegrateMotion(kVelocityVerlet, dt, absl::MakeSpan(input), positions, mass,
@@ -222,9 +215,10 @@ TEST(MotionTest, ForceImpulse) {
   EXPECT_EQ(positions[0].value, (Vector3{0, 100, 0}));
 
   std::vector<Event> input{
-      Event(0, Acceleration{Vector3{0, 100, 0}, static_cast<Acceleration::Flag>(
-                                                    Acceleration::kImpulse |
-                                                    Acceleration::kForce)}),
+      Event(0, {},
+            Acceleration{Vector3{0, 100, 0},
+                         static_cast<Acceleration::Flag>(
+                             Acceleration::kImpulse | Acceleration::kForce)}),
   };
   IntegrateMotion(kFirstOrderEuler, dt, absl::MakeSpan(input), positions, mass,
                   flags, motion);

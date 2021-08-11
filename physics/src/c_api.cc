@@ -88,11 +88,21 @@ Pipeline *CreateFrameSolver(LayerMatrix *collision_matrix,
   return new Pipeline(*collision_matrix, integrator);
 }
 
+RuleSet *CreateRuleSet() { return new RuleSet(); }
+
+void RuleSetAdd(RuleSet *rule_set, uint32_t target_layer, uint32_t other_layer,
+                Action action) {
+  rule_set->Add(RuleSet::LayerPair(target_layer, other_layer), action);
+}
+
+void DestroyRuleSet(RuleSet *rule_set) { delete (rule_set); }
+
 Timeline *CreateTimeline(Frame *frame, int first_frame_no,
-                         LayerMatrix *collision_matrix, float frame_time,
-                         int key_frame_period, IntegrationMethod integrator) {
-  return new Timeline(*frame, first_frame_no, *collision_matrix, frame_time,
-                      key_frame_period, integrator);
+                         LayerMatrix *collision_matrix, RuleSet *rule_set,
+                         float frame_time, int key_frame_period,
+                         IntegrationMethod integrator) {
+  return new Timeline(*frame, first_frame_no, *collision_matrix, *rule_set,
+                      frame_time, key_frame_period, integrator);
 }
 
 void TimelineInputEvent(Timeline *timeline, int frame_no, Event *event) {
@@ -137,6 +147,11 @@ void TimelineGetEvents(Timeline *timeline, int frame_no, EventBuffer *buffer) {
 void TimelineGetEventRange(Timeline *timeline, int first_frame_no,
                            int last_frame_no, EventBuffer *buffer) {
   timeline->GetEvents(first_frame_no, last_frame_no, *buffer);
+}
+
+void TimelineSetLabel(Timeline *timeline, const int id,
+                      const Timeline::Label label) {
+  timeline->SetLabel(id, label);
 }
 
 void DestroyTimeline(Timeline *timeline) { delete timeline; }

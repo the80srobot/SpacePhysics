@@ -18,6 +18,7 @@
 #include "systems/glue_system.h"
 #include "systems/kepler.h"
 #include "systems/motion.h"
+#include "systems/rules.h"
 
 namespace vstr {
 
@@ -26,18 +27,24 @@ class Pipeline {
   explicit Pipeline(LayerMatrix collision_matrix,
                     IntegrationMethod integrator = kVelocityVerlet)
       : collision_system_(collision_matrix), integrator_(integrator) {}
+
+  explicit Pipeline(LayerMatrix collision_matrix, const RuleSet &rule_set,
+                    IntegrationMethod integrator = kVelocityVerlet)
+      : collision_system_(collision_matrix),
+        integrator_(integrator),
+        rule_set_(rule_set) {}
+
   void Step(float dt, int frame_no, Frame &frame, absl::Span<Event> input,
             std::vector<Event> &out_events);
   void Replay(float dt, int frame_no, Frame &frame, absl::Span<Event> events);
 
   inline CollisionSystem &collision_system() { return collision_system_; }
 
-  inline GlueSystem &glue_system() { return glue_system_; }
-
  private:
   IntegrationMethod integrator_;
   CollisionSystem collision_system_;
   GlueSystem glue_system_;
+  RuleSet rule_set_;
 
   std::vector<Event> event_buffer_;
 };

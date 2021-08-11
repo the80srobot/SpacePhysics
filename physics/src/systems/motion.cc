@@ -68,8 +68,8 @@ void ComputeForces(const std::vector<Position> &positions,
     if (input[0].type == Event::kAcceleration) {
       Vector3 value = input[0].acceleration.value;
       if (input[0].acceleration.flags & Acceleration::Flag::kForce &&
-          mass[id].intertial != 0) {
-        value /= mass[id].intertial;
+          mass[id].inertial != 0) {
+        value /= mass[id].inertial;
       }
       if (input[0].acceleration.flags & Acceleration::Flag::kImpulse) {
         out_impulse += value;
