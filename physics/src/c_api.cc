@@ -114,7 +114,8 @@ void TimelineInputEventRange(Timeline *timeline, int first_frame_no,
   timeline->InputEvent(first_frame_no, last_frame_no, *event);
 }
 
-int TimelineSimulate(Timeline *timeline, float time_budget, int limit) {
+int TimelineSimulate(Timeline *timeline, float time_budget, int limit,
+                     uint64_t *time_spent_nanos) {
   const int max_frames = limit - timeline->head();
   if (max_frames <= 0) return 0;
   auto now = std::chrono::steady_clock::now();
@@ -129,6 +130,8 @@ int TimelineSimulate(Timeline *timeline, float time_budget, int limit) {
     now = std::chrono::steady_clock::now();
     ++frames;
   }
+  *time_spent_nanos =
+      std::chrono::duration_cast<std::chrono::nanoseconds>(now - start).count();
   return frames - 1;
 }
 

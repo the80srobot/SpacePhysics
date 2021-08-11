@@ -81,7 +81,8 @@ EXPORT Timeline *CreateTimeline(Frame *frame, int first_frame_no,
 EXPORT void TimelineInputEvent(Timeline *timeline, int frame_no, Event *event);
 EXPORT void TimelineInputEventRange(Timeline *timeline, int first_frame_no,
                                     int last_frame_no, Event *event);
-EXPORT int TimelineSimulate(Timeline *timeline, float time_budget, int limit);
+EXPORT int TimelineSimulate(Timeline *timeline, float time_budget, int limit,
+                            uint64_t *time_spent_nanos);
 EXPORT const Frame *TimelineGetFrame(Timeline *timeline, int frame_no);
 EXPORT int TimelineGetHead(Timeline *timeline);
 EXPORT int TimelineGetTail(Timeline *timeline);
