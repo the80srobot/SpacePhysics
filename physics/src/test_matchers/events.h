@@ -10,7 +10,8 @@ MATCHER_P(EventMatches, epsilon, "approximately matches") {
   const Event& a = std::get<0>(arg);
   const Event& b = std::get<1>(arg);
 
-  if (!(a.id == b.id && a.type == b.type)) {
+  if (!(a.id == b.id && a.type == b.type &&
+        Vector3Eq(a.position, b.position, epsilon))) {
     return false;
   }
 

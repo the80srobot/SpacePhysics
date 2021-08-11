@@ -173,12 +173,13 @@ bool Eligible(const std::vector<Collider> &colliders,
 }
 
 Vector3 CollisionLocation(const std::vector<Position> &positions,
-                          const std::vector<Motion> &motion, const float t,
+                          const std::vector<Motion> &motion,
+                          const std::vector<Collider> &colliders, const float t,
                           const int a, const int b) {
   Vector3 a_pos = positions[a].value + motion[a].velocity * t;
   Vector3 b_pos = positions[b].value + motion[b].velocity * t;
-  // TODO this doesn't work when the colliders have different radii.
-  return (a_pos + b_pos) / 2;
+  return (colliders[b].radius * a_pos + colliders[a].radius * b_pos) /
+         (colliders[a].radius + colliders[b].radius);
 }
 
 };  // namespace
@@ -211,9 +212,9 @@ void CollisionSystem::DetectCollisions(const std::vector<Position> &positions,
       if (Eligible(colliders, flags, glue, matrix_, id, kv.value)) {
         float t = CollisionTime(positions, colliders, motion, id, kv.value, dt);
         if (t <= dt) {
-          out_events.push_back(
-              Event(CollisionLocation(positions, motion, t, id, kv.value),
-                    Collision{id, kv.value, t}));
+          out_events.push_back(Event(
+              CollisionLocation(positions, motion, colliders, t, id, kv.value),
+              Collision{id, kv.value, t}));
         }
       }
     }

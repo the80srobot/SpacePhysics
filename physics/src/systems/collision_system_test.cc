@@ -10,6 +10,8 @@
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 
+#include "test_matchers/events.h"
+
 namespace vstr {
 namespace {
 
@@ -34,138 +36,143 @@ TEST_P(CollisionSystemTest, CollisionSystemTest) {
                           GetParam().motion, GetParam().flags, GetParam().glue,
                           GetParam().deltaTime, events);
 
-  EXPECT_THAT(events, testing::ElementsAreArray(GetParam().expect));
-  // Because operator== considers event position to be just "metadata", the
-  // above check doesn't actually verify that it's set.
-  EXPECT_THAT(events, testing::Each(testing::Field(
-                          &Event::position, testing::Ne(Vector3::Zero()))))
-      << "event position should be set";
+  EXPECT_THAT(events,
+              testing::Pointwise(EventMatches(0.005f), GetParam().expect));
 }
 
 INSTANTIATE_TEST_SUITE_P(
     CollisionSystemTest, CollisionSystemTest,
     testing::Values(
         TestCase{
-            "basic",
-            1.0,
-            std::vector<Position>{
+            .comment{"basic"},
+            .deltaTime = 1.0,
+            .positions{
                 Position{Vector3{0, 0, 0}},
                 Position{Vector3{10, 0, 0}},
             },
-            std::vector<Motion>{
+            .motion{
                 Motion::FromPositionAndVelocity(Vector3{0, 0, 0},
                                                 Vector3{10, 0, 0}),
                 Motion::FromPositionAndVelocity(Vector3{10, 0, 0},
                                                 Vector3{0, 0, 0}),
             },
-            std::vector<Collider>{
+            .colliders{
                 Collider{1, 0.5},
                 Collider{1, 0.5},
             },
-            std::vector<Glue>{
+            .glue{
                 Glue{-1},
                 Glue{-1},
             },
-            std::vector<Flags>{
-                Flags{},
-                Flags{},
+            .flags{
+                Flags{0},
+                Flags{0},
             },
-            LayerMatrix(std::vector<std::pair<uint32_t, uint32_t>>{
-                std::make_pair(1, 1)}),
-            std::vector<Event>{
-                Event(Vector3::Zero(), Collision{0, 1, 0.9}),
+            .matrix{LayerMatrix(std::vector<std::pair<uint32_t, uint32_t>>{
+                std::make_pair(1, 1)})},
+            .expect{
+                Event(Vector3{9.5, 0, 0},
+                      Collision{.first_id = 0,
+                                .second_id = 1,
+                                .first_frame_offset_seconds = 0.9}),
             },
         },
         TestCase{
-            "fast_mover",
-            1.0 / 60,
-            std::vector<Position>{
+            .comment{"fast_mover"},
+            .deltaTime = 1.0 / 60,
+            .positions{
                 Position{Vector3{0, 0, 0}},
                 Position{Vector3{10, 0, 0}},
             },
-            std::vector<Motion>{
+            .motion{
                 Motion::FromPositionAndVelocity(Vector3{0, 0, 0},
                                                 Vector3{1000000, 0, 0}),
                 Motion::FromPositionAndVelocity(Vector3{10, 0, 0},
                                                 Vector3{0, 0, 0}),
             },
-            std::vector<Collider>{
+            .colliders{
                 Collider{1, 0.5},
                 Collider{1, 0.5},
             },
-            std::vector<Glue>{
+            .glue{
                 Glue{-1},
                 Glue{-1},
             },
-            std::vector<Flags>{
-                Flags{false},
-                Flags{false},
+            .flags{
+                Flags{0},
+                Flags{0},
             },
             LayerMatrix(std::vector<std::pair<uint32_t, uint32_t>>{
                 std::make_pair(1, 1)}),
-            std::vector<Event>{
-                Event(Vector3::Zero(), Collision{0, 1, 0}),
+            .expect{
+                Event(Vector3{9.5, 0, 0},
+                      Collision{.first_id = 0,
+                                .second_id = 1,
+                                .first_frame_offset_seconds = 0}),
             },
         },
         TestCase{
-            "both_fast_movers",
-            1.0 / 60,
-            std::vector<Position>{
+            .comment{"both_fast_movers"},
+            .deltaTime = 1.0 / 60,
+            .positions{
                 Position{Vector3{0, 0, 0}},
                 Position{Vector3{10, 0, 0}},
             },
-            std::vector<Motion>{
+            .motion{
                 Motion::FromPositionAndVelocity(Vector3{0, 0, 0},
                                                 Vector3{1000000, 0, 0}),
                 Motion::FromPositionAndVelocity(Vector3{10, 0, 0},
                                                 Vector3{-1000000, 0, 0}),
             },
-            std::vector<Collider>{
+            .colliders{
                 Collider{1, 0.5},
                 Collider{1, 0.5},
             },
-            std::vector<Glue>{
+            .glue{
                 Glue{-1},
                 Glue{-1},
             },
-            std::vector<Flags>{
-                Flags{false},
-                Flags{false},
+            .flags{
+                Flags{0},
+                Flags{0},
             },
             LayerMatrix(std::vector<std::pair<uint32_t, uint32_t>>{
                 std::make_pair(1, 1)}),
-            std::vector<Event>{
-                Event(Vector3::Zero(), Collision{0, 1, 0}),
+            .expect{
+                Event(Vector3{5, 0, 0},
+                      Collision{.first_id = 0,
+                                .second_id = 1,
+                                .first_frame_offset_seconds = 0}),
             },
         },
         TestCase{
-            "slow_orthogonal_movers_collide",
-            1.0,
-            std::vector<Position>{
+            .comment{"slow_orthogonal_movers_collide"},
+            .deltaTime = 1.0,
+            .positions{
                 Position{Vector3{-10, 0, 0}},
                 Position{Vector3{0, -10, 0}},
             },
-            std::vector<Motion>{
+            .motion{
                 Motion::FromPositionAndVelocity(Vector3{-10, 0, 0},
                                                 Vector3{10, 0, 0}),
                 Motion::FromPositionAndVelocity(Vector3{0, -10, 0},
                                                 Vector3{0, 10, 0}),
             },
-            std::vector<Collider>{
+            .colliders{
                 Collider{1, 0.5},
                 Collider{1, 0.5},
             },
-            std::vector<Glue>{
+            .glue{
                 Glue{-1},
                 Glue{-1},
             },
-            std::vector<Flags>{
-                Flags{false},
-                Flags{false},
+            .flags{
+                Flags{0},
+                Flags{0},
             },
             LayerMatrix(std::vector<std::pair<uint32_t, uint32_t>>{
                 std::make_pair(1, 1)}),
-            std::vector<Event>{
+            .expect{
                 // At the time of collision, the line connecting the two centers
                 // is the hypotenuse of an isosceles right triangle, with the
                 // third pivot at {0,0,0}. Both sides are therefore:
@@ -174,98 +181,140 @@ INSTANTIATE_TEST_SUITE_P(
                 //
                 // It takes 1.0 seconds to travel the 10 units, leading to the
                 // final formula.
-                Event(Vector3::Zero(),
-                      Collision{0, 1, 1.0f - (1.0f / std::sqrtf(2)) / 10.0f}),
+                Event(Vector3{-1.0f / (2 * std::sqrtf(2)),
+                              -1.0f / (2 * std::sqrtf(2)), 0},
+                      Collision{.first_id = 0,
+                                .second_id = 1,
+                                .first_frame_offset_seconds =
+                                    1.0f - (1.0f / std::sqrtf(2)) / 10.0f}),
             },
         },
         TestCase{
-            "fast_orthogonal_movers_collide",
-            1.0 / 60,
-            std::vector<Position>{
+            .comment{"fast_orthogonal_movers_collide"},
+            .deltaTime = 1.0 / 60,
+            .positions{
                 Position{Vector3{-10, 0, 0}},
                 Position{Vector3{0, -10, 0}},
             },
-            std::vector<Motion>{
+            .motion{
                 Motion::FromPositionAndVelocity(Vector3{-10, 0, 0},
                                                 Vector3{10000000, 0, 0}),
                 Motion::FromPositionAndVelocity(Vector3{0, -10, 0},
                                                 Vector3{0, 10000000, 0}),
             },
-            std::vector<Collider>{
+            .colliders{
                 Collider{1, 0.5},
                 Collider{1, 0.5},
             },
-            std::vector<Glue>{
+            .glue{
                 Glue{-1},
                 Glue{-1},
             },
-            std::vector<Flags>{
-                Flags{false},
-                Flags{false},
+            .flags{
+                Flags{0},
+                Flags{0},
             },
             LayerMatrix(std::vector<std::pair<uint32_t, uint32_t>>{
                 std::make_pair(1, 1)}),
-            std::vector<Event>{
-                Event(Vector3::Zero(), Collision{0, 1, 0}),
+            .expect{
+                Event(Vector3{-1.0f / (2 * std::sqrtf(2)),
+                              -1.0f / (2 * std::sqrtf(2)), 0},
+                      Collision{.first_id = 0,
+                                .second_id = 1,
+                                .first_frame_offset_seconds = 0}),
             },
         },
         TestCase{
-            "destroyed_does_not_collide",
-            1.0,
-            std::vector<Position>{
+            .comment{"destroyed_does_not_collide"},
+            .deltaTime = 1.0,
+            .positions{
                 Position{Vector3{-10, 0, 0}},
                 Position{Vector3{0, -10, 0}},
             },
-            std::vector<Motion>{
+            .motion{
                 Motion::FromPositionAndVelocity(Vector3{-10, 0, 0},
                                                 Vector3{10, 0, 0}),
                 Motion::FromPositionAndVelocity(Vector3{0, -10, 0},
                                                 Vector3{0, 10, 0}),
             },
-            std::vector<Collider>{
+            .colliders{
                 Collider{1, 0.5},
                 Collider{1, 0.5},
             },
-            std::vector<Glue>{
+            .glue{
                 Glue{-1},
                 Glue{-1},
             },
-            std::vector<Flags>{
-                Flags{true},
-                Flags{false},
+            .flags{
+                Flags{Flags::kDestroyed},
+                Flags{0},
             },
             LayerMatrix(std::vector<std::pair<uint32_t, uint32_t>>{
                 std::make_pair(1, 1)}),
-            std::vector<Event>{},
+            .expect{},
         },
         TestCase{
-            "layer_mask_no_collision",
-            1.0,
-            std::vector<Position>{
+            .comment{"layer_mask_no_collision"},
+            .deltaTime = 1.0,
+            .positions{
                 Position{Vector3{-10, 0, 0}},
                 Position{Vector3{0, -10, 0}},
             },
-            std::vector<Motion>{
+            .motion{
                 Motion::FromPositionAndVelocity(Vector3{-10, 0, 0},
                                                 Vector3{10, 0, 0}),
                 Motion::FromPositionAndVelocity(Vector3{0, -10, 0},
                                                 Vector3{0, 10, 0}),
             },
-            std::vector<Collider>{
+            .colliders{
                 Collider{1, 0.5},
                 Collider{1, 0.5},
             },
-            std::vector<Glue>{
+            .glue{
                 Glue{-1},
                 Glue{-1},
             },
-            std::vector<Flags>{
-                Flags{false},
-                Flags{false},
+            .flags{
+                Flags{0},
+                Flags{0},
             },
-            LayerMatrix(std::vector<std::pair<uint32_t, uint32_t>>{
-                std::make_pair(1, 2)}),
-            std::vector<Event>{},
+            .matrix{LayerMatrix(std::vector<std::pair<uint32_t, uint32_t>>{
+                std::make_pair(1, 2)})},
+            .expect{},
+        },
+        TestCase{
+            .comment{"unequal_radii"},
+            .deltaTime = 1.0,
+            .positions{
+                {{-10, 0, 0}},
+                {{10, 0, 0}},
+            },
+            .motion{
+                Motion::FromPositionAndVelocity(Vector3{-10, 0, 0},
+                                                Vector3{10, 0, 0}),
+                Motion::FromPositionAndVelocity(Vector3{10, 0, 0},
+                                                Vector3{-10, 0, 0}),
+            },
+            .colliders{
+                {.layer = 1, .radius = 1},
+                {.layer = 1, .radius = 9},
+            },
+            .glue{
+                Glue{-1},
+                Glue{-1},
+            },
+            .flags{
+                Flags{0},
+                Flags{0},
+            },
+            .matrix{LayerMatrix(std::vector<std::pair<uint32_t, uint32_t>>{
+                std::make_pair(1, 1)})},
+            .expect{
+                Event(Vector3{-4, 0, 0},
+                      Collision{.first_id = 0,
+                                .second_id = 1,
+                                .first_frame_offset_seconds = 0.5}),
+            },
         }),
     [](const testing::TestParamInfo<CollisionSystemTest::ParamType>& tc) {
       return tc.param.comment;
