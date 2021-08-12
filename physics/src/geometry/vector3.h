@@ -13,6 +13,8 @@
 #include <cmath>
 #include <iostream>
 
+#include "geometry/float.h"
+
 namespace vstr {
 
 struct Vector3 {
@@ -52,6 +54,12 @@ struct Vector3 {
 
   static inline Vector3 Min(const Vector3 a, const Vector3 b) {
     return Vector3{std::min(a.x, b.x), std::min(a.y, b.y), std::min(a.z, b.z)};
+  }
+
+  static inline bool Approximately(const Vector3& a, const Vector3& b,
+                                   const float epsilon = 0.005f) {
+    return FloatEq(a.x, b.x, epsilon) && FloatEq(a.y, b.y, epsilon) &&
+           FloatEq(a.z, b.z, epsilon);
   }
 };
 

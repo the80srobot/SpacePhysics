@@ -1,3 +1,13 @@
+// This file is part of VSTR Space Physics.
+//
+// Copyright 2021 Adam Sindelar
+// License: http://www.gnu.org/licenses/old-licenses/gpl-2.0-standalone.html
+//
+// Author(s): Adam Sindelar <adam@wowsignal.io>
+
+#ifndef VSTR_TEST_MATCHERS_VECTOR3
+#define VSTR_TEST_MATCHERS_VECTOR3
+
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 
@@ -8,16 +18,14 @@
 
 namespace vstr {
 
-inline bool Vector3Eq(const Vector3 &a, const Vector3 &b,
-                      const float epsilon = 0.005f) {
-  return FloatEq(a.x, b.x, epsilon) && FloatEq(a.y, b.y, epsilon) &&
-         FloatEq(a.z, b.z, epsilon);
+MATCHER_P(Vector3ApproxEq, other, "") {
+  return Vector3::Approximately(arg, other);
 }
 
-MATCHER_P(Vector3ApproxEq, other, "") { return Vector3Eq(arg, other); }
-
 MATCHER_P2(Vector3ApproxEq, other, epsilon, "") {
-  return Vector3Eq(arg, other, epsilon);
+  return Vector3::Approximately(arg, other, epsilon);
 }
 
 }  // namespace vstr
+
+#endif

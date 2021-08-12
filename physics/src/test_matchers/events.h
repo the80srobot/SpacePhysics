@@ -1,3 +1,13 @@
+// This file is part of VSTR Space Physics.
+//
+// Copyright 2021 Adam Sindelar
+// License: http://www.gnu.org/licenses/old-licenses/gpl-2.0-standalone.html
+//
+// Author(s): Adam Sindelar <adam@wowsignal.io>
+
+#ifndef VSTR_TEST_MATCHERS_FLOAT
+#define VSTR_TEST_MATCHERS_FLOAT
+
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 
@@ -11,13 +21,14 @@ MATCHER_P(EventMatches, epsilon, "approximately matches") {
   const Event& b = std::get<1>(arg);
 
   if (!(a.id == b.id && a.type == b.type &&
-        Vector3Eq(a.position, b.position, epsilon))) {
+        Vector3::Approximately(a.position, b.position, epsilon))) {
     return false;
   }
 
   switch (a.type) {
     case Event::kAcceleration:
-      return Vector3Eq(a.acceleration.value, b.acceleration.value, epsilon);
+      return Vector3::Approximately(a.acceleration.value, b.acceleration.value,
+                                    epsilon);
     case Event::kStick:
       return a.stick == b.stick;
     case Event::kDestruction:
@@ -30,10 +41,10 @@ MATCHER_P(EventMatches, epsilon, "approximately matches") {
     case Event::kDamage:
       return a.damage == b.damage;
     case Event::kTeleportation:
-      return Vector3Eq(a.teleportation.new_position,
-                       b.teleportation.new_position, epsilon) &&
-             Vector3Eq(a.teleportation.new_velocity,
-                       b.teleportation.new_velocity);
+      return Vector3::Approximately(a.teleportation.new_position,
+                                    b.teleportation.new_position, epsilon) &&
+             Vector3::Approximately(a.teleportation.new_velocity,
+                                    b.teleportation.new_velocity);
     default:
       assert(false);  // Programmer error - unreachable.
       return true;
@@ -41,3 +52,5 @@ MATCHER_P(EventMatches, epsilon, "approximately matches") {
 }
 
 }  // namespace vstr
+
+#endif

@@ -25,12 +25,29 @@ void Bounce(const Event &collision, const BounceParameters params,
   const Vector3 v_b = motion[collision.collision.second_id].velocity;
 
   // Positions at the time of collision.
-  const Vector3 a = positions[collision.collision.first_id].value + v_a * t;
-  const Vector3 b = positions[collision.collision.second_id].value + v_b * t;
+  Vector3 a = positions[collision.collision.first_id].value + v_a * t;
+  Vector3 b = positions[collision.collision.second_id].value + v_b * t;
+
+  // If A and B are very close, or even occupy the same space, most of the below
+  // vector operations will be inaccurate or have undefined results. This should
+  // basically never happen, because if A and B are set to bounce on contact,
+  // then they could only ever be this close if the collider radii are tiny, or
+  // if they started out that way. In either case, the best option is to just
+  // push them apart.
+  if (Vector3::Approximately(a, b)) {
+    // Push A away from B. Note that this rule might get applied in both
+    // directions, so care must be taken to avoid pushing both in the same
+    // direction.
+    if (collision.collision.first_id < collision.collision.second_id) {
+      a.x += kSeparationEpsilon;
+    } else {
+      a.x -= kSeparationEpsilon;
+    }
+  }
 
   // Since the colliders are spheres, the collision normal lies along the line
   // connecting the second collider's focus with the point of contact.
-  const Vector3 n = Vector3::Normalize(a - b);
+  Vector3 n = Vector3::Normalize(a - b);
 
   float m_a = mass[collision.collision.first_id].inertial;
   float m_b = mass[collision.collision.second_id].inertial;
