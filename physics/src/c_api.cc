@@ -110,7 +110,7 @@ Timeline *CreateTimeline(Frame *frame, int first_frame_no,
                          LayerMatrix *collision_matrix, RuleSet *rule_set,
                          float frame_time, int key_frame_period,
                          IntegrationMethod integrator) {
-#ifndef NDEBUG
+#if !defined(NDEBUG) && defined(VSTR_BREAK_ON_FLOAT_EXC)
   DebugHelper::Singleton()->EnableFloatExceptions();
 #endif
 
