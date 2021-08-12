@@ -4,6 +4,8 @@
 
 #include <chrono>
 
+#include "debug.h"
+
 namespace vstr {
 extern "C" {
 
@@ -101,6 +103,10 @@ Timeline *CreateTimeline(Frame *frame, int first_frame_no,
                          LayerMatrix *collision_matrix, RuleSet *rule_set,
                          float frame_time, int key_frame_period,
                          IntegrationMethod integrator) {
+#ifndef NDEBUG
+  DebugHelper::Singleton()->EnableFloatExceptions();
+#endif
+
   return new Timeline(*frame, first_frame_no, *collision_matrix, *rule_set,
                       frame_time, key_frame_period, integrator);
 }
