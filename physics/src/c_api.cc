@@ -66,6 +66,15 @@ Orbit *FrameGetMutableOrbits(Frame *frame, int *count) {
   return frame->orbits.data();
 }
 
+void FrameResizeDurability(Frame *frame, int count) {
+  frame->durability.resize(count);
+}
+
+Durability *FrameGetMutableDurability(Frame *frame, int *count) {
+  *count = frame->durability.size();
+  return frame->durability.data();
+}
+
 void DestroyFrame(Frame *frame) { delete frame; }
 
 Vector3 KeplerEllipticalPosition(Orbit::Kepler kepler) {

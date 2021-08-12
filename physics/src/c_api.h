@@ -27,10 +27,16 @@ extern "C" {
 
 EXPORT Frame *CreateFrame();
 
-// Work on core components:
+// CORE COMPONENT DATA
+
+// Every object has all six core components. Consequently, the six arrays that
+// hold the component data are all the same size, and each object's ID acts as
+// offset into the core component arrays. (It follows that the arrays must not
+// be reordered.)
 
 EXPORT int FrameSize(Frame *frame);
 EXPORT void FrameResize(Frame *frame, int count);
+
 EXPORT Position *FrameGetMutablePositions(Frame *frame, int *count);
 EXPORT Mass *FrameGetMutableMass(Frame *frame, int *count);
 EXPORT Motion *FrameGetMutableMotion(Frame *frame, int *count);
@@ -38,9 +44,18 @@ EXPORT Collider *FrameGetMutableColliders(Frame *frame, int *count);
 EXPORT Glue *FrameGetMutableGlue(Frame *frame, int *count);
 EXPORT Flags *FrameGetMutableFlags(Frame *frame, int *count);
 
-// Optional components
+// OPTIONAL COMPONENT DATA
+
+// Optional components are handled differently from core components. Optional
+// components include as their first field the ID of the object they belong to.
+// (With core components that's not needed, because the array offset is the ID.)
+// They must still be kept sorted by object ID, to enable binary search.
+
 EXPORT void FrameResizeOrbits(Frame *frame, int count);
 EXPORT Orbit *FrameGetMutableOrbits(Frame *frame, int *count);
+
+EXPORT void FrameResizeDurability(Frame *frame, int count);
+EXPORT Durability *FrameGetMutableDurability(Frame *frame, int *count);
 
 EXPORT void DestroyFrame(Frame *frame);
 
