@@ -118,21 +118,30 @@ int TimelineSimulate(Timeline *timeline, float time_budget, int limit,
                      uint64_t *time_spent_nanos) {
   const int max_frames = limit - timeline->head();
   if (max_frames <= 0) return 0;
+
+  // Simulate one frame and measure how long that took us.
   auto now = std::chrono::steady_clock::now();
   auto start = now;
   timeline->Simulate();
-  now = std::chrono::steady_clock::now();
-  auto cost = 1.5 * (now - start);
-  auto deadline = start + std::chrono::duration<float>(time_budget);
   int frames = 1;
+
+  // We really don't want to exceed the time budget, so we assume subsequent
+  // frames might take 1.2x as long as the first frame did.
+  now = std::chrono::steady_clock::now();
+  auto cost = 1.2 * (now - start);
+  auto deadline = start + std::chrono::duration<double>(time_budget);
+
+  // Keep going as long as we think simulating the next frame won't exceed the
+  // deadline.
   while (now + cost < deadline && frames < max_frames) {
     timeline->Simulate();
     now = std::chrono::steady_clock::now();
     ++frames;
   }
+
   *time_spent_nanos =
       std::chrono::duration_cast<std::chrono::nanoseconds>(now - start).count();
-  return frames - 1;
+  return frames;
 }
 
 int TimelineGetHead(Timeline *timeline) { return timeline->head(); }
