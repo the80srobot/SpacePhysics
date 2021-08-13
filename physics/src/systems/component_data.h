@@ -51,6 +51,7 @@ std::ostream &operator<<(std::ostream &os, const Position &position);
 struct Mass {
   float inertial;
   float active;
+  float cutoff_distance;
 };
 
 static_assert(std::is_standard_layout<Mass>());

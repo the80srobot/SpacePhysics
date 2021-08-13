@@ -28,9 +28,14 @@ Vector3 GravityContributionFrom(const std::vector<Position> &positions,
   // a = ((m_1×m_2) / r²) / m_2
   //
   // Which is the same as a = m_1 / r².
-  Vector3 f = positions[attractor_id].value - other_position;
-  float rSquare = Vector3::SqrMagnitude(f);
-  return Vector3::Normalize(f) * ((mass[attractor_id].active) / rSquare);
+  Vector3 d = positions[attractor_id].value - other_position;
+  float r_square = Vector3::SqrMagnitude(d);
+  if (mass[attractor_id].cutoff_distance != 0 &&
+      r_square > mass[attractor_id].cutoff_distance *
+                     mass[attractor_id].cutoff_distance) {
+    return Vector3::Zero();
+  }
+  return Vector3::Normalize(d) * ((mass[attractor_id].active) / r_square);
 }
 
 Vector3 GravityAt(const std::vector<Position> &positions,
@@ -46,7 +51,7 @@ Vector3 GravityAt(const std::vector<Position> &positions,
     const Vector3 f =
         GravityContributionFrom(positions, mass, i, positions[id].value);
     result += f;
-    if (contributions != nullptr) {
+    if (contributions != nullptr && f != Vector3::Zero()) {
       contributions->push_back(std::make_pair(i, f));
     }
   }

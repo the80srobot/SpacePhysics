@@ -18,20 +18,25 @@ namespace vstr {
 namespace {
 
 TEST(MotionTest, GravityForceOn) {
+  // Object 1 should attract object 0. Object 2 won't, because it's set to
+  // destroyed, and object 3 won't because it's too far.
   std::vector<Position> positions{
       Position{Vector3{0, 100, 0}},
+      Position{Vector3{0, 0, 0}},
       Position{Vector3{0, 0, 0}},
       Position{Vector3{0, 0, 0}},
   };
   std::vector<Mass> mass{
       Mass{},
-      Mass{100, 100},
-      Mass{100, 100},
+      Mass{.inertial = 100, .active = 100, .cutoff_distance = 1000},
+      Mass{.inertial = 100, .active = 100, .cutoff_distance = 1000},
+      Mass{.inertial = 100, .active = 100, .cutoff_distance = 50},
   };
   std::vector<Flags> flags{
       Flags{},
       Flags{},
       Flags{Flags::kDestroyed},
+      Flags{},
   };
 
   std::vector<std::pair<int, Vector3>> contributions;
@@ -95,7 +100,7 @@ TEST(MotionTest, FallingPointMass) {
   };
   std::vector<Mass> mass{
       Mass{},
-      Mass{100, 100},
+      Mass{.inertial = 100, .active = 100, .cutoff_distance = 0},
   };
   std::vector<Motion> motion{
       Motion{},
@@ -147,7 +152,7 @@ TEST(MotionTest, PointMassHover) {
   };
   std::vector<Mass> mass{
       Mass{},
-      Mass{100, 100},
+      Mass{.inertial = 100, .active = 100, .cutoff_distance = 0},
   };
   std::vector<Motion> motion{
       Motion{},
@@ -195,7 +200,7 @@ TEST(MotionTest, ForceImpulse) {
       Position{Vector3{0, 0, 0}},
   };
   std::vector<Mass> mass{
-      Mass{100, 0},
+      Mass{.inertial = 100, .active = 0, .cutoff_distance = 0},
       Mass{},
   };
   std::vector<Motion> motion{
