@@ -57,7 +57,8 @@ struct Mass {
 static_assert(std::is_standard_layout<Mass>());
 
 inline bool operator==(const Mass &a, const Mass &b) {
-  return a.inertial == b.inertial && a.active == b.active;
+  return a.inertial == b.inertial && a.active == b.active &&
+         a.cutoff_distance == b.cutoff_distance;
 }
 
 std::ostream &operator<<(std::ostream &os, const Mass &mass);
@@ -90,12 +91,13 @@ std::ostream &operator<<(std::ostream &os, const Motion &motion);
 struct Collider {
   uint32_t layer;
   float radius;
+  Vector3 center;
 };
 
 static_assert(std::is_standard_layout<Collider>());
 
 inline bool operator==(const Collider &a, const Collider &b) {
-  return a.layer == b.layer && a.radius == b.radius;
+  return a.layer == b.layer && a.radius == b.radius && a.center == b.center;
 }
 
 std::ostream &operator<<(std::ostream &os, const Collider &collider);

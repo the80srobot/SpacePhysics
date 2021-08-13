@@ -22,8 +22,10 @@ float DistanceToCollision(const std::vector<Position> &positions,
                           const std::vector<Collider> &colliders,
                           const std::vector<Motion> &motion, const int a,
                           const int b, const float t) {
-  Vector3 a_pos = positions[a].value + motion[a].velocity * t;
-  Vector3 b_pos = positions[b].value + motion[b].velocity * t;
+  Vector3 a_pos =
+      positions[a].value + motion[a].velocity * t + colliders[a].center;
+  Vector3 b_pos =
+      positions[b].value + motion[b].velocity * t + colliders[b].center;
   return Vector3::Magnitude(a_pos - b_pos) - colliders[a].radius -
          colliders[b].radius;
 }
@@ -176,8 +178,10 @@ Vector3 CollisionLocation(const std::vector<Position> &positions,
                           const std::vector<Motion> &motion,
                           const std::vector<Collider> &colliders, const float t,
                           const int a, const int b) {
-  Vector3 a_pos = positions[a].value + motion[a].velocity * t;
-  Vector3 b_pos = positions[b].value + motion[b].velocity * t;
+  Vector3 a_pos =
+      positions[a].value + motion[a].velocity * t + colliders[a].center;
+  Vector3 b_pos =
+      positions[b].value + motion[b].velocity * t + colliders[b].center;
   return (colliders[b].radius * a_pos + colliders[a].radius * b_pos) /
          (colliders[a].radius + colliders[b].radius);
 }
@@ -196,7 +200,8 @@ void CollisionSystem::DetectCollisions(const std::vector<Position> &positions,
   for (int id = 0; id < colliders.size(); ++id) {
     float radius = colliders[id].radius;
     AABB bounds = AABB::FromCenterAndHalfExtents(
-        positions[id].value, Vector3{radius, radius, radius});
+        positions[id].value + colliders[id].center,
+        Vector3{radius, radius, radius});
     bounds.Encapsulate(AABB::FromCenterAndHalfExtents(
         motion[id].new_position, Vector3{radius, radius, radius}));
     cache_bvh_kvs_.push_back(BVH::KV(bounds, id));

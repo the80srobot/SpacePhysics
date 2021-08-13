@@ -11,7 +11,7 @@ namespace vstr {
 
 std::ostream &operator<<(std::ostream &os, const Collider &collider) {
   return os << "Collider{/*layer=*/" << collider.layer << ", /*radius=*/"
-            << collider.radius << "}";
+            << collider.radius << ", /*center=*/" << collider.center << "}";
 }
 
 std::ostream &operator<<(std::ostream &os, const Position &position) {
@@ -20,7 +20,8 @@ std::ostream &operator<<(std::ostream &os, const Position &position) {
 
 std::ostream &operator<<(std::ostream &os, const Mass &mass) {
   return os << "Mass{/*inertial=*/" << mass.inertial << ", /*active=*/"
-            << mass.active << "}";
+            << mass.active << ", /*cutoff_distance=*/" << mass.cutoff_distance
+            << "}";
 }
 
 std::ostream &operator<<(std::ostream &os, const Motion &motion) {

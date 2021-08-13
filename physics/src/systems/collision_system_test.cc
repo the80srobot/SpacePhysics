@@ -57,8 +57,42 @@ INSTANTIATE_TEST_SUITE_P(
                                                 Vector3{0, 0, 0}),
             },
             .colliders{
-                Collider{1, 0.5},
-                Collider{1, 0.5},
+                Collider{.layer = 1, .radius = 0.5, .center{0, 0, 0}},
+                Collider{.layer = 1, .radius = 0.5, .center{0, 0, 0}},
+            },
+            .glue{
+                Glue{-1},
+                Glue{-1},
+            },
+            .flags{
+                Flags{0},
+                Flags{0},
+            },
+            .matrix{LayerMatrix(std::vector<std::pair<uint32_t, uint32_t>>{
+                std::make_pair(1, 1)})},
+            .expect{
+                Event(Vector3{9.5, 0, 0},
+                      Collision{.first_id = 0,
+                                .second_id = 1,
+                                .first_frame_offset_seconds = 0.9}),
+            },
+        },
+        TestCase{
+            .comment{"off_center"},
+            .deltaTime = 1.0,
+            .positions{
+                Position{Vector3{0, -10, 0}},
+                Position{Vector3{20, 0, 0}},
+            },
+            .motion{
+                Motion::FromPositionAndVelocity(Vector3{0, 0, 0},
+                                                Vector3{10, 0, 0}),
+                Motion::FromPositionAndVelocity(Vector3{10, 0, 0},
+                                                Vector3{0, 0, 0}),
+            },
+            .colliders{
+                Collider{.layer = 1, .radius = 0.5, .center{0, 10, 0}},
+                Collider{.layer = 1, .radius = 0.5, .center{-10, 0, 0}},
             },
             .glue{
                 Glue{-1},
@@ -91,8 +125,8 @@ INSTANTIATE_TEST_SUITE_P(
                                                 Vector3{0, 0, 0}),
             },
             .colliders{
-                Collider{1, 0.5},
-                Collider{1, 0.5},
+                Collider{.layer = 1, .radius = 0.5, .center{0, 0, 0}},
+                Collider{.layer = 1, .radius = 0.5, .center{0, 0, 0}},
             },
             .glue{
                 Glue{-1},
@@ -125,8 +159,8 @@ INSTANTIATE_TEST_SUITE_P(
                                                 Vector3{-1000000, 0, 0}),
             },
             .colliders{
-                Collider{1, 0.5},
-                Collider{1, 0.5},
+                Collider{.layer = 1, .radius = 0.5, .center{0, 0, 0}},
+                Collider{.layer = 1, .radius = 0.5, .center{0, 0, 0}},
             },
             .glue{
                 Glue{-1},
@@ -159,8 +193,8 @@ INSTANTIATE_TEST_SUITE_P(
                                                 Vector3{0, 10, 0}),
             },
             .colliders{
-                Collider{1, 0.5},
-                Collider{1, 0.5},
+                Collider{.layer = 1, .radius = 0.5, .center{0, 0, 0}},
+                Collider{.layer = 1, .radius = 0.5, .center{0, 0, 0}},
             },
             .glue{
                 Glue{-1},
@@ -203,8 +237,8 @@ INSTANTIATE_TEST_SUITE_P(
                                                 Vector3{0, 10000000, 0}),
             },
             .colliders{
-                Collider{1, 0.5},
-                Collider{1, 0.5},
+                Collider{.layer = 1, .radius = 0.5, .center{0, 0, 0}},
+                Collider{.layer = 1, .radius = 0.5, .center{0, 0, 0}},
             },
             .glue{
                 Glue{-1},
@@ -238,8 +272,8 @@ INSTANTIATE_TEST_SUITE_P(
                                                 Vector3{0, 10, 0}),
             },
             .colliders{
-                Collider{1, 0.5},
-                Collider{1, 0.5},
+                Collider{.layer = 1, .radius = 0.5, .center{0, 0, 0}},
+                Collider{.layer = 1, .radius = 0.5, .center{0, 0, 0}},
             },
             .glue{
                 Glue{-1},
@@ -267,8 +301,8 @@ INSTANTIATE_TEST_SUITE_P(
                                                 Vector3{0, 10, 0}),
             },
             .colliders{
-                Collider{1, 0.5},
-                Collider{1, 0.5},
+                Collider{.layer = 1, .radius = 0.5, .center{0, 0, 0}},
+                Collider{.layer = 1, .radius = 0.5, .center{0, 0, 0}},
             },
             .glue{
                 Glue{-1},
@@ -296,8 +330,8 @@ INSTANTIATE_TEST_SUITE_P(
                                                 Vector3{-10, 0, 0}),
             },
             .colliders{
-                {.layer = 1, .radius = 1},
-                {.layer = 1, .radius = 9},
+                {.layer = 1, .radius = 1, .center{0, 0, 0}},
+                {.layer = 1, .radius = 9, .center{0, 0, 0}},
             },
             .glue{
                 Glue{-1},
