@@ -19,7 +19,7 @@ namespace vstr {
 class CollisionSystem {
  public:
   CollisionSystem(LayerMatrix layer_matrix) : matrix_(layer_matrix) {}
-  void DetectCollisions(const std::vector<Position> &positions,
+  void DetectCollisions(const std::vector<Transform> &positions,
                         const std::vector<Collider> &colliders,
                         const std::vector<Motion> &motion,
                         const std::vector<Flags> &flags,

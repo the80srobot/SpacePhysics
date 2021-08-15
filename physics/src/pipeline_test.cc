@@ -19,9 +19,9 @@ TEST(PipelineTest, FallingSphere) {
   // The spheres should take about 111 seconds to come into contact.
   const float duration = 111;
 
-  std::vector<Position> positions{
-      Position{Vector3{0, 100, 0}},
-      Position{Vector3{0, 0, 0}},
+  std::vector<Transform> positions{
+      Transform{Vector3{0, 100, 0}},
+      Transform{Vector3{0, 0, 0}},
   };
   std::vector<Mass> mass{
       Mass{},
@@ -53,8 +53,8 @@ TEST(PipelineTest, FallingSphere) {
     ++frame_no;
   }
 
-  EXPECT_LT(frame.positions[0].value.y, 1);
-  EXPECT_GT(frame.positions[0].value.y, 0);
+  EXPECT_LT(frame.positions[0].position.y, 1);
+  EXPECT_GT(frame.positions[0].position.y, 0);
 
   ASSERT_GE(buffer.size(), 1);
   EXPECT_EQ(buffer[0].type, Event::kCollision);

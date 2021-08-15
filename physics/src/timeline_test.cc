@@ -21,9 +21,9 @@ TEST(TimelineTest, FallingSphere) {
   // The spheres should take about 111 seconds to come into contact.
   const float duration = 111;
 
-  std::vector<Position> positions{
-      Position{Vector3{0, 100, 0}},
-      Position{Vector3{0, 200, 0}},
+  std::vector<Transform> positions{
+      Transform{Vector3{0, 100, 0}},
+      Transform{Vector3{0, 200, 0}},
   };
   std::vector<Mass> mass{
       Mass{},
@@ -61,8 +61,8 @@ TEST(TimelineTest, FallingSphere) {
   // FallingSphere PipelineTest.
   const Frame* frame = timeline.GetFrame(frame_no);
   EXPECT_NE(frame, nullptr);
-  EXPECT_LT(frame->positions[0].value.y, 200);
-  EXPECT_GT(frame->positions[0].value.y, 199);
+  EXPECT_LT(frame->positions[0].position.y, 200);
+  EXPECT_GT(frame->positions[0].position.y, 199);
 
   // A collision event should have been recorded by now.
   std::vector<Event> buffer;
@@ -80,16 +80,16 @@ TEST(TimelineTest, FallingSphere) {
 
   frame = timeline.GetFrame(frame_no);
   EXPECT_NE(frame, nullptr);
-  EXPECT_LT(frame->positions[0].value.y, 200);
-  EXPECT_GT(frame->positions[0].value.y, 199);
+  EXPECT_LT(frame->positions[0].position.y, 200);
+  EXPECT_GT(frame->positions[0].position.y, 199);
 }
 
 TEST(TimelineTest, AccelerateRewindAccelerate) {
   const float dt = 0.01;
 
-  std::vector<Position> positions{
-      Position{Vector3{0, 100, 0}},
-      Position{Vector3{0, 0, 0}},
+  std::vector<Transform> positions{
+      Transform{Vector3{0, 100, 0}},
+      Transform{Vector3{0, 0, 0}},
   };
   std::vector<Mass> mass{
       Mass{},
@@ -151,9 +151,9 @@ TEST(TimelineTest, AccelerateRewindAccelerate) {
 TEST(TimelineTest, DestroyAttractor) {
   const float dt = 1.0f / 30;
 
-  std::vector<Position> positions{
-      Position{Vector3{0, 100, 0}},
-      Position{Vector3{0, 0, 0}},
+  std::vector<Transform> positions{
+      Transform{Vector3{0, 100, 0}},
+      Transform{Vector3{0, 0, 0}},
   };
   std::vector<Mass> mass{
       Mass{},
@@ -194,12 +194,12 @@ TEST(TimelineTest, DestroyAttractor) {
   const Frame* frame = timeline.GetFrame(30.0f / dt);
   ASSERT_NE(frame, nullptr);
   EXPECT_FALSE(frame->flags[1].value & Flags::kDestroyed);
-  EXPECT_THAT(
-      frame->motion[0].acceleration,
-      Vector3ApproxEq(Vector3{
-          0,
-          -100 / Vector3::SqrMagnitude(positions[0].value - positions[1].value),
-          0}));
+  EXPECT_THAT(frame->motion[0].acceleration,
+              Vector3ApproxEq(
+                  Vector3{0,
+                          -100 / Vector3::SqrMagnitude(positions[0].position -
+                                                       positions[1].position),
+                          0}));
 
   frame = timeline.GetFrame(30.0f / dt + 1);
   ASSERT_NE(frame, nullptr);
@@ -207,7 +207,7 @@ TEST(TimelineTest, DestroyAttractor) {
   EXPECT_EQ(frame->motion[0].acceleration, (Vector3{0, 0, 0}));
 
   // Eventually sphere 0 will fall where sphere 1 used to be.
-  for (; frame->positions[0].value.y > 1; ++frame_no) {
+  for (; frame->positions[0].position.y > 1; ++frame_no) {
     timeline.Simulate();
     frame = timeline.GetFrame(frame_no);
   }
@@ -215,8 +215,8 @@ TEST(TimelineTest, DestroyAttractor) {
   // But no collision should be recorded.
   frame = timeline.GetFrame(frame_no);
   ASSERT_NE(frame, nullptr);
-  EXPECT_GT(frame->positions[0].value.y, 0);
-  EXPECT_LT(frame->positions[0].value.y, 1);
+  EXPECT_GT(frame->positions[0].position.y, 0);
+  EXPECT_LT(frame->positions[0].position.y, 1);
   std::vector<Event> buffer;
   EXPECT_TRUE(timeline.GetEvents(frame_no, buffer));
   EXPECT_EQ(buffer.size(), 0);
@@ -251,10 +251,10 @@ struct TestCase {
 class QueryTest : public testing::TestWithParam<TestCase> {};
 
 TEST_P(QueryTest, QueryTest) {
-  std::vector<Position> positions{
-      Position{Vector3{0, 100, 0}},
-      Position{Vector3{0, 0, 0}},
-      Position{Vector3{100, 0, 0}},
+  std::vector<Transform> positions{
+      Transform{Vector3{0, 100, 0}},
+      Transform{Vector3{0, 0, 0}},
+      Transform{Vector3{100, 0, 0}},
   };
   std::vector<Mass> mass{
       Mass{},

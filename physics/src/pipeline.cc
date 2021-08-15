@@ -55,7 +55,7 @@ void ApplyEventEffects(absl::Span<Event> events, Frame &frame) {
         // events.
         break;
       case Event::kTeleportation:
-        frame.positions[event.id].value = event.teleportation.new_position;
+        frame.positions[event.id].position = event.teleportation.new_position;
         frame.motion[event.id].new_position = event.teleportation.new_position;
         frame.motion[event.id].velocity = event.teleportation.new_velocity;
         break;

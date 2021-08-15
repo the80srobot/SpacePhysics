@@ -182,7 +182,7 @@ absl::Status Timeline::Query(int resolution,
       if (buffer_off < 0 || buffer_off >= query.buffer_sz) continue;
 
       if (query.attribute & Trajectory::Attribute::kPosition) {
-        query.buffer[buffer_off] = frame_.positions[query.id].value;
+        query.buffer[buffer_off] = frame_.positions[query.id].position;
         ++buffer_off;
       }
       if (query.attribute & Trajectory::Attribute::kVelocity) {

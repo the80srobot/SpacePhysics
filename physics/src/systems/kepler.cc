@@ -71,14 +71,14 @@ Vector3 EllipticalPosition(const Orbit::Kepler &kepler) {
   return Vector3{x, y, z};
 }
 
-void UpdateOrbitalMotion(const float t, const std::vector<Position> &positions,
+void UpdateOrbitalMotion(const float t, const std::vector<Transform> &positions,
                          const std::vector<Orbit> &orbits,
                          std::vector<Motion> &motion) {
   for (const auto &orbit : orbits) {
     const Orbit::Kepler current = orbit.epoch + orbit.delta * t;
     motion[orbit.id].new_position = orbit.focus + EllipticalPosition(current);
     motion[orbit.id].velocity =
-        motion[orbit.id].new_position - positions[orbit.id].value;
+        motion[orbit.id].new_position - positions[orbit.id].position;
   }
 }
 

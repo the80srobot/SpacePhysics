@@ -61,6 +61,14 @@ struct Vector3 {
     return FloatEq(a.x, b.x, epsilon) && FloatEq(a.y, b.y, epsilon) &&
            FloatEq(a.z, b.z, epsilon);
   }
+
+  static inline Vector3 Cross(const Vector3 a, const Vector3 b) {
+    return Vector3{
+        a.y * b.z - a.z * b.y,
+        a.z * b.x - a.x * b.z,
+        a.x * b.y - a.y * b.x,
+    };
+  }
 };
 
 static_assert(std::is_standard_layout<Vector3>());

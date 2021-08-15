@@ -18,21 +18,21 @@ namespace vstr {
 
 namespace {
 
-float DistanceToCollision(const std::vector<Position> &positions,
+float DistanceToCollision(const std::vector<Transform> &positions,
                           const std::vector<Collider> &colliders,
                           const std::vector<Motion> &motion, const int a,
                           const int b, const float t) {
   Vector3 a_pos =
-      positions[a].value + motion[a].velocity * t + colliders[a].center;
+      positions[a].position + motion[a].velocity * t + colliders[a].center;
   Vector3 b_pos =
-      positions[b].value + motion[b].velocity * t + colliders[b].center;
+      positions[b].position + motion[b].velocity * t + colliders[b].center;
   return Vector3::Magnitude(a_pos - b_pos) - colliders[a].radius -
          colliders[b].radius;
 }
 
 // Returns the earliest time objects a and b will collide based on their current
 // velocities. If no such time can be found, returns a time greater than dt.
-float CollisionTime(const std::vector<Position> &positions,
+float CollisionTime(const std::vector<Transform> &positions,
                     const std::vector<Collider> &colliders,
                     const std::vector<Motion> &motion, const int a, const int b,
                     const float dt) {
@@ -174,21 +174,21 @@ bool Eligible(const std::vector<Collider> &colliders,
   return true;
 }
 
-Vector3 CollisionLocation(const std::vector<Position> &positions,
+Vector3 CollisionLocation(const std::vector<Transform> &positions,
                           const std::vector<Motion> &motion,
                           const std::vector<Collider> &colliders, const float t,
                           const int a, const int b) {
   Vector3 a_pos =
-      positions[a].value + motion[a].velocity * t + colliders[a].center;
+      positions[a].position + motion[a].velocity * t + colliders[a].center;
   Vector3 b_pos =
-      positions[b].value + motion[b].velocity * t + colliders[b].center;
+      positions[b].position + motion[b].velocity * t + colliders[b].center;
   return (colliders[b].radius * a_pos + colliders[a].radius * b_pos) /
          (colliders[a].radius + colliders[b].radius);
 }
 
 };  // namespace
 
-void CollisionSystem::DetectCollisions(const std::vector<Position> &positions,
+void CollisionSystem::DetectCollisions(const std::vector<Transform> &positions,
                                        const std::vector<Collider> &colliders,
                                        const std::vector<Motion> &motion,
                                        const std::vector<Flags> &flags,
@@ -200,7 +200,7 @@ void CollisionSystem::DetectCollisions(const std::vector<Position> &positions,
   for (int id = 0; id < colliders.size(); ++id) {
     float radius = colliders[id].radius;
     AABB bounds = AABB::FromCenterAndHalfExtents(
-        positions[id].value + colliders[id].center,
+        positions[id].position + colliders[id].center,
         Vector3{radius, radius, radius});
     bounds.Encapsulate(AABB::FromCenterAndHalfExtents(
         motion[id].new_position, Vector3{radius, radius, radius}));

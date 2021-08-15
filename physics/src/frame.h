@@ -22,7 +22,7 @@ namespace vstr {
 
 struct Frame {
   // Core components. Point mass moves clumsily, goes fast.
-  std::vector<Position> positions;
+  std::vector<Transform> positions;
   std::vector<Mass> mass;
   std::vector<Motion> motion;
   std::vector<Collider> colliders;

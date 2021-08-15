@@ -3,6 +3,7 @@ add_library(
     bvh.cc
     aabb.cc
     vector3.cc
+    quaternion.cc
     layer_matrix.cc
 )
 

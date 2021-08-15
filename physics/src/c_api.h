@@ -37,7 +37,7 @@ EXPORT Frame *CreateFrame();
 EXPORT int FrameSize(Frame *frame);
 EXPORT void FrameResize(Frame *frame, int count);
 
-EXPORT Position *FrameGetMutablePositions(Frame *frame, int *count);
+EXPORT Transform *FrameGetMutablePositions(Frame *frame, int *count);
 EXPORT Mass *FrameGetMutableMass(Frame *frame, int *count);
 EXPORT Motion *FrameGetMutableMotion(Frame *frame, int *count);
 EXPORT Collider *FrameGetMutableColliders(Frame *frame, int *count);

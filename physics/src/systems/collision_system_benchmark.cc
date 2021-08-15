@@ -15,7 +15,7 @@ namespace vstr {
 namespace {
 
 struct Frame {
-  std::vector<Position> positions;
+  std::vector<Transform> positions;
   std::vector<Mass> mass;
   std::vector<Motion> motion;
   std::vector<Collider> colliders;
@@ -43,7 +43,7 @@ void GenerateCluster(const int size, const bool collision,
     frame.colliders.push_back(Collider{1, radius});
     frame.flags.push_back(Flags{false});
     frame.glue.push_back(Glue{-1});
-    frame.positions.push_back(Position{center});
+    frame.positions.push_back(Transform{center});
     frame.motion.push_back(Motion::FromPositionAndVelocity(center, velocity));
   }
 }

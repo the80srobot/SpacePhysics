@@ -18,7 +18,7 @@ namespace {
 struct TestCase {
   const std::string comment;
   const float deltaTime;
-  const std::vector<Position> positions;
+  const std::vector<Transform> positions;
   const std::vector<Motion> motion;
   const std::vector<Collider> colliders;
   const std::vector<Glue> glue;
@@ -47,8 +47,8 @@ INSTANTIATE_TEST_SUITE_P(
             .comment{"basic"},
             .deltaTime = 1.0,
             .positions{
-                Position{Vector3{0, 0, 0}},
-                Position{Vector3{10, 0, 0}},
+                Transform{Vector3{0, 0, 0}},
+                Transform{Vector3{10, 0, 0}},
             },
             .motion{
                 Motion::FromPositionAndVelocity(Vector3{0, 0, 0},
@@ -81,8 +81,8 @@ INSTANTIATE_TEST_SUITE_P(
             .comment{"off_center"},
             .deltaTime = 1.0,
             .positions{
-                Position{Vector3{0, -10, 0}},
-                Position{Vector3{20, 0, 0}},
+                Transform{Vector3{0, -10, 0}},
+                Transform{Vector3{20, 0, 0}},
             },
             .motion{
                 Motion::FromPositionAndVelocity(Vector3{0, 0, 0},
@@ -115,8 +115,8 @@ INSTANTIATE_TEST_SUITE_P(
             .comment{"fast_mover"},
             .deltaTime = 1.0 / 60,
             .positions{
-                Position{Vector3{0, 0, 0}},
-                Position{Vector3{10, 0, 0}},
+                Transform{Vector3{0, 0, 0}},
+                Transform{Vector3{10, 0, 0}},
             },
             .motion{
                 Motion::FromPositionAndVelocity(Vector3{0, 0, 0},
@@ -149,8 +149,8 @@ INSTANTIATE_TEST_SUITE_P(
             .comment{"both_fast_movers"},
             .deltaTime = 1.0 / 60,
             .positions{
-                Position{Vector3{0, 0, 0}},
-                Position{Vector3{10, 0, 0}},
+                Transform{Vector3{0, 0, 0}},
+                Transform{Vector3{10, 0, 0}},
             },
             .motion{
                 Motion::FromPositionAndVelocity(Vector3{0, 0, 0},
@@ -183,8 +183,8 @@ INSTANTIATE_TEST_SUITE_P(
             .comment{"slow_orthogonal_movers_collide"},
             .deltaTime = 1.0,
             .positions{
-                Position{Vector3{-10, 0, 0}},
-                Position{Vector3{0, -10, 0}},
+                Transform{Vector3{-10, 0, 0}},
+                Transform{Vector3{0, -10, 0}},
             },
             .motion{
                 Motion::FromPositionAndVelocity(Vector3{-10, 0, 0},
@@ -227,8 +227,8 @@ INSTANTIATE_TEST_SUITE_P(
             .comment{"fast_orthogonal_movers_collide"},
             .deltaTime = 1.0 / 60,
             .positions{
-                Position{Vector3{-10, 0, 0}},
-                Position{Vector3{0, -10, 0}},
+                Transform{Vector3{-10, 0, 0}},
+                Transform{Vector3{0, -10, 0}},
             },
             .motion{
                 Motion::FromPositionAndVelocity(Vector3{-10, 0, 0},
@@ -262,8 +262,8 @@ INSTANTIATE_TEST_SUITE_P(
             .comment{"destroyed_does_not_collide"},
             .deltaTime = 1.0,
             .positions{
-                Position{Vector3{-10, 0, 0}},
-                Position{Vector3{0, -10, 0}},
+                Transform{Vector3{-10, 0, 0}},
+                Transform{Vector3{0, -10, 0}},
             },
             .motion{
                 Motion::FromPositionAndVelocity(Vector3{-10, 0, 0},
@@ -291,8 +291,8 @@ INSTANTIATE_TEST_SUITE_P(
             .comment{"layer_mask_no_collision"},
             .deltaTime = 1.0,
             .positions{
-                Position{Vector3{-10, 0, 0}},
-                Position{Vector3{0, -10, 0}},
+                Transform{Vector3{-10, 0, 0}},
+                Transform{Vector3{0, -10, 0}},
             },
             .motion{
                 Motion::FromPositionAndVelocity(Vector3{-10, 0, 0},

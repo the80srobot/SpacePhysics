@@ -25,7 +25,7 @@ struct TestCase {
 
   std::vector<Rule> rules;
 
-  std::vector<Position> positions;
+  std::vector<Transform> positions;
   std::vector<Mass> mass;
   std::vector<Motion> motion;
   std::vector<Collider> colliders;
@@ -79,8 +79,8 @@ INSTANTIATE_TEST_SUITE_P(
                 },
             }},
             .positions{
-                {.value{0, 0, 0}},
-                {.value{1, 0, 0}},
+                {.position{0, 0, 0}},
+                {.position{1, 0, 0}},
             },
             .mass{
                 {.inertial = 1, .active = 0},
@@ -133,8 +133,8 @@ INSTANTIATE_TEST_SUITE_P(
                 },
             },
             .positions{
-                {.value{0, 0, 0}},
-                {.value{1, 0, 0}},
+                {.position{0, 0, 0}},
+                {.position{1, 0, 0}},
             },
             .mass{
                 {.inertial = 1, .active = 0},
@@ -180,8 +180,8 @@ INSTANTIATE_TEST_SUITE_P(
                 },
             },
             .positions{
-                {.value{0, 0, 0}},
-                {.value{2, 0, 0}},
+                {.position{0, 0, 0}},
+                {.position{2, 0, 0}},
             },
             .mass{
                 {.inertial = 1, .active = 0},
@@ -240,8 +240,8 @@ INSTANTIATE_TEST_SUITE_P(
                 },
             },
             .positions{
-                {.value{-1, 1, 0}},
-                {.value{.5, .5, 0}},
+                {.position{-1, 1, 0}},
+                {.position{.5, .5, 0}},
             },
             .mass{
                 {.inertial = 1, .active = 0},
@@ -303,8 +303,8 @@ INSTANTIATE_TEST_SUITE_P(
                 },
             },
             .positions{
-                {.value{-1, 1, 0}},
-                {.value{.5, .5, 0}},
+                {.position{-1, 1, 0}},
+                {.position{.5, .5, 0}},
             },
             .mass{
                 {.inertial = 1, .active = 0},

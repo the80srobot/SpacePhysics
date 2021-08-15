@@ -20,11 +20,11 @@ namespace {
 TEST(MotionTest, GravityForceOn) {
   // Object 1 should attract object 0. Object 2 won't, because it's set to
   // destroyed, and object 3 won't because it's too far.
-  std::vector<Position> positions{
-      Position{Vector3{0, 100, 0}},
-      Position{Vector3{0, 0, 0}},
-      Position{Vector3{0, 0, 0}},
-      Position{Vector3{0, 0, 0}},
+  std::vector<Transform> positions{
+      Transform{Vector3{0, 100, 0}},
+      Transform{Vector3{0, 0, 0}},
+      Transform{Vector3{0, 0, 0}},
+      Transform{Vector3{0, 0, 0}},
   };
   std::vector<Mass> mass{
       Mass{},
@@ -49,9 +49,9 @@ TEST(MotionTest, GravityForceOn) {
 // Tests that the Verlet velocity integrator takes velocity input.
 TEST(MotionTest, ObjectStaysInMotion) {
   const float dt = 1.0f / 60;
-  std::vector<Position> positions{
-      Position{Vector3{0, 100, 0}},
-      Position{Vector3{0, 0, 0}},
+  std::vector<Transform> positions{
+      Transform{Vector3{0, 100, 0}},
+      Transform{Vector3{0, 0, 0}},
   };
   std::vector<Mass> mass{
       Mass{},
@@ -71,8 +71,8 @@ TEST(MotionTest, ObjectStaysInMotion) {
     UpdatePositions(motion, positions);
   }
 
-  EXPECT_GT(positions[1].value.y, 99.9);
-  EXPECT_LT(positions[1].value.y, 100.1);
+  EXPECT_GT(positions[1].position.y, 99.9);
+  EXPECT_LT(positions[1].position.y, 100.1);
 }
 
 TEST(MotionTest, FallingPointMass) {
@@ -94,9 +94,9 @@ TEST(MotionTest, FallingPointMass) {
   const float fine_dt = 0.001;
   const float time_to_fall = 111;
 
-  std::vector<Position> positions{
-      Position{Vector3{0, 100, 0}},
-      Position{Vector3{0, 0, 0}},
+  std::vector<Transform> positions{
+      Transform{Vector3{0, 100, 0}},
+      Transform{Vector3{0, 0, 0}},
   };
   std::vector<Mass> mass{
       Mass{},
@@ -118,11 +118,11 @@ TEST(MotionTest, FallingPointMass) {
   }
 
   // Integration in large steps should get within the ballpark.
-  EXPECT_LT(positions[0].value.y, 20);
-  EXPECT_GT(positions[0].value.y, 5);
+  EXPECT_LT(positions[0].position.y, 20);
+  EXPECT_GT(positions[0].position.y, 5);
 
   // Reset the position and motion.
-  positions[0].value.y = 100;
+  positions[0].position.y = 100;
   motion[0] = Motion{};
 
   // Run again in small steps.
@@ -134,8 +134,8 @@ TEST(MotionTest, FallingPointMass) {
 
   // This should still under-estimate velocities, but the error should be much
   // smaller.
-  EXPECT_LT(positions[0].value.y, 1);
-  EXPECT_GT(positions[0].value.y, 0);
+  EXPECT_LT(positions[0].position.y, 1);
+  EXPECT_GT(positions[0].position.y, 0);
 }
 
 TEST(MotionTest, PointMassHover) {
@@ -146,9 +146,9 @@ TEST(MotionTest, PointMassHover) {
   const float dt = 0.001;
   const float duration = 100;
 
-  std::vector<Position> positions{
-      Position{Vector3{0, 100, 0}},
-      Position{Vector3{0, 0, 0}},
+  std::vector<Transform> positions{
+      Transform{Vector3{0, 100, 0}},
+      Transform{Vector3{0, 0, 0}},
   };
   std::vector<Mass> mass{
       Mass{},
@@ -175,7 +175,7 @@ TEST(MotionTest, PointMassHover) {
     UpdatePositions(motion, positions);
   }
 
-  EXPECT_EQ(positions[0].value.y, 100);
+  EXPECT_EQ(positions[0].position.y, 100);
 
   // If we now also apply acceleration to particle 1, the force of gravity
   // acting on particle 0 should decrease and its own acceleration should allow
@@ -188,16 +188,16 @@ TEST(MotionTest, PointMassHover) {
     UpdatePositions(motion, positions);
   }
 
-  EXPECT_GT(positions[0].value.y, 100);
-  EXPECT_LT(positions[1].value.y, 0);
+  EXPECT_GT(positions[0].position.y, 100);
+  EXPECT_LT(positions[1].position.y, 0);
 }
 
 TEST(MotionTest, ForceImpulse) {
   constexpr float dt = 1.0 / 60;
 
-  std::vector<Position> positions{
-      Position{Vector3{0, 100, 0}},
-      Position{Vector3{0, 0, 0}},
+  std::vector<Transform> positions{
+      Transform{Vector3{0, 100, 0}},
+      Transform{Vector3{0, 0, 0}},
   };
   std::vector<Mass> mass{
       Mass{.inertial = 100, .active = 0, .cutoff_distance = 0},
@@ -217,7 +217,7 @@ TEST(MotionTest, ForceImpulse) {
     UpdatePositions(motion, positions);
   }
 
-  EXPECT_EQ(positions[0].value, (Vector3{0, 100, 0}));
+  EXPECT_EQ(positions[0].position, (Vector3{0, 100, 0}));
 
   std::vector<Event> input{
       Event(0, {},
@@ -234,7 +234,7 @@ TEST(MotionTest, ForceImpulse) {
   UpdatePositions(motion, positions);
 
   EXPECT_EQ(motion[0].velocity, (Vector3{0, 1, 0}));
-  EXPECT_THAT(positions[0].value, Vector3ApproxEq(Vector3{0, 110, 0}, 0.1));
+  EXPECT_THAT(positions[0].position, Vector3ApproxEq(Vector3{0, 110, 0}, 0.1));
 }
 
 }  // namespace

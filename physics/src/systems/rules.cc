@@ -12,7 +12,7 @@ namespace vstr {
 namespace {
 
 void Bounce(const Event &collision, const BounceParameters params,
-            const std::vector<Position> &positions,
+            const std::vector<Transform> &positions,
             const std::vector<Collider> &colliders,
             const std::vector<Motion> &motion, const std::vector<Mass> &mass,
             std::vector<Event> &out_events) {
@@ -25,8 +25,8 @@ void Bounce(const Event &collision, const BounceParameters params,
   const Vector3 v_b = motion[collision.collision.second_id].velocity;
 
   // Positions at the time of collision.
-  Vector3 a = positions[collision.collision.first_id].value + v_a * t;
-  Vector3 b = positions[collision.collision.second_id].value + v_b * t;
+  Vector3 a = positions[collision.collision.first_id].position + v_a * t;
+  Vector3 b = positions[collision.collision.second_id].position + v_b * t;
 
   // If A and B are very close, or even occupy the same space, most of the below
   // vector operations will be inaccurate or have undefined results. This should
@@ -100,7 +100,7 @@ void RuleSet::Add(LayerPair layer_pair, const Action &action) {
   collision_rules_[layer_pair].push_back(action);
 }
 
-void RuleSet::Apply(const std::vector<Position> &positions,
+void RuleSet::Apply(const std::vector<Transform> &positions,
                     const std::vector<Mass> &mass,
                     const std::vector<Motion> &motion,
                     const std::vector<Collider> &colliders,
@@ -116,7 +116,7 @@ void RuleSet::Apply(const std::vector<Position> &positions,
   }
 }
 
-void RuleSet::ApplyToCollision(const std::vector<Position> &positions,
+void RuleSet::ApplyToCollision(const std::vector<Transform> &positions,
                                const std::vector<Mass> &mass,
                                const std::vector<Motion> &motion,
                                const std::vector<Collider> &colliders,

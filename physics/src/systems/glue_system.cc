@@ -11,7 +11,7 @@
 
 namespace vstr {
 
-void GlueSystem::UpdateGluedMotion(const std::vector<Position> &positions,
+void GlueSystem::UpdateGluedMotion(const std::vector<Transform> &positions,
                                    const std::vector<Glue> &glue,
                                    const std::vector<Flags> &flags,
                                    std::vector<Motion> &motion) {
@@ -20,8 +20,9 @@ void GlueSystem::UpdateGluedMotion(const std::vector<Position> &positions,
     const int parent_id = glue[i].parent_id;
     if ((flags[i].value & Flags::kGlued) == 0) continue;
     motion[i].velocity = motion[parent_id].velocity;
-    motion[i].new_position = motion[parent_id].new_position +
-                             (positions[i].value - positions[parent_id].value);
+    motion[i].new_position =
+        motion[parent_id].new_position +
+        (positions[i].position - positions[parent_id].position);
   }
 }
 

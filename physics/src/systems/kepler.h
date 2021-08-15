@@ -17,7 +17,7 @@
 
 namespace vstr {
 Vector3 EllipticalPosition(const Orbit::Kepler &kepler);
-void UpdateOrbitalMotion(float t, const std::vector<Position> &positions,
+void UpdateOrbitalMotion(float t, const std::vector<Transform> &positions,
                          const std::vector<Orbit> &orbits,
                          std::vector<Motion> &motion);
 

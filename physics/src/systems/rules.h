@@ -71,7 +71,7 @@ class RuleSet {
   using LayerPair = std::pair<uint32_t, uint32_t>;
 
   void Add(LayerPair layer_pair, const Action &action);
-  void Apply(const std::vector<Position> &positions,
+  void Apply(const std::vector<Transform> &positions,
              const std::vector<Mass> &mass, const std::vector<Motion> &motion,
              const std::vector<Collider> &colliders,
              std::vector<Event> &in_out_events);
@@ -79,7 +79,7 @@ class RuleSet {
  private:
   absl::flat_hash_map<LayerPair, std::vector<Action>> collision_rules_;
 
-  void ApplyToCollision(const std::vector<Position> &positions,
+  void ApplyToCollision(const std::vector<Transform> &positions,
                         const std::vector<Mass> &mass,
                         const std::vector<Motion> &motion,
                         const std::vector<Collider> &colliders,

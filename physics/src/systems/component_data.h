@@ -12,6 +12,7 @@
 #include <vector>
 
 #include "geometry/aabb.h"
+#include "geometry/quaternion.h"
 #include "geometry/vector3.h"
 
 namespace vstr {
@@ -30,23 +31,23 @@ namespace vstr {
 // which they affect the state of an object. Examples of events are:
 // destruction, acceleration from user input and collisions.
 //
-// For simplicity, core components are always ordered as in this file: Position,
-// Mass, Motion, Collider, Glue, Flags. A mnemonic: point mass moves clumsily,
-// gets fragged.
+// For simplicity, core components are always ordered as in this file:
+// Transform, Mass, Motion, Collider, Glue, Flags.
 
 // Core components:
 
-struct Position {
-  Vector3 value;
+struct Transform {
+  Vector3 position;
+  Quaternion rotation;
 };
 
-static_assert(std::is_standard_layout<Position>());
+static_assert(std::is_standard_layout<Transform>());
 
-inline bool operator==(const Position &a, const Position &b) {
-  return a.value == b.value;
+inline bool operator==(const Transform &a, const Transform &b) {
+  return a.position == b.position;
 }
 
-std::ostream &operator<<(std::ostream &os, const Position &position);
+std::ostream &operator<<(std::ostream &os, const Transform &position);
 
 struct Mass {
   float inertial;
@@ -68,14 +69,19 @@ struct Motion {
   Vector3 new_position;
   Vector3 acceleration;
 
+  Vector3 spin_axis;
+  float spin;
+
   inline static Motion FromPositionAndVelocity(Vector3 position,
                                                Vector3 velocity,
                                                Vector3 acceleration = Vector3{
                                                    0, 0, 0}) {
     return Motion{
-        velocity,
-        position + velocity,
-        acceleration,
+        .velocity{velocity},
+        .new_position{position + velocity},
+        .acceleration{acceleration},
+        .spin_axis{},
+        .spin = 0,
     };
   }
 };

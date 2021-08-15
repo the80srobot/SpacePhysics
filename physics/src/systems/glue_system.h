@@ -14,7 +14,7 @@ namespace vstr {
 
 class GlueSystem {
  public:
-  void UpdateGluedMotion(const std::vector<Position> &positions,
+  void UpdateGluedMotion(const std::vector<Transform> &positions,
                          const std::vector<Glue> &glue,
                          const std::vector<Flags> &flags,
                          std::vector<Motion> &motion);

@@ -14,8 +14,9 @@ std::ostream &operator<<(std::ostream &os, const Collider &collider) {
             << collider.radius << ", /*center=*/" << collider.center << "}";
 }
 
-std::ostream &operator<<(std::ostream &os, const Position &position) {
-  return os << "Position{" << position.value << "}";
+std::ostream &operator<<(std::ostream &os, const Transform &transform) {
+  return os << "Transform{/*position=*/" << transform.position
+            << ", /*rotation=*/" << transform.rotation << "}";
 }
 
 std::ostream &operator<<(std::ostream &os, const Mass &mass) {
@@ -26,7 +27,10 @@ std::ostream &operator<<(std::ostream &os, const Mass &mass) {
 
 std::ostream &operator<<(std::ostream &os, const Motion &motion) {
   return os << "Motion{/*velocity=*/" << motion.velocity
-            << ", /*new_position=*/" << motion.new_position << "}";
+            << ", /*new_position=*/" << motion.new_position
+            << ", /*acceleration=*/" << motion.acceleration
+            << ", /*spin_axis=*/" << motion.spin_axis << ", /*spin=*/"
+            << motion.spin << "}";
 }
 
 std::ostream &operator<<(std::ostream &os, const Orbit::Kepler &kepler) {

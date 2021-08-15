@@ -29,32 +29,32 @@ enum IntegrationMethod {
 // Input must be sorted in ascending order of object ID.
 void IntegrateMotion(IntegrationMethod integrator, float dt,
                      absl::Span<Event> input,
-                     const std::vector<Position> &positions,
+                     const std::vector<Transform> &positions,
                      const std::vector<Mass> &mass,
                      const std::vector<Flags> &flags,
                      std::vector<Motion> &motion);
 
 // Copies Motion.next_position to Position.value.
 void UpdatePositions(const std::vector<Motion> &motion,
-                     std::vector<Position> &positions);
+                     std::vector<Transform> &positions);
 
-Vector3 GravityForceOn(const std::vector<Position> &positions,
+Vector3 GravityForceOn(const std::vector<Transform> &positions,
                        const std::vector<Mass> &mass,
                        const std::vector<Flags> &flags, int object_id);
 
-Vector3 GravityForceOn(const std::vector<Position> &positions,
+Vector3 GravityForceOn(const std::vector<Transform> &positions,
                        const std::vector<Mass> &mass,
                        const std::vector<Flags> &flags, int object_id,
                        std::vector<std::pair<int, Vector3>> &contributions);
 
 void IntegrateFirstOrderEuler(float dt, absl::Span<Event> input,
-                              const std::vector<Position> &positions,
+                              const std::vector<Transform> &positions,
                               const std::vector<Mass> &mass,
                               const std::vector<Flags> &flags,
                               std::vector<Motion> &motion);
 
 void IntegrateVelocityVerlet(float dt, absl::Span<Event> input,
-                             const std::vector<Position> &positions,
+                             const std::vector<Transform> &positions,
                              const std::vector<Mass> &mass,
                              const std::vector<Flags> &flags,
                              std::vector<Motion> &motion);

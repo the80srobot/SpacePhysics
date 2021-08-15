@@ -29,7 +29,7 @@ void FrameResize(Frame *frame, int count) {
   frame->flags.resize(count);
 }
 
-Position *FrameGetMutablePositions(Frame *frame, int *count) {
+Transform *FrameGetMutablePositions(Frame *frame, int *count) {
   *count = frame->positions.size();
   return frame->positions.data();
 }
