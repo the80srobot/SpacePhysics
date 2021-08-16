@@ -58,6 +58,7 @@ void ApplyEventEffects(absl::Span<Event> events, Frame &frame) {
         frame.positions[event.id].position = event.teleportation.new_position;
         frame.motion[event.id].new_position = event.teleportation.new_position;
         frame.motion[event.id].velocity = event.teleportation.new_velocity;
+        frame.motion[event.id].spin = event.teleportation.new_spin;
         break;
       default:
 

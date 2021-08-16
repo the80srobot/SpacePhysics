@@ -12,7 +12,7 @@ namespace vstr {
 namespace {
 
 void Bounce(const Event &collision, const BounceParameters params,
-            const std::vector<Transform> &positions,
+            const std::vector<Transform> &transforms,
             const std::vector<Collider> &colliders,
             const std::vector<Motion> &motion, const std::vector<Mass> &mass,
             std::vector<Event> &out_events) {
@@ -25,8 +25,8 @@ void Bounce(const Event &collision, const BounceParameters params,
   const Vector3 v_b = motion[collision.collision.second_id].velocity;
 
   // Positions at the time of collision.
-  Vector3 a = positions[collision.collision.first_id].position + v_a * t;
-  Vector3 b = positions[collision.collision.second_id].position + v_b * t;
+  Vector3 a = transforms[collision.collision.first_id].position + v_a * t;
+  Vector3 b = transforms[collision.collision.second_id].position + v_b * t;
 
   // If A and B are very close, or even occupy the same space, most of the below
   // vector operations will be inaccurate or have undefined results. This should
@@ -47,7 +47,10 @@ void Bounce(const Event &collision, const BounceParameters params,
 
   // Since the colliders are spheres, the collision normal lies along the line
   // connecting the second collider's focus with the point of contact.
-  Vector3 n = Vector3::Normalize(a - b);
+  Vector3 n = a - b;
+  // Closing velocity and the dot product of the the normal and velocity.
+  Vector3 v = v_a - v_b;
+  float dot = Vector3::Dot(n, v);
 
   float m_a = mass[collision.collision.first_id].inertial;
   float m_b = mass[collision.collision.second_id].inertial;
@@ -66,15 +69,31 @@ void Bounce(const Event &collision, const BounceParameters params,
 
   // The new velocity vector – momentum is transferred along the line of
   // collision, but not along the tangent.
-  const Vector3 new_v = v_a - ((2 * m_b) / total_mass) *
-                                  (Vector3::Dot(v_a - v_b, a - b) /
-                                   Vector3::SqrMagnitude(a - b)) *
-                                  (a - b);
+  const Vector3 new_v =
+      v_a - ((2 * m_b) / total_mass) * (dot / Vector3::SqrMagnitude(n)) * n;
+
+  // During off-center collisions, angular momentum is also exchanged. How much
+  // depends on the angle between the collision normal and the closing velocity:
+  // when the two vectors are parallel no angular momentum is imparted. When
+  // they are orthogonal, the entire angular momentum of L = r_a×m_b×|v| will
+  // be conferred to object A.
+  float s = Vector3::Magnitude(v);
+  const float r_a = colliders[collision.collision.first_id].radius;
+  float angle = std::acosf(dot / (Vector3::Magnitude(n) * s));
+  float rate = std::sinf(angle);
+  Quaternion spin = motion[collision.collision.first_id].spin;
+  if (rate > 0.005f) {
+    float L = r_a * m_b * s;
+    Vector3 axis = Vector3::Normalize(Vector3::Cross(v, n));
+    spin *= Quaternion::FromAngle(axis, (L / m_a) * -rate);
+  }
 
   out_events.push_back(
       Event(collision.id, collision.position,
-            Teleportation{/*new_position=*/a + n * kSeparationEpsilon,
-                          /*new_velocity=*/params.elasticity * new_v}));
+            Teleportation{
+                .new_position = a + Vector3::Normalize(n) * kSeparationEpsilon,
+                .new_velocity = params.elasticity * new_v,
+                .new_spin = spin}));
 }
 
 void ApplyDamage(const Event &collision, const ApplyDamageParameters params,
@@ -100,7 +119,7 @@ void RuleSet::Add(LayerPair layer_pair, const Action &action) {
   collision_rules_[layer_pair].push_back(action);
 }
 
-void RuleSet::Apply(const std::vector<Transform> &positions,
+void RuleSet::Apply(const std::vector<Transform> &transforms,
                     const std::vector<Mass> &mass,
                     const std::vector<Motion> &motion,
                     const std::vector<Collider> &colliders,
@@ -110,13 +129,13 @@ void RuleSet::Apply(const std::vector<Transform> &positions,
     const Event &event = in_out_events[i];
     if (event.type != Event::kCollision) continue;
     // Apply once in either direction.
-    ApplyToCollision(positions, mass, motion, colliders, event, in_out_events);
-    ApplyToCollision(positions, mass, motion, colliders, InvertCollision(event),
-                     in_out_events);
+    ApplyToCollision(transforms, mass, motion, colliders, event, in_out_events);
+    ApplyToCollision(transforms, mass, motion, colliders,
+                     InvertCollision(event), in_out_events);
   }
 }
 
-void RuleSet::ApplyToCollision(const std::vector<Transform> &positions,
+void RuleSet::ApplyToCollision(const std::vector<Transform> &transforms,
                                const std::vector<Mass> &mass,
                                const std::vector<Motion> &motion,
                                const std::vector<Collider> &colliders,
@@ -151,7 +170,7 @@ void RuleSet::ApplyToCollision(const std::vector<Transform> &positions,
                     out_events);
         break;
       case Action::kBounce:
-        Bounce(event, action.bounce_parameters, positions, colliders, motion,
+        Bounce(event, action.bounce_parameters, transforms, colliders, motion,
                mass, out_events);
         break;
       case Action::kDestroy:

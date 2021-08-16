@@ -284,6 +284,7 @@ std::ostream &operator<<(std::ostream &os, const Damage &damage);
 struct Teleportation {
   Vector3 new_position;
   Vector3 new_velocity;
+  Quaternion new_spin;
 };
 
 static_assert(std::is_standard_layout<Teleportation>());
@@ -345,7 +346,7 @@ struct Event {
   };
 };
 
-static_assert(sizeof(Event) == 44);
+static_assert(sizeof(Event) == 60);
 static_assert(std::is_standard_layout<Event>());
 static_assert(std::is_move_assignable<Event>());
 static_assert(std::is_move_constructible<Event>());
