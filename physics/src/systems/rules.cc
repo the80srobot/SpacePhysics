@@ -75,8 +75,13 @@ void Bounce(const Event &collision, const BounceParameters params,
   // During off-center collisions, angular momentum is also exchanged. How much
   // depends on the angle between the collision normal and the closing velocity:
   // when the two vectors are parallel no angular momentum is imparted. When
-  // they are orthogonal, the entire angular momentum of L = r_a×m_b×|v| will
-  // be conferred to object A.
+  // they are orthogonal, the entire angular momentum of L = r_a×m_b×|v| will be
+  // conferred to object A.
+  //
+  // In real collisions, conversion of angular momentum into angular velocity
+  // requires something called the moment of inertia, or the inertia tensor.
+  // This code is basically a big hack to get things looking alright by
+  // eyeballing the quantities involved.
   float s = Vector3::Magnitude(v);
   const float r_a = colliders[collision.collision.first_id].radius;
   float angle = std::acosf(dot / (Vector3::Magnitude(n) * s));
@@ -85,7 +90,20 @@ void Bounce(const Event &collision, const BounceParameters params,
   if (rate > 0.005f) {
     float L = r_a * m_b * s;
     Vector3 axis = Vector3::Normalize(Vector3::Cross(v, n));
-    spin *= Quaternion::FromAngle(axis, (L / m_a) * -rate);
+    // Hack alert: this code will be called once for the AxB and once for the
+    // BxA side of the collision. The thing is, we don't know which is which,
+    // and the normal and closing velocity end up being inverse, so in each case
+    // we end up with both objects rotating in the same relative direction (the
+    // cross product is always "up"). To get around this, we need to define a
+    // global "up" vector, which is what the next three lines amount to.
+    //
+    // TODO(Adam): How does this behave when the collision is in-plane with the
+    // arbitrary "up" vector?
+    if (Vector3::Dot({1, 0, 0}, n) > 0) {
+      axis *= -1;
+    }
+
+    spin *= Quaternion::FromAngle(axis, (L / m_a) * rate);
   }
 
   out_events.push_back(
