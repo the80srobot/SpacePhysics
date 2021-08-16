@@ -34,12 +34,12 @@ target_link_libraries(
 # Motion System
 
 add_library(
-    motion_system
+    motion
     motion.cc
 )
 
 target_link_libraries(
-    motion_system
+    motion
     geometry
     components
     absl::span
@@ -47,13 +47,13 @@ target_link_libraries(
 )
 
 add_executable(
-    motion_system_test
+    motion_test
     motion_test.cc
 )
 
 target_link_libraries(
-    motion_system_test
-    motion_system
+    motion_test
+    motion
     gtest_main
     gmock_main
 )

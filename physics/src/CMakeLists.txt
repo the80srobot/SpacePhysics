@@ -66,7 +66,7 @@ add_library(
 
 target_link_libraries(
     pipeline
-    motion_system
+    motion
     orbit_system
     collision_system
     glue_system

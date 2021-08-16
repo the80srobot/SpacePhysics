@@ -41,14 +41,18 @@ struct Quaternion {
   float d;  // Unity component z.
   float a;  // Unity component w (the scalar).
 
-  // Constructs a quaternion to represent rotation by angle around the axis.
+  static constexpr float kRadiansPerDeg = 0.0174532924;
+
+  // Constructs a quaternion to represent rotation by angle around the axis. The
+  // axis must be a unit vector.
   static Quaternion FromAngle(Vector3 axis, float angle) {
     angle *= 0.5f;
     axis *= std::sinf(angle);
     return Quaternion{axis.x, axis.y, axis.z, std::cosf(angle)};
   }
 
-  static Quaternion Identity() { return Quaternion{0, 0, 0, 1}; }
+  static Quaternion Identity() { return {0, 0, 0, 1}; }
+  static Quaternion Zero() { return {0, 0, 0, 0}; }
 
   // Returns a quaternion to represent an extrensic (using principal axes)
   // rotation around axes X, Y and Z in that order.
@@ -82,13 +86,30 @@ struct Quaternion {
     return x.a * y.a + x.b * y.b + x.c * y.c + x.d * y.d;
   }
 
-  static inline Quaternion Normalize(Quaternion q) {
-    float m = 1 / std::sqrtf(Dot(q, q));
-    return Quaternion{q.a * m, q.b * m, q.c * m, q.d * m};
+  static Quaternion Normalize(Quaternion q);
+
+  static inline bool Approximately(const Quaternion& a, const Quaternion& b,
+                                   const float epsilon = 0.005f) {
+    return FloatEq(a.b, b.b, epsilon) && FloatEq(a.c, b.c, epsilon) &&
+           FloatEq(a.d, b.d, epsilon) && FloatEq(a.a, b.a, epsilon);
   }
+
+  static Quaternion Interpolate(Quaternion a, Quaternion b, const float t);
 };
 
+inline bool operator==(const Quaternion lhs, const Quaternion rhs) {
+  return lhs.b == rhs.b && lhs.c == rhs.c && lhs.d == rhs.d && lhs.a == rhs.a;
+}
+
+inline bool operator!=(const Quaternion lhs, const Quaternion rhs) {
+  return lhs.b != rhs.b || lhs.c != rhs.c || lhs.d != rhs.d || lhs.a != rhs.a;
+}
+
 Quaternion operator*(const Quaternion lhs, const Quaternion rhs);
+
+inline void operator*=(Quaternion& lhs, const Quaternion rhs) {
+  lhs = lhs * rhs;
+}
 
 Vector3 operator*(const Quaternion q, const Vector3 v);
 

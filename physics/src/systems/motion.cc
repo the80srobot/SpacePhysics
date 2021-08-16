@@ -131,7 +131,7 @@ void IntegrateVelocityVerlet(const float dt, absl::Span<Event> input,
   }
 }
 
-void IntegrateMotion(IntegrationMethod integrator, float dt,
+void IntegrateMotion(IntegrationMethod integrator, const float dt,
                      absl::Span<Event> input,
                      const std::vector<Transform> &positions,
                      const std::vector<Mass> &mass,
@@ -149,11 +149,15 @@ void IntegrateMotion(IntegrationMethod integrator, float dt,
   }
 }
 
-void UpdatePositions(const std::vector<Motion> &motion,
-                     std::vector<Transform> &positions) {
-  const int count = positions.size();
+void UpdatePositions(const float dt, const std::vector<Motion> &motion,
+                     std::vector<Transform> &transforms) {
+  const int count = transforms.size();
   for (int i = 0; i < count; ++i) {
-    positions[i].position = motion[i].new_position;
+    transforms[i].position = motion[i].new_position;
+    if (motion[i].spin != Quaternion::Identity()) {
+      transforms[i].rotation *=
+          Quaternion::Interpolate(Quaternion::Identity(), motion[i].spin, dt);
+    }
   }
 }
 

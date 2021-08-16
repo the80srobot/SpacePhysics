@@ -5,8 +5,8 @@
 //
 // Author(s): Adam Sindelar <adam@wowsignal.io>
 
-#ifndef VSTR_MOTION_SYSTEM
-#define VSTR_MOTION_SYSTEM
+#ifndef VSTR_MOTION
+#define VSTR_MOTION
 
 #include <absl/types/span.h>
 
@@ -35,7 +35,7 @@ void IntegrateMotion(IntegrationMethod integrator, float dt,
                      std::vector<Motion> &motion);
 
 // Copies Motion.next_position to Position.value.
-void UpdatePositions(const std::vector<Motion> &motion,
+void UpdatePositions(float dt, const std::vector<Motion> &motion,
                      std::vector<Transform> &positions);
 
 Vector3 GravityForceOn(const std::vector<Transform> &positions,

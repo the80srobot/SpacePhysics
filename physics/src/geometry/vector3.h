@@ -106,7 +106,7 @@ inline Vector3 operator*(const float lhs, const Vector3 rhs) {
   return Vector3{rhs.x * lhs, rhs.y * lhs, rhs.z * lhs};
 }
 
-inline void operator*=(Vector3 lhs, const float rhs) {
+inline void operator*=(Vector3& lhs, const float rhs) {
   lhs.x *= rhs;
   lhs.y *= rhs;
   lhs.z *= rhs;

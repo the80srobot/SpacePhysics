@@ -28,8 +28,7 @@ std::ostream &operator<<(std::ostream &os, const Mass &mass) {
 std::ostream &operator<<(std::ostream &os, const Motion &motion) {
   return os << "Motion{/*velocity=*/" << motion.velocity
             << ", /*new_position=*/" << motion.new_position
-            << ", /*acceleration=*/" << motion.acceleration
-            << ", /*spin_axis=*/" << motion.spin_axis << ", /*spin=*/"
+            << ", /*acceleration=*/" << motion.acceleration << ", /*spin=*/"
             << motion.spin << "}";
 }
 

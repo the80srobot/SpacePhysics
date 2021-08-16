@@ -1,6 +1,14 @@
+// This file is part of VSTR Space Physics.
+//
+// Copyright 2021 Adam Sindelar License:
+// http://www.gnu.org/licenses/old-licenses/gpl-2.0-standalone.html
+//
+// Author(s): Adam Sindelar <adam@wowsignal.io>
+
 #include "quaternion.h"
 
 namespace vstr {
+
 Quaternion Quaternion::FromEulerXYZ(Vector3 euler) {
   const float x_sin = std::sinf(euler.x * 0.5f);
   const float x_cos = std::cosf(euler.x * 0.5f);
@@ -16,7 +24,7 @@ Quaternion Quaternion::FromEulerXYZ(Vector3 euler) {
   };
 }
 
-Quaternion QuaternionFromEulerZXY(Vector3 euler) {
+Quaternion Quaternion::FromEulerZXY(Vector3 euler) {
   const float x_sin = std::sinf(euler.x * 0.5f);
   const float x_cos = std::cosf(euler.x * 0.5f);
   const float y_sin = std::sinf(euler.y * 0.5f);
@@ -38,6 +46,11 @@ Quaternion operator*(const Quaternion lhs, const Quaternion rhs) {
       lhs.a * rhs.d + lhs.d * rhs.a + lhs.b * rhs.c - lhs.c * rhs.b,
       lhs.a * rhs.a - lhs.b * rhs.b - lhs.c * rhs.c - lhs.d * rhs.d,
   };
+}
+
+Quaternion Quaternion::Normalize(Quaternion q) {
+  float m = 1 / std::sqrtf(Dot(q, q));
+  return Quaternion{q.a * m, q.b * m, q.c * m, q.d * m};
 }
 
 Vector3 operator*(const Quaternion q, const Vector3 v) {
@@ -75,7 +88,21 @@ Vector3 operator*(const Quaternion q, const Vector3 v) {
          2 * q.a * Vector3::Cross(u, v);
 }
 
-std::ostream& operator<<(std::ostream& os, Quaternion q) {
+Quaternion Quaternion::Interpolate(Quaternion a, Quaternion b, const float t) {
+  float dt = Dot(a, b);
+  float angle = std::acosf(dt);
+  float s = 1 / std::sqrtf(1 - dt * dt);
+  float w1 = sin(angle * (1.0f - t)) * s;
+  float w2 = sin(angle * t) * s;
+  return Quaternion{
+      a.b * w1 + b.b * w2,
+      a.c * w1 + b.c * w2,
+      a.d * w1 + b.d * w2,
+      a.a * w1 + b.a * w2,
+  };
+}
+
+std::ostream &operator<<(std::ostream &os, Quaternion q) {
   return os << "Quaternion{" << q.b << ", " << q.c << ", " << q.d
             << ", /*scalar=*/" << q.a << "}";
 }

@@ -99,8 +99,7 @@ void Pipeline::Step(const float dt, const int frame_no, Frame &frame,
   rule_set_.Apply(frame.positions, frame.mass, frame.motion, frame.colliders,
                   out_events);
 
-  UpdatePositions(frame.motion, frame.positions);
-  // apply effects of events
+  UpdatePositions(dt, frame.motion, frame.positions);
   ApplyEventEffects(input, frame);
   ApplyEventEffects(absl::MakeSpan(out_events), frame);
 }
@@ -118,8 +117,7 @@ void Pipeline::Replay(const float dt, const int frame_no, Frame &frame,
   IntegrateMotion(integrator_, dt, absl::MakeSpan(event_buffer_),
                   frame.positions, frame.mass, frame.flags, frame.motion);
 
-  UpdatePositions(frame.motion, frame.positions);
-  // apply effects of events
+  UpdatePositions(dt, frame.motion, frame.positions);
   ApplyEventEffects(events, frame);
 }
 

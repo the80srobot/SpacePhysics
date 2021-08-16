@@ -69,8 +69,7 @@ struct Motion {
   Vector3 new_position;
   Vector3 acceleration;
 
-  Vector3 spin_axis;
-  float spin;
+  Quaternion spin;
 
   inline static Motion FromPositionAndVelocity(Vector3 position,
                                                Vector3 velocity,
@@ -80,8 +79,7 @@ struct Motion {
         .velocity{velocity},
         .new_position{position + velocity},
         .acceleration{acceleration},
-        .spin_axis{},
-        .spin = 0,
+        .spin{0, 0, 0, 1},
     };
   }
 };

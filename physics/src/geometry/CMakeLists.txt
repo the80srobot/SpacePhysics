@@ -8,24 +8,25 @@ add_library(
 )
 
 add_executable(
-    bvh_test
+    geometry_test
     bvh_test.cc
+    quaternion_test.cc
 )
 
 target_link_libraries(
-    bvh_test
+    geometry_test
     geometry
     gtest_main
     gmock_main
 )
 
 add_executable(
-    bvh_benchmark
+    geometry_benchmark
     bvh_benchmark.cc
 )
 
 target_link_libraries(
-    bvh_benchmark
+    geometry_benchmark
     geometry
     benchmark::benchmark
 )

@@ -12,6 +12,7 @@
 
 #include <random>
 
+#include "test_matchers/quaternion.h"
 #include "test_matchers/vector3.h"
 
 namespace vstr {
@@ -68,7 +69,7 @@ TEST(MotionTest, ObjectStaysInMotion) {
 
   for (float t = 0; t < 100; t += dt) {
     IntegrateMotion(kVelocityVerlet, dt, {}, positions, mass, flags, motion);
-    UpdatePositions(motion, positions);
+    UpdatePositions(dt, motion, positions);
   }
 
   EXPECT_GT(positions[1].position.y, 99.9);
@@ -114,7 +115,7 @@ TEST(MotionTest, FallingPointMass) {
   for (float t = 0; t < time_to_fall; t += coarse_dt) {
     IntegrateMotion(kVelocityVerlet, coarse_dt, {}, positions, mass, flags,
                     motion);
-    UpdatePositions(motion, positions);
+    UpdatePositions(coarse_dt, motion, positions);
   }
 
   // Integration in large steps should get within the ballpark.
@@ -129,7 +130,7 @@ TEST(MotionTest, FallingPointMass) {
   for (float t = 0; t < time_to_fall; t += fine_dt) {
     IntegrateMotion(kVelocityVerlet, fine_dt, {}, positions, mass, flags,
                     motion);
-    UpdatePositions(motion, positions);
+    UpdatePositions(fine_dt, motion, positions);
   }
 
   // This should still under-estimate velocities, but the error should be much
@@ -172,7 +173,7 @@ TEST(MotionTest, PointMassHover) {
   for (float f = 0; f < duration; f += dt) {
     IntegrateMotion(kVelocityVerlet, dt, absl::MakeSpan(input), positions, mass,
                     flags, motion);
-    UpdatePositions(motion, positions);
+    UpdatePositions(dt, motion, positions);
   }
 
   EXPECT_EQ(positions[0].position.y, 100);
@@ -185,7 +186,7 @@ TEST(MotionTest, PointMassHover) {
   for (float f = 0; f < duration; f += dt) {
     IntegrateMotion(kVelocityVerlet, dt, absl::MakeSpan(input), positions, mass,
                     flags, motion);
-    UpdatePositions(motion, positions);
+    UpdatePositions(dt, motion, positions);
   }
 
   EXPECT_GT(positions[0].position.y, 100);
@@ -214,7 +215,7 @@ TEST(MotionTest, ForceImpulse) {
 
   for (float t = 0; t < 1; t += dt) {
     IntegrateMotion(kFirstOrderEuler, dt, {}, positions, mass, flags, motion);
-    UpdatePositions(motion, positions);
+    UpdatePositions(dt, motion, positions);
   }
 
   EXPECT_EQ(positions[0].position, (Vector3{0, 100, 0}));
@@ -228,13 +229,55 @@ TEST(MotionTest, ForceImpulse) {
   IntegrateMotion(kFirstOrderEuler, dt, absl::MakeSpan(input), positions, mass,
                   flags, motion);
   for (float t = 0; t < 10; t += dt) {
-    UpdatePositions(motion, positions);
+    UpdatePositions(dt, motion, positions);
     IntegrateMotion(kFirstOrderEuler, dt, {}, positions, mass, flags, motion);
   }
-  UpdatePositions(motion, positions);
+  UpdatePositions(dt, motion, positions);
 
   EXPECT_EQ(motion[0].velocity, (Vector3{0, 1, 0}));
   EXPECT_THAT(positions[0].position, Vector3ApproxEq(Vector3{0, 110, 0}, 0.1));
+}
+
+TEST(MotionTest, RotatingObjects) {
+  constexpr float dt = 1.0 / 10;
+
+  std::vector<Transform> positions{
+      Transform{
+          .position{0, 0, 0},
+          .rotation{0, 0, 0, 1},
+      },
+      Transform{
+          .position{0, 0, 0},
+          .rotation{0, 0, 0, 1},
+      },
+  };
+  std::vector<Mass> mass{
+      Mass{},
+      Mass{},
+  };
+  std::vector<Motion> motion{
+      Motion{.spin = Quaternion::FromAngle({0, 0, 1}, M_PI / 2)},
+      Motion{.spin =
+                 Quaternion::FromAngle(Vector3::Normalize({0, 1, 1}), M_PI)},
+  };
+  std::vector<Flags> flags{
+      Flags{},
+      Flags{},
+  };
+
+  // After 1 second, the first object should turn by 90 degrees and the
+  // second object by 180 degrees around their axes.
+  for (float t = 0; t < 1; t += dt) {
+    IntegrateMotion(kFirstOrderEuler, dt, {}, positions, mass, flags, motion);
+    UpdatePositions(dt, motion, positions);
+  }
+
+  EXPECT_THAT(
+      positions[0].rotation,
+      QuaternionApproxEq(
+          Quaternion{0, 0, std::sinf(M_PI / 4), std::cosf(M_PI / 4)}, 0.005f));
+  EXPECT_THAT(positions[1].rotation, QuaternionApproxEq(Quaternion::FromAngle(
+                                         Vector3::Normalize({0, 1, 1}), M_PI)));
 }
 
 }  // namespace
