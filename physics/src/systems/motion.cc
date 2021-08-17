@@ -62,16 +62,17 @@ Vector3 GravityAt(const std::vector<Transform> &positions,
 void ComputeForces(const std::vector<Transform> &positions,
                    const std::vector<Mass> &mass,
                    const std::vector<Flags> &flags, const int id,
-                   absl::Span<Event> &input, Vector3 &out_acceleration,
-                   Vector3 &out_impulse) {
+                   absl::Span<Event> &input, Vector3 &out_linear,
+                   Vector3 &out_impulse, Quaternion &out_angular) {
   while (input.size() != 0 && input[0].id < id) {
     input = input.subspan(1);
   }
-  out_acceleration = Vector3{0, 0, 0};
+  out_angular = Quaternion::Identity();
+  out_linear = Vector3{0, 0, 0};
   out_impulse = Vector3{0, 0, 0};
   while (input.size() != 0 && input[0].id == id) {
     if (input[0].type == Event::kAcceleration) {
-      Vector3 value = input[0].acceleration.value;
+      Vector3 value = input[0].acceleration.linear;
       if (input[0].acceleration.flags & Acceleration::Flag::kForce &&
           mass[id].inertial != 0) {
         value /= mass[id].inertial;
@@ -79,13 +80,14 @@ void ComputeForces(const std::vector<Transform> &positions,
       if (input[0].acceleration.flags & Acceleration::Flag::kImpulse) {
         out_impulse += value;
       } else {
-        out_acceleration += input[0].acceleration.value;
+        out_linear += input[0].acceleration.linear;
+        out_angular *= input[0].acceleration.angular;
       }
     }
     input = input.subspan(1);
   }
 
-  out_acceleration += GravityAt(positions, mass, flags, id, nullptr);
+  out_linear += GravityAt(positions, mass, flags, id, nullptr);
 }
 
 }  // namespace
@@ -101,10 +103,15 @@ void IntegrateFirstOrderEuler(const float dt, absl::Span<Event> input,
       continue;
 
     Vector3 impulse;
+    Quaternion angular_acceleration;
     ComputeForces(positions, mass, flags, i, input, motion[i].acceleration,
-                  impulse);
+                  impulse, angular_acceleration);
     motion[i].velocity += impulse + motion[i].acceleration * dt;
     motion[i].new_position = positions[i].position + motion[i].velocity * dt;
+    if (angular_acceleration != Quaternion::Identity()) {
+      motion[i].spin *= Quaternion::Interpolate(Quaternion::Identity(),
+                                                angular_acceleration, dt);
+    }
   }
 }
 
@@ -124,10 +131,16 @@ void IntegrateVelocityVerlet(const float dt, absl::Span<Event> input,
 
     Vector3 new_acceleration;
     Vector3 impulse;
-    ComputeForces(positions, mass, flags, i, input, new_acceleration, impulse);
+    Quaternion angular_acceleration;
+    ComputeForces(positions, mass, flags, i, input, new_acceleration, impulse,
+                  angular_acceleration);
     motion[i].velocity +=
         (new_acceleration + motion[i].acceleration) * half_dt + impulse;
     motion[i].acceleration = new_acceleration;
+    if (angular_acceleration != Quaternion::Identity()) {
+      motion[i].spin *= Quaternion::Interpolate(Quaternion::Identity(),
+                                                angular_acceleration, dt);
+    }
   }
 }
 

@@ -27,8 +27,8 @@ MATCHER_P(EventMatches, epsilon, "approximately matches") {
 
   switch (a.type) {
     case Event::kAcceleration:
-      return Vector3::Approximately(a.acceleration.value, b.acceleration.value,
-                                    epsilon);
+      return Vector3::Approximately(a.acceleration.linear,
+                                    b.acceleration.linear, epsilon);
     case Event::kStick:
       return a.stick == b.stick;
     case Event::kDestruction:

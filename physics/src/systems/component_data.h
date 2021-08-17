@@ -216,14 +216,15 @@ struct Acceleration {
     // Divide the value by mass to obtain acceleration.
     kForce = 1 << 1,
   };
-  Vector3 value;
+  Vector3 linear;
   Flag flags;
+  Quaternion angular;
 };
 
 static_assert(std::is_standard_layout<Acceleration>());
 
 inline bool operator==(const Acceleration &a, const Acceleration &b) {
-  return a.value == b.value;
+  return a.linear == b.linear && a.angular == b.angular;
 }
 
 std::ostream &operator<<(std::ostream &os, const Acceleration &acceleration);

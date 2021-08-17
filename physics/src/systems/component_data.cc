@@ -60,8 +60,8 @@ std::ostream &operator<<(std::ostream &os, const Flags &flags) {
 }
 
 std::ostream &operator<<(std::ostream &os, const Acceleration &acceleration) {
-  return os << "Acceleration{/*acceleration=*/" << acceleration.value
-            << ", /*impulse=*/"
+  return os << "Acceleration{/*linear=*/" << acceleration.linear
+            << ", /*angular=*/" << acceleration.angular << ", /*impulse=*/"
             << (acceleration.flags & Acceleration::Flag::kImpulse)
             << ", /*force=*/"
             << (acceleration.flags & Acceleration::Flag::kForce) << "}";
