@@ -75,6 +75,15 @@ Durability *FrameGetMutableDurability(Frame *frame, int *count) {
   return frame->durability.data();
 }
 
+void FrameResizeRockets(Frame *frame, int count) {
+  frame->rockets.resize(count);
+}
+
+Rocket *FrameGetMutableRockets(Frame *frame, int *count) {
+  *count = frame->rockets.size();
+  return frame->rockets.data();
+}
+
 void DestroyFrame(Frame *frame) { delete frame; }
 
 Vector3 KeplerEllipticalPosition(Orbit::Kepler kepler) {

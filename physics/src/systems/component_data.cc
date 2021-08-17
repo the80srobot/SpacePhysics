@@ -51,6 +51,17 @@ std::ostream &operator<<(std::ostream &os, const Durability &durability) {
             << durability.value << "}";
 }
 
+std::ostream &operator<<(std::ostream &os, const Rocket &rocket) {
+  return os << "Rocket{/*id=*/" << rocket.id << ", /*fuel_tanks=*/"
+            << rocket.fuel_tanks << "}";
+}
+
+std::ostream &operator<<(std::ostream &os, const Rocket::FuelTank &fuel_tank) {
+  return os << "FuelTank{/*mass_flow_rate=*/" << fuel_tank.mass_flow_rate
+            << ", /*fuel=*/" << fuel_tank.fuel << ", /*thrust=*/"
+            << fuel_tank.thrust << "}";
+}
+
 std::ostream &operator<<(std::ostream &os, const Glue &glue) {
   return os << "Glue{/*parent_id=*/" << glue.parent_id << "}";
 }
@@ -91,6 +102,18 @@ std::ostream &operator<<(std::ostream &os, const Teleportation &teleportation) {
             << ", /*new_velocity=*/" << teleportation.new_velocity << "}";
 }
 
+std::ostream &operator<<(std::ostream &os, const RocketBurn &rocket_burn) {
+  return os << "RocketBurn{/*id=*/" << rocket_burn.id << ", /*fuel_tank=*/"
+            << rocket_burn.fuel_tank << ", /*thrust=*/" << rocket_burn.thrust
+            << "}";
+}
+
+std::ostream &operator<<(std::ostream &os, const RocketRefuel &rocket_refuel) {
+  return os << "RocketBurn{/*id=*/" << rocket_refuel.id << ", /*fuel_tank_no=*/"
+            << rocket_refuel.fuel_tank_no << ", /*fuel_tank=*/"
+            << rocket_refuel.fuel_tank << "}";
+}
+
 bool operator==(const Event &a, const Event &b) {
   // TODO(adam): we currently ignore the event position. This is a hack, but it
   // allows MergeInsert to work with Events even when the previous event
@@ -114,6 +137,10 @@ bool operator==(const Event &a, const Event &b) {
       return a.damage == b.damage;
     case Event::kTeleportation:
       return a.teleportation == b.teleportation;
+    case Event::kRocketBurn:
+      return a.rocket_burn == b.rocket_burn;
+    case Event::kRocketRefuel:
+      return a.rocket_refuel == b.rocket_refuel;
     default:
       assert(false);  // Programmer error - unreachable.
       return true;
@@ -142,6 +169,10 @@ std::ostream &operator<<(std::ostream &os, const Event::Type event_type) {
       return os << "damage";
     case Event::Type::kTeleportation:
       return os << "teleportation";
+    case Event::Type::kRocketBurn:
+      return os << "rocket_burn";
+    case Event::Type::kRocketRefuel:
+      return os << "rocket_refuel";
     default:
       assert("not reachable");
   }
@@ -163,6 +194,10 @@ std::ostream &operator<<(std::ostream &os, const Event &event) {
       return os << ", /*damage=*/" << event.damage << "}";
     case Event::Type::kTeleportation:
       return os << ", /*teleportation=*/" << event.teleportation << "}";
+    case Event::Type::kRocketBurn:
+      return os << ", /*rocket_burn=*/" << event.rocket_burn << "}";
+    case Event::Type::kRocketRefuel:
+      return os << ", /*rocket_refuel=*/" << event.rocket_refuel << "}";
     default:
       assert("not reachable");
   }

@@ -57,6 +57,9 @@ EXPORT Orbit *FrameGetMutableOrbits(Frame *frame, int *count);
 EXPORT void FrameResizeDurability(Frame *frame, int count);
 EXPORT Durability *FrameGetMutableDurability(Frame *frame, int *count);
 
+EXPORT void FrameResizeRockets(Frame *frame, int count);
+EXPORT Rocket *FrameGetMutableRockets(Frame *frame, int *count);
+
 EXPORT void DestroyFrame(Frame *frame);
 
 // ORBIT API //

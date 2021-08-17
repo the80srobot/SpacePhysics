@@ -10,6 +10,7 @@
 #include <algorithm>
 
 #include "geometry/vector3.h"
+#include "systems/rocket.h"
 
 namespace vstr {
 namespace {
@@ -60,8 +61,12 @@ void ApplyEventEffects(absl::Span<Event> events, Frame &frame) {
         frame.motion[event.id].velocity = event.teleportation.new_velocity;
         frame.motion[event.id].spin = event.teleportation.new_spin;
         break;
+      case Event::kRocketBurn:
+      // Nothing to do - already handled before motion.
+      case Event::kRocketRefuel:
+        ApplyRocketRefuel(event, frame.mass, frame.rockets);
+        break;
       default:
-
         break;
     }
   }
@@ -74,12 +79,13 @@ void Pipeline::Step(const float dt, const int frame_no, Frame &frame,
   // The frame pipeline is as follows:
   //
   // 1) Compute closed-form orbital motion
-  // 2) Compute forces from acceleration input and gravity, from them velocities
-  // 3) Compute motion of glued objects
-  // 4) Detect collisions <- SKIPPED ON REPLAY
-  // 5) Convert collision events to their effects <- SKIPPED ON REPLAY
-  // 6) Apply computed velocities and update positions
-  // 7) Apply events, including effects of collisions
+  // 2) Compute acceleration from rockets
+  // 3) Compute forces from acceleration input and gravity, from them velocities
+  // 4) Compute motion of glued objects
+  // 5) Detect collisions <- SKIPPED ON REPLAY
+  // 6) Convert collision events to their effects <- SKIPPED ON REPLAY
+  // 7) Apply computed velocities and update positions
+  // 8) Apply events, including effects of collisions
 
   UpdateOrbitalMotion(dt * frame_no, frame.positions, frame.orbits,
                       frame.motion);

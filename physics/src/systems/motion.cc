@@ -62,13 +62,13 @@ Vector3 GravityAt(const std::vector<Transform> &positions,
 void ComputeForces(const std::vector<Transform> &positions,
                    const std::vector<Mass> &mass,
                    const std::vector<Flags> &flags, const int id,
-                   absl::Span<Event> &input, Vector3 &out_linear,
+                   absl::Span<Event> &input, Vector3 &out_linear_acceleration,
                    Vector3 &out_impulse, Quaternion &out_angular) {
   while (input.size() != 0 && input[0].id < id) {
     input = input.subspan(1);
   }
   out_angular = Quaternion::Identity();
-  out_linear = Vector3{0, 0, 0};
+  out_linear_acceleration = Vector3{0, 0, 0};
   out_impulse = Vector3{0, 0, 0};
   while (input.size() != 0 && input[0].id == id) {
     if (input[0].type == Event::kAcceleration) {
@@ -80,14 +80,14 @@ void ComputeForces(const std::vector<Transform> &positions,
       if (input[0].acceleration.flags & Acceleration::Flag::kImpulse) {
         out_impulse += value;
       } else {
-        out_linear += input[0].acceleration.linear;
+        out_linear_acceleration += input[0].acceleration.linear;
         out_angular *= input[0].acceleration.angular;
       }
     }
     input = input.subspan(1);
   }
 
-  out_linear += GravityAt(positions, mass, flags, id, nullptr);
+  out_linear_acceleration += GravityAt(positions, mass, flags, id, nullptr);
 }
 
 }  // namespace

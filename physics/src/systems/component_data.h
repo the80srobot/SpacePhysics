@@ -11,6 +11,7 @@
 #include <iostream>
 #include <vector>
 
+#include "absl/types/span.h"
 #include "geometry/aabb.h"
 #include "geometry/quaternion.h"
 #include "geometry/vector3.h"
@@ -206,6 +207,37 @@ inline bool operator==(const Durability &a, const Durability &b) {
 
 std::ostream &operator<<(std::ostream &os, const Durability &durability);
 
+struct Rocket {
+  static constexpr int kMaxFuelTanks = 8;
+
+  int32_t id;
+
+  struct FuelTank {
+    // How much does the fuel in the tank weigh.
+    float mass_flow_rate;
+    // Fuel in seconds: how long can the tank provide thrust
+    float fuel;
+    // The force the fuel tank can produce as kg * ms^-2.
+    float thrust;
+  };
+
+  FuelTank fuel_tanks[kMaxFuelTanks];
+};
+
+inline bool operator==(const Rocket &a, const Rocket &b) {
+  return a.id == b.id &&
+         absl::MakeConstSpan(a.fuel_tanks) == absl::MakeConstSpan(b.fuel_tanks);
+}
+
+inline bool operator==(const Rocket::FuelTank &a, const Rocket::FuelTank &b) {
+  return a.mass_flow_rate == b.mass_flow_rate && a.fuel == b.fuel &&
+         a.thrust == b.thrust;
+}
+
+std::ostream &operator<<(std::ostream &os, const Rocket &rocket);
+
+std::ostream &operator<<(std::ostream &os, const Rocket::FuelTank &fuel_tank);
+
 // Events:
 
 struct Acceleration {
@@ -296,6 +328,37 @@ inline bool operator==(const Teleportation &a, const Teleportation &b) {
 
 std::ostream &operator<<(std::ostream &os, const Teleportation &teleportation);
 
+struct RocketBurn {
+  int32_t id;
+  int32_t fuel_tank;
+  // The desired thrust as fraction of the rocket's output. (So ranging in
+  // magnitude from 0 to 1.)
+  Vector3 thrust;
+};
+
+static_assert(std::is_standard_layout<RocketBurn>());
+
+inline bool operator==(const RocketBurn &a, const RocketBurn &b) {
+  return a.id == b.id && a.fuel_tank == b.fuel_tank && a.thrust == b.thrust;
+}
+
+std::ostream &operator<<(std::ostream &os, const RocketBurn &rocket_burn);
+
+struct RocketRefuel {
+  int32_t id;
+  int32_t fuel_tank_no;
+  Rocket::FuelTank fuel_tank;
+};
+
+static_assert(std::is_standard_layout<RocketRefuel>());
+
+inline bool operator==(const RocketRefuel &a, const RocketRefuel &b) {
+  return a.id == b.id && a.fuel_tank_no == b.fuel_tank_no &&
+         a.fuel_tank == b.fuel_tank;
+}
+
+std::ostream &operator<<(std::ostream &os, const RocketRefuel &rocket_refuel);
+
 struct Event {
   enum Type {
     kAcceleration = 1,
@@ -304,6 +367,8 @@ struct Event {
     kDestruction = 4,
     kDamage = 5,
     kTeleportation = 6,
+    kRocketBurn = 7,
+    kRocketRefuel = 8,
   };
 
   explicit Event(Vector3 position, Collision &&collision)
@@ -344,6 +409,8 @@ struct Event {
     Destruction destruction;
     Damage damage;
     Teleportation teleportation;
+    RocketBurn rocket_burn;
+    RocketRefuel rocket_refuel;
   };
 };
 
