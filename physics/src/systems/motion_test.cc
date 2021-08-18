@@ -69,7 +69,7 @@ TEST(MotionTest, ObjectStaysInMotion) {
 
   for (float t = 0; t < 100; t += dt) {
     IntegrateMotion(kVelocityVerlet, dt, {}, positions, mass, flags, motion);
-    UpdatePositions(dt, motion, positions);
+    UpdatePositions(dt, motion, flags, positions);
   }
 
   EXPECT_GT(positions[1].position.y, 99.9);
@@ -115,7 +115,7 @@ TEST(MotionTest, FallingPointMass) {
   for (float t = 0; t < time_to_fall; t += coarse_dt) {
     IntegrateMotion(kVelocityVerlet, coarse_dt, {}, positions, mass, flags,
                     motion);
-    UpdatePositions(coarse_dt, motion, positions);
+    UpdatePositions(coarse_dt, motion, flags, positions);
   }
 
   // Integration in large steps should get within the ballpark.
@@ -130,7 +130,7 @@ TEST(MotionTest, FallingPointMass) {
   for (float t = 0; t < time_to_fall; t += fine_dt) {
     IntegrateMotion(kVelocityVerlet, fine_dt, {}, positions, mass, flags,
                     motion);
-    UpdatePositions(fine_dt, motion, positions);
+    UpdatePositions(fine_dt, motion, flags, positions);
   }
 
   // This should still under-estimate velocities, but the error should be much
@@ -173,7 +173,7 @@ TEST(MotionTest, PointMassHover) {
   for (float f = 0; f < duration; f += dt) {
     IntegrateMotion(kVelocityVerlet, dt, absl::MakeSpan(input), positions, mass,
                     flags, motion);
-    UpdatePositions(dt, motion, positions);
+    UpdatePositions(dt, motion, flags, positions);
   }
 
   EXPECT_EQ(positions[0].position.y, 100);
@@ -186,7 +186,7 @@ TEST(MotionTest, PointMassHover) {
   for (float f = 0; f < duration; f += dt) {
     IntegrateMotion(kVelocityVerlet, dt, absl::MakeSpan(input), positions, mass,
                     flags, motion);
-    UpdatePositions(dt, motion, positions);
+    UpdatePositions(dt, motion, flags, positions);
   }
 
   EXPECT_GT(positions[0].position.y, 100);
@@ -215,7 +215,7 @@ TEST(MotionTest, ForceImpulse) {
 
   for (float t = 0; t < 1; t += dt) {
     IntegrateMotion(kFirstOrderEuler, dt, {}, positions, mass, flags, motion);
-    UpdatePositions(dt, motion, positions);
+    UpdatePositions(dt, motion, flags, positions);
   }
 
   EXPECT_EQ(positions[0].position, (Vector3{0, 100, 0}));
@@ -229,10 +229,10 @@ TEST(MotionTest, ForceImpulse) {
   IntegrateMotion(kFirstOrderEuler, dt, absl::MakeSpan(input), positions, mass,
                   flags, motion);
   for (float t = 0; t < 10; t += dt) {
-    UpdatePositions(dt, motion, positions);
+    UpdatePositions(dt, motion, flags, positions);
     IntegrateMotion(kFirstOrderEuler, dt, {}, positions, mass, flags, motion);
   }
-  UpdatePositions(dt, motion, positions);
+  UpdatePositions(dt, motion, flags, positions);
 
   EXPECT_EQ(motion[0].velocity, (Vector3{0, 1, 0}));
   EXPECT_THAT(positions[0].position, Vector3ApproxEq(Vector3{0, 110, 0}, 0.1));
@@ -269,7 +269,7 @@ TEST(MotionTest, RotatingObjects) {
   // second object by 180 degrees around their axes.
   for (float t = 0; t < 1; t += dt) {
     IntegrateMotion(kFirstOrderEuler, dt, {}, positions, mass, flags, motion);
-    UpdatePositions(dt, motion, positions);
+    UpdatePositions(dt, motion, flags, positions);
   }
 
   EXPECT_THAT(

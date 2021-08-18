@@ -163,9 +163,11 @@ void IntegrateMotion(IntegrationMethod integrator, const float dt,
 }
 
 void UpdatePositions(const float dt, const std::vector<Motion> &motion,
+                     const std::vector<Flags> &flags,
                      std::vector<Transform> &transforms) {
   const int count = transforms.size();
   for (int i = 0; i < count; ++i) {
+    if (flags[i].value & Flags::kDestroyed) continue;
     transforms[i].position = motion[i].new_position;
     if (motion[i].spin != Quaternion::Identity()) {
       transforms[i].rotation *=

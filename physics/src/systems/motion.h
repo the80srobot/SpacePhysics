@@ -36,6 +36,7 @@ void IntegrateMotion(IntegrationMethod integrator, float dt,
 
 // Copies Motion.next_position to Position.value.
 void UpdatePositions(float dt, const std::vector<Motion> &motion,
+                     const std::vector<Flags> &flags,
                      std::vector<Transform> &positions);
 
 Vector3 GravityForceOn(const std::vector<Transform> &positions,
