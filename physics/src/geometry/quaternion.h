@@ -95,6 +95,8 @@ struct Quaternion {
   }
 
   static Quaternion Interpolate(Quaternion a, Quaternion b, const float t);
+
+  // static Quaternion Inverse(Quaternion q);
 };
 
 inline bool operator==(const Quaternion lhs, const Quaternion rhs) {
