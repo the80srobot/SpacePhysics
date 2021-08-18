@@ -86,6 +86,7 @@ absl::Status ConvertRocketBurnToAcceleration(const float dt,
                                              std::vector<Mass> &mass,
                                              std::vector<Rocket> &rockets) {
   for (Event &event : input) {
+    if (event.type != Event::kRocketBurn) continue;
     auto converted_event = ApplyRocketBurn(dt, event, mass, rockets);
     if (!converted_event.ok()) {
       return converted_event.status();

@@ -63,9 +63,11 @@ void ApplyEventEffects(absl::Span<Event> events, Frame &frame) {
         break;
       case Event::kRocketBurn:
       // Nothing to do - already handled before motion.
-      case Event::kRocketRefuel:
-        ApplyRocketRefuel(event, frame.mass, frame.rockets);
+      case Event::kRocketRefuel: {
+        auto status = ApplyRocketRefuel(event, frame.mass, frame.rockets);
+        assert(status.ok());
         break;
+      }
       default:
         break;
     }
@@ -89,6 +91,10 @@ void Pipeline::Step(const float dt, const int frame_no, Frame &frame,
 
   UpdateOrbitalMotion(dt * frame_no, frame.positions, frame.orbits,
                       frame.motion);
+
+  auto status =
+      ConvertRocketBurnToAcceleration(dt, input, frame.mass, frame.rockets);
+  assert(status.ok());
 
   // The motion system wants input events sorted by ID.
   std::sort(input.begin(), input.end(),
@@ -115,6 +121,11 @@ void Pipeline::Replay(const float dt, const int frame_no, Frame &frame,
                       absl::Span<Event> events) {
   UpdateOrbitalMotion(dt * frame_no, frame.positions, frame.orbits,
                       frame.motion);
+
+  auto status =
+      ConvertRocketBurnToAcceleration(dt, events, frame.mass, frame.rockets);
+  assert(status.ok());
+
   event_buffer_.clear();
   for (const auto &event : events) {
     if (event.type == Event::kAcceleration) event_buffer_.push_back(event);
