@@ -44,6 +44,8 @@ struct Action {
     // invalid events (e.g. two objects attached to each other), as the rule
     // engine performs no validation. (Results in a Stick event.)
     kStick,
+    // Fire a custom event specified in the objects Trigger.
+    kTriggerEvent,
   };
 
   // What to do. Some actions have optional extra parameters in the union below.
@@ -74,6 +76,7 @@ class RuleSet {
   void Apply(const std::vector<Transform> &positions,
              const std::vector<Mass> &mass, const std::vector<Motion> &motion,
              const std::vector<Collider> &colliders,
+             const std::vector<Trigger> &triggers,
              std::vector<Event> &in_out_events);
 
  private:
@@ -83,6 +86,7 @@ class RuleSet {
                         const std::vector<Mass> &mass,
                         const std::vector<Motion> &motion,
                         const std::vector<Collider> &colliders,
+                        const std::vector<Trigger> &triggers,
                         const Event &event, std::vector<Event> &out_events);
 };
 

@@ -84,6 +84,15 @@ Rocket *FrameGetMutableRockets(Frame *frame, int *count) {
   return frame->rockets.data();
 }
 
+void FrameResizeTriggers(Frame *frame, int count) {
+  frame->triggers.resize(count);
+}
+
+Trigger *FrameGetMutableTriggers(Frame *frame, int *count) {
+  *count = frame->triggers.size();
+  return frame->triggers.data();
+}
+
 void DestroyFrame(Frame *frame) { delete frame; }
 
 Vector3 KeplerEllipticalPosition(Orbit::Kepler kepler) {

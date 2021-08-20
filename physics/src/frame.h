@@ -33,6 +33,7 @@ struct Frame {
   std::vector<Orbit> orbits;
   std::vector<Durability> durability;
   std::vector<Rocket> rockets;
+  std::vector<Trigger> triggers;
 };
 
 }  // namespace vstr

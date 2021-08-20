@@ -29,6 +29,7 @@ struct TestCase {
   std::vector<Mass> mass;
   std::vector<Motion> motion;
   std::vector<Collider> colliders;
+  std::vector<Trigger> triggers;
 
   std::vector<Event> input;
   std::vector<Event> output;
@@ -43,7 +44,7 @@ TEST_P(RuleSetTest, RuleSetTest) {
   }
   std::vector<Event> events = GetParam().input;
   rule_set.Apply(GetParam().positions, GetParam().mass, GetParam().motion,
-                 GetParam().colliders, events);
+                 GetParam().colliders, GetParam().triggers, events);
 
   std::vector<Event> output(events.begin() + GetParam().input.size(),
                             events.end());
@@ -332,6 +333,59 @@ INSTANTIATE_TEST_SUITE_P(
                     Event(1, Vector3{0, 0.5, 0},
                           Teleportation{.new_position{0.5, 0.5, 0},
                                         .new_velocity{0.2, 0, 0}})},
+        },
+        TestCase{
+            .comment{"trigger_destroy_both"},
+            .rules{
+                {
+                    .layer_pair{0, 1},
+                    .action{
+                        .type = Action::kTriggerEvent,
+                        .min_speed = 0,
+                        .max_speed = std::numeric_limits<float>::infinity(),
+                        .min_impactor_energy = 0,
+                        .max_impactor_energy =
+                            std::numeric_limits<float>::infinity(),
+                    },
+                },
+            },
+            .positions{
+                {.position{0, 0, 0}},
+                {.position{1, 0, 0}},
+            },
+            .mass{
+                {.inertial = 1, .active = 0},
+                {.inertial = 1, .active = 0},
+            },
+            .motion{
+                {.velocity{}, .new_position{}, .acceleration{}},
+                {.velocity{}, .new_position{}, .acceleration{}},
+            },
+            .colliders{
+                {.layer = 0, .radius = 1},
+                {.layer = 1, .radius = 1},
+            },
+            .triggers{
+                {
+                    .id = 0,
+                    .condition = Trigger::kColission,
+                    .target = Trigger::kCollidingObject,
+                    .flags = Trigger::kDestroyTrigger,
+                    .event = Event(0, {}, Destruction{1}),
+                },
+            },
+            .input{
+                Event(Vector3{0.5, 0, 0},
+                      Collision{
+                          .first_id = 0,
+                          .second_id = 1,
+                          .first_frame_offset_seconds = 0,
+                      }),
+            },
+            .output{
+                Event(1, Vector3{0.5, 0, 0}, Destruction{1}),
+                Event(0, Vector3{0.5, 0, 0}, Destruction{1}),
+            },
         }),
     [](const testing::TestParamInfo<RuleSetTest::ParamType>& tc) {
       return tc.param.comment;

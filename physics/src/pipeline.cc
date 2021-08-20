@@ -110,7 +110,7 @@ void Pipeline::Step(const float dt, const int frame_no, Frame &frame,
 
   // convert collision events to effects
   rule_set_.Apply(frame.positions, frame.mass, frame.motion, frame.colliders,
-                  out_events);
+                  frame.triggers, out_events);
 
   UpdatePositions(dt, frame.motion, frame.flags, frame.positions);
   ApplyEventEffects(input, frame);

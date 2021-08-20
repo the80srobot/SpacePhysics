@@ -221,6 +221,7 @@ struct Rocket {
     float thrust;
   };
 
+  int32_t fuel_tank_count;
   FuelTank fuel_tanks[kMaxFuelTanks];
 };
 
@@ -329,7 +330,6 @@ inline bool operator==(const Teleportation &a, const Teleportation &b) {
 std::ostream &operator<<(std::ostream &os, const Teleportation &teleportation);
 
 struct RocketBurn {
-  int32_t id;
   int32_t fuel_tank;
   // The desired thrust as fraction of the rocket's output. (So ranging in
   // magnitude from 0 to 1.)
@@ -339,13 +339,12 @@ struct RocketBurn {
 static_assert(std::is_standard_layout<RocketBurn>());
 
 inline bool operator==(const RocketBurn &a, const RocketBurn &b) {
-  return a.id == b.id && a.fuel_tank == b.fuel_tank && a.thrust == b.thrust;
+  return a.fuel_tank == b.fuel_tank && a.thrust == b.thrust;
 }
 
 std::ostream &operator<<(std::ostream &os, const RocketBurn &rocket_burn);
 
 struct RocketRefuel {
-  int32_t id;
   int32_t fuel_tank_no;
   Rocket::FuelTank fuel_tank;
 };
@@ -353,8 +352,7 @@ struct RocketRefuel {
 static_assert(std::is_standard_layout<RocketRefuel>());
 
 inline bool operator==(const RocketRefuel &a, const RocketRefuel &b) {
-  return a.id == b.id && a.fuel_tank_no == b.fuel_tank_no &&
-         a.fuel_tank == b.fuel_tank;
+  return a.fuel_tank_no == b.fuel_tank_no && a.fuel_tank == b.fuel_tank;
 }
 
 std::ostream &operator<<(std::ostream &os, const RocketRefuel &rocket_refuel);
@@ -370,6 +368,8 @@ struct Event {
     kRocketBurn = 7,
     kRocketRefuel = 8,
   };
+
+  Event() = default;
 
   explicit Event(Vector3 position, Collision &&collision)
       : type(kCollision),
@@ -397,6 +397,18 @@ struct Event {
         position(position),
         type(kTeleportation),
         teleportation(teleportation) {}
+
+  explicit Event(int id, Vector3 position, RocketBurn &&rocket_burn)
+      : id(id),
+        type(kRocketBurn),
+        rocket_burn(rocket_burn),
+        position(position) {}
+
+  explicit Event(int id, Vector3 position, RocketRefuel &&rocket_refuel)
+      : id(id),
+        type(kRocketRefuel),
+        rocket_refuel(rocket_refuel),
+        position(position) {}
 
   int32_t id;
   Type type;
@@ -427,6 +439,36 @@ bool operator<=(const Event &a, const Event &b);
 
 std::ostream &operator<<(std::ostream &os, Event::Type event_type);
 std::ostream &operator<<(std::ostream &os, const Event &event);
+
+// Specifies a per-object argument to the per-layer collision rule action
+// kTriggerEvent. (Does nothing by itself.)
+struct Trigger {
+  int32_t id;
+
+  enum Condition {
+    kColission,
+  };
+
+  enum Target {
+    kSelf,
+    kCollidingObject,
+  };
+
+  enum Flag {
+    kDestroyTrigger = 1 << 0,
+  };
+
+  Condition condition;
+  Target target;
+  Flag flags;
+  Event event;
+};
+
+inline bool operator==(const Trigger &a, const Trigger &b) {
+  return a.id == b.id && a.condition == b.condition && a.target == b.target;
+}
+
+std::ostream &operator<<(std::ostream &os, const Trigger &trigger);
 
 }  // namespace vstr
 

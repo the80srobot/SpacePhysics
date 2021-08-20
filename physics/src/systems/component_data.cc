@@ -52,14 +52,28 @@ std::ostream &operator<<(std::ostream &os, const Durability &durability) {
 }
 
 std::ostream &operator<<(std::ostream &os, const Rocket &rocket) {
-  return os << "Rocket{/*id=*/" << rocket.id << ", /*fuel_tanks=*/"
-            << rocket.fuel_tanks << "}";
+  os << "Rocket{/*id=*/" << rocket.id << ", /*fuel_tank_count=*/"
+     << rocket.fuel_tank_count << ", /*fuel_tanks=*/{\n";
+  for (int i = 0; i < rocket.fuel_tank_count; ++i) {
+    os << "\t{/*mass_flow_rate=*/" << rocket.fuel_tanks[i].mass_flow_rate;
+    os << ", /*fuel=*/" << rocket.fuel_tanks[i].fuel;
+    os << ", /*thrust=*/" << rocket.fuel_tanks[i].thrust;
+    os << "},\n";
+  }
+
+  return os << "}}";
 }
 
 std::ostream &operator<<(std::ostream &os, const Rocket::FuelTank &fuel_tank) {
   return os << "FuelTank{/*mass_flow_rate=*/" << fuel_tank.mass_flow_rate
             << ", /*fuel=*/" << fuel_tank.fuel << ", /*thrust=*/"
             << fuel_tank.thrust << "}";
+}
+
+std::ostream &operator<<(std::ostream &os, const Trigger &trigger) {
+  return os << "Trigger{/*id=*/" << trigger.id << ", /*condition=*/"
+            << trigger.condition << ", /*target=*/" << trigger.target
+            << ", /*event=*/" << trigger.event << "}";
 }
 
 std::ostream &operator<<(std::ostream &os, const Glue &glue) {
@@ -103,15 +117,13 @@ std::ostream &operator<<(std::ostream &os, const Teleportation &teleportation) {
 }
 
 std::ostream &operator<<(std::ostream &os, const RocketBurn &rocket_burn) {
-  return os << "RocketBurn{/*id=*/" << rocket_burn.id << ", /*fuel_tank=*/"
-            << rocket_burn.fuel_tank << ", /*thrust=*/" << rocket_burn.thrust
-            << "}";
+  return os << "RocketBurn{/*fuel_tank=*/" << rocket_burn.fuel_tank
+            << ", /*thrust=*/" << rocket_burn.thrust << "}";
 }
 
 std::ostream &operator<<(std::ostream &os, const RocketRefuel &rocket_refuel) {
-  return os << "RocketBurn{/*id=*/" << rocket_refuel.id << ", /*fuel_tank_no=*/"
-            << rocket_refuel.fuel_tank_no << ", /*fuel_tank=*/"
-            << rocket_refuel.fuel_tank << "}";
+  return os << "RocketBurn{/*fuel_tank_no=*/" << rocket_refuel.fuel_tank_no
+            << ", /*fuel_tank=*/" << rocket_refuel.fuel_tank << "}";
 }
 
 bool operator==(const Event &a, const Event &b) {

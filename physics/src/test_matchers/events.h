@@ -5,8 +5,8 @@
 //
 // Author(s): Adam Sindelar <adam@wowsignal.io>
 
-#ifndef VSTR_TEST_MATCHERS_FLOAT
-#define VSTR_TEST_MATCHERS_FLOAT
+#ifndef VSTR_TEST_MATCHERS_EVENTS
+#define VSTR_TEST_MATCHERS_EVENTS
 
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
@@ -44,7 +44,19 @@ MATCHER_P(EventMatches, epsilon, "approximately matches") {
       return Vector3::Approximately(a.teleportation.new_position,
                                     b.teleportation.new_position, epsilon) &&
              Vector3::Approximately(a.teleportation.new_velocity,
-                                    b.teleportation.new_velocity);
+                                    b.teleportation.new_velocity, epsilon);
+    case Event::kRocketBurn:
+      return Vector3::Approximately(a.rocket_burn.thrust, b.rocket_burn.thrust,
+                                    epsilon) &&
+             a.rocket_burn.fuel_tank == b.rocket_burn.fuel_tank;
+    case Event::kRocketRefuel:
+      return FloatEq(a.rocket_refuel.fuel_tank.fuel,
+                     b.rocket_refuel.fuel_tank.fuel) &&
+             FloatEq(a.rocket_refuel.fuel_tank.mass_flow_rate,
+                     b.rocket_refuel.fuel_tank.mass_flow_rate) &&
+             FloatEq(a.rocket_refuel.fuel_tank.thrust,
+                     b.rocket_refuel.fuel_tank.thrust) &&
+             a.rocket_refuel.fuel_tank_no == b.rocket_refuel.fuel_tank_no;
     default:
       assert(false);  // Programmer error - unreachable.
       return true;

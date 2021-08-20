@@ -55,6 +55,8 @@ absl::StatusOr<Event> ApplyRocketBurn(const float dt, const Event &event,
 
 absl::Status ApplyRocketRefuel(const Event &event, std::vector<Mass> &mass,
                                std::vector<Rocket> &rockets) {
+  assert(event.type == Event::kRocketRefuel);
+
   auto it = std::lower_bound(
       rockets.begin(), rockets.end(), Rocket{.id = event.id},
       [](const Rocket &a, const Rocket &b) { return a.id < b.id; });
@@ -64,19 +66,26 @@ absl::Status ApplyRocketRefuel(const Event &event, std::vector<Mass> &mass,
     return absl::NotFoundError("object has no Rocket component");
   }
 
-  if (event.rocket_burn.fuel_tank >= Rocket::kMaxFuelTanks) {
-    return absl::OutOfRangeError("no such fuel tank");
+  int fuel_tank = event.rocket_refuel.fuel_tank_no;
+  if (fuel_tank < 0) {
+    // Find the first empty tank or abort.
+    for (int i = 0; i < it->fuel_tank_count; ++i) {
+      if (it->fuel_tanks[i].fuel <= 0) {
+        fuel_tank = i;
+        break;
+      }
+    }
+    if (fuel_tank < 0) return absl::OutOfRangeError("no empty fuel tank");
   }
-  if (it->fuel_tanks[event.rocket_burn.fuel_tank].fuel <= 0) {
-    return absl::ResourceExhaustedError("fuel tank empty");
+
+  if (fuel_tank >= Rocket::kMaxFuelTanks) {
+    return absl::OutOfRangeError("fuel tank out of allowed range");
   }
 
   mass[event.id].inertial -=
-      it->fuel_tanks[event.rocket_refuel.fuel_tank_no].mass_flow_rate *
-      it->fuel_tanks[event.rocket_refuel.fuel_tank_no].fuel;
-  it->fuel_tanks[event.rocket_refuel.fuel_tank_no] =
-      event.rocket_refuel.fuel_tank;
-  mass[event.id].inertial += event.rocket_refuel.fuel_tank.mass_flow_rate *
+      it->fuel_tanks[fuel_tank].mass_flow_rate * it->fuel_tanks[fuel_tank].fuel;
+  it->fuel_tanks[fuel_tank] = event.rocket_refuel.fuel_tank;
+  mass[event.id].inertial += event.rocket_refuel.fuel_tank.fuel *
                              event.rocket_refuel.fuel_tank.mass_flow_rate;
   return absl::OkStatus();
 }

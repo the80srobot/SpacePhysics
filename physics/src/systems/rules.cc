@@ -11,6 +11,33 @@ namespace vstr {
 
 namespace {
 
+void ApplyTrigger(const Event &event, const std::vector<Trigger> &triggers,
+                  std::vector<Event> &out_events) {
+  auto it = std::lower_bound(
+      triggers.begin(), triggers.end(), Trigger{.id = event.id},
+      [](const Trigger &a, const Trigger &b) { return a.id < b.id; });
+  if (it != triggers.end() && it->id == event.id) {
+    Event new_event = it->event;
+    new_event.position = event.position;
+    switch (it->target) {
+      case Trigger::kSelf:
+        new_event.id = event.id;
+        break;
+      case Trigger::kCollidingObject:
+        new_event.id = event.collision.second_id;
+        break;
+      default:
+        assert("not reachable");
+        break;
+    }
+    out_events.push_back(new_event);
+
+    if (it->flags & Trigger::kDestroyTrigger) {
+      out_events.push_back(Event(event.id, event.position, Destruction{1}));
+    }
+  }
+}
+
 void Bounce(const Event &event, const BounceParameters params,
             const std::vector<Transform> &transforms,
             const std::vector<Collider> &colliders,
@@ -129,14 +156,16 @@ void RuleSet::Apply(const std::vector<Transform> &transforms,
                     const std::vector<Mass> &mass,
                     const std::vector<Motion> &motion,
                     const std::vector<Collider> &colliders,
+                    const std::vector<Trigger> &triggers,
                     std::vector<Event> &in_out_events) {
   int limit = in_out_events.size();
   for (int i = 0; i < limit; ++i) {
     const Event &event = in_out_events[i];
     if (event.type != Event::kCollision) continue;
     // Apply once in either direction.
-    ApplyToCollision(transforms, mass, motion, colliders, event, in_out_events);
-    ApplyToCollision(transforms, mass, motion, colliders,
+    ApplyToCollision(transforms, mass, motion, colliders, triggers, event,
+                     in_out_events);
+    ApplyToCollision(transforms, mass, motion, colliders, triggers,
                      InvertCollision(event), in_out_events);
   }
 }
@@ -145,6 +174,7 @@ void RuleSet::ApplyToCollision(const std::vector<Transform> &transforms,
                                const std::vector<Mass> &mass,
                                const std::vector<Motion> &motion,
                                const std::vector<Collider> &colliders,
+                               const std::vector<Trigger> &triggers,
                                const Event &event,
                                std::vector<Event> &out_events) {
   const auto it = collision_rules_.find(
@@ -184,6 +214,9 @@ void RuleSet::ApplyToCollision(const std::vector<Transform> &transforms,
         break;
       case Action::kStick:
         // TODO
+        break;
+      case Action::kTriggerEvent:
+        ApplyTrigger(event, triggers, out_events);
         break;
       default:
         assert("unreachable");
