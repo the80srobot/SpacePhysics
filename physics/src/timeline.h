@@ -12,9 +12,9 @@
 
 #include "absl/status/status.h"
 #include "dsa/interval_tree.h"
-#include "frame.h"
 #include "pipeline.h"
-#include "systems/component_data.h"
+#include "types/frame.h"
+#include "types/required_components.h"
 
 namespace vstr {
 

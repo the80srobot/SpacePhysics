@@ -12,13 +12,13 @@
 
 #include <iostream>
 
-#include "frame.h"
-#include "systems/collision_system.h"
-#include "systems/component_data.h"
+#include "systems/collision_detector.h"
 #include "systems/glue_system.h"
 #include "systems/kepler.h"
 #include "systems/motion.h"
 #include "systems/rules.h"
+#include "types/frame.h"
+#include "types/required_components.h"
 
 namespace vstr {
 
@@ -26,11 +26,11 @@ class Pipeline {
  public:
   explicit Pipeline(LayerMatrix collision_matrix,
                     IntegrationMethod integrator = kVelocityVerlet)
-      : collision_system_(collision_matrix), integrator_(integrator) {}
+      : collision_detector_(collision_matrix), integrator_(integrator) {}
 
   explicit Pipeline(LayerMatrix collision_matrix, const RuleSet &rule_set,
                     IntegrationMethod integrator = kVelocityVerlet)
-      : collision_system_(collision_matrix),
+      : collision_detector_(collision_matrix),
         integrator_(integrator),
         rule_set_(rule_set) {}
 
@@ -38,11 +38,11 @@ class Pipeline {
             std::vector<Event> &out_events);
   void Replay(float dt, int frame_no, Frame &frame, absl::Span<Event> events);
 
-  inline CollisionSystem &collision_system() { return collision_system_; }
+  inline CollisionDetector &collision_detector() { return collision_detector_; }
 
  private:
   IntegrationMethod integrator_;
-  CollisionSystem collision_system_;
+  CollisionDetector collision_detector_;
   GlueSystem glue_system_;
   RuleSet rule_set_;
 

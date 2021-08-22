@@ -5,10 +5,9 @@
 //
 // Author(s): Adam Sindelar <adam@wowsignal.io>
 
-#include "collision_system.h"
-
 #include <limits>
 
+#include "collision_detector.h"
 #include "geometry/aabb.h"
 #include "geometry/float.h"
 #include "geometry/layer_matrix.h"
@@ -188,13 +187,11 @@ Vector3 CollisionLocation(const std::vector<Transform> &positions,
 
 };  // namespace
 
-void CollisionSystem::DetectCollisions(const std::vector<Transform> &positions,
-                                       const std::vector<Collider> &colliders,
-                                       const std::vector<Motion> &motion,
-                                       const std::vector<Flags> &flags,
-                                       const std::vector<Glue> &glue,
-                                       const float dt,
-                                       std::vector<Event> &out_events) {
+void CollisionDetector::DetectCollisions(
+    const std::vector<Transform> &positions,
+    const std::vector<Collider> &colliders, const std::vector<Motion> &motion,
+    const std::vector<Flags> &flags, const std::vector<Glue> &glue,
+    const float dt, std::vector<Event> &out_events) {
   cache_bvh_kvs_.clear();
   cache_object_swept_bounds_.clear();
   for (int id = 0; id < colliders.size(); ++id) {

@@ -1,15 +1,3 @@
-# Component Data Definitions
-
-add_library(
-    components
-    component_data.cc
-)
-
-target_link_libraries(
-    components
-    absl::span
-)
-
 # Glue System
 
 add_library(
@@ -94,36 +82,36 @@ target_link_libraries(
 # Collision System
 
 add_library(
-    collision_system
-    collision_system.cc
+    collision_detector
+    collision_detector.cc
 )
 
 target_link_libraries(
-    collision_system
+    collision_detector
     geometry
     components
 )
 
 add_executable(
-    collision_system_test
-    collision_system_test.cc
+    collision_detector_test
+    collision_detector_test.cc
 )
 
 target_link_libraries(
-    collision_system_test
-    collision_system
+    collision_detector_test
+    collision_detector
     gtest_main
     gmock_main
 )
 
 add_executable(
-    collision_system_benchmark
-    collision_system_benchmark.cc
+    collision_detector_benchmark
+    collision_detector_benchmark.cc
 )
 
 target_link_libraries(
-    collision_system_benchmark
-    collision_system
+    collision_detector_benchmark
+    collision_detector
     benchmark::benchmark
 )
 

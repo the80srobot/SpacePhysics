@@ -1,6 +1,7 @@
 add_subdirectory(dsa)
 add_subdirectory(geometry)
 add_subdirectory(systems)
+add_subdirectory(types)
 
 # Foreign Function Interface
 
@@ -69,7 +70,7 @@ target_link_libraries(
     motion
     rocket
     orbit_system
-    collision_system
+    collision_detector
     glue_system
     rules
 )

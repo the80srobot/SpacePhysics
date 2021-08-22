@@ -12,7 +12,7 @@
 
 #include <iostream>
 
-#include "component_data.h"
+#include "types/required_components.h"
 
 namespace vstr {
 

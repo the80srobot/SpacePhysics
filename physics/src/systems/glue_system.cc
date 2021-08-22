@@ -7,8 +7,6 @@
 
 #include "glue_system.h"
 
-#include "component_data.h"
-
 namespace vstr {
 
 void GlueSystem::UpdateGluedMotion(const std::vector<Transform> &positions,

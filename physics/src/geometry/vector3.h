@@ -4,7 +4,7 @@
 // License: http://www.gnu.org/licenses/old-licenses/gpl-2.0-standalone.html
 //
 // Author(s): Adam Sindelar <adam@wowsignal.io>
-//
+
 // This file provides basic 3D vector math.
 
 #ifndef VSTR_VECTOR3

@@ -4,7 +4,7 @@
 // http://www.gnu.org/licenses/old-licenses/gpl-2.0-standalone.html
 //
 // Author(s): Adam Sindelar <adam@wowsignal.io>
-//
+
 // This file provides basic quaternion math. This isn't a complete math library
 // - we only define the limited operations needed for interactions with unity
 // and to update object angular velocity between frames.
@@ -95,8 +95,6 @@ struct Quaternion {
   }
 
   static Quaternion Interpolate(Quaternion a, Quaternion b, const float t);
-
-  // static Quaternion Inverse(Quaternion q);
 };
 
 inline bool operator==(const Quaternion lhs, const Quaternion rhs) {

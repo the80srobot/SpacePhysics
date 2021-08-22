@@ -10,8 +10,8 @@
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 
-#include "systems/component_data.h"
 #include "test_matchers/vector3.h"
+#include "types/required_components.h"
 
 namespace vstr {
 namespace {

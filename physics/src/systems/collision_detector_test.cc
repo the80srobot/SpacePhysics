@@ -5,11 +5,10 @@
 //
 // Author(s): Adam Sindelar <adam@wowsignal.io>
 
-#include "collision_system.h"
-
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 
+#include "collision_detector.h"
 #include "test_matchers/events.h"
 
 namespace vstr {
@@ -27,10 +26,10 @@ struct TestCase {
   const std::vector<Event> expect;
 };
 
-class CollisionSystemTest : public testing::TestWithParam<TestCase> {};
+class CollisionDetectorTest : public testing::TestWithParam<TestCase> {};
 
-TEST_P(CollisionSystemTest, CollisionSystemTest) {
-  CollisionSystem system(GetParam().matrix);
+TEST_P(CollisionDetectorTest, CollisionDetectorTest) {
+  CollisionDetector system(GetParam().matrix);
   std::vector<Event> events;
   system.DetectCollisions(GetParam().positions, GetParam().colliders,
                           GetParam().motion, GetParam().flags, GetParam().glue,
@@ -41,7 +40,7 @@ TEST_P(CollisionSystemTest, CollisionSystemTest) {
 }
 
 INSTANTIATE_TEST_SUITE_P(
-    CollisionSystemTest, CollisionSystemTest,
+    CollisionDetectorTest, CollisionDetectorTest,
     testing::Values(
         TestCase{
             .comment{"basic"},
@@ -350,7 +349,7 @@ INSTANTIATE_TEST_SUITE_P(
                                 .first_frame_offset_seconds = 0.5}),
             },
         }),
-    [](const testing::TestParamInfo<CollisionSystemTest::ParamType>& tc) {
+    [](const testing::TestParamInfo<CollisionDetectorTest::ParamType>& tc) {
       return tc.param.comment;
     });
 }  // namespace

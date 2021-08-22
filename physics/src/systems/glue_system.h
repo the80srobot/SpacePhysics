@@ -8,7 +8,7 @@
 #ifndef VSTR_GLUE_SYSTEM
 #define VSTR_GLUE_SYSTEM
 
-#include "component_data.h"
+#include "types/required_components.h"
 
 namespace vstr {
 

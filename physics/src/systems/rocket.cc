@@ -10,7 +10,7 @@
 #include <absl/status/status.h>
 #include <absl/status/statusor.h>
 
-#include "systems/component_data.h"
+#include "types/required_components.h"
 
 namespace vstr {
 

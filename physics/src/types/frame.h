@@ -12,11 +12,12 @@
 
 #include <iostream>
 
-#include "systems/collision_system.h"
-#include "systems/component_data.h"
+#include "systems/collision_detector.h"
 #include "systems/glue_system.h"
 #include "systems/kepler.h"
 #include "systems/motion.h"
+#include "types/optional_components.h"
+#include "types/required_components.h"
 
 namespace vstr {
 

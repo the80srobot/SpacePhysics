@@ -104,9 +104,9 @@ void Pipeline::Step(const float dt, const int frame_no, Frame &frame,
 
   // TODO: apply glue motion
 
-  collision_system_.DetectCollisions(frame.positions, frame.colliders,
-                                     frame.motion, frame.flags, frame.glue, dt,
-                                     out_events);
+  collision_detector_.DetectCollisions(frame.positions, frame.colliders,
+                                       frame.motion, frame.flags, frame.glue,
+                                       dt, out_events);
 
   // convert collision events to effects
   rule_set_.Apply(frame.positions, frame.mass, frame.motion, frame.colliders,

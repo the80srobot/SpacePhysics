@@ -12,13 +12,14 @@
 #include <absl/status/statusor.h>
 #include <absl/types/span.h>
 
-#include "systems/component_data.h"
+#include "types/required_components.h"
 
 namespace vstr {
 
-absl::Status ConvertRocketBurnToAcceleration(const float dt, absl::Span<Event> input,
-                                     std::vector<Mass> &mass,
-                                     std::vector<Rocket> &rockets);
+absl::Status ConvertRocketBurnToAcceleration(const float dt,
+                                             absl::Span<Event> input,
+                                             std::vector<Mass> &mass,
+                                             std::vector<Rocket> &rockets);
 
 absl::Status ApplyRocketRefuel(const Event &event, std::vector<Mass> &mass,
                                std::vector<Rocket> &rockets);

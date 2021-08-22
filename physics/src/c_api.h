@@ -10,8 +10,8 @@
 
 #include "geometry/layer_matrix.h"
 #include "geometry/vector3.h"
-#include "systems/component_data.h"
 #include "timeline.h"
+#include "types/required_components.h"
 
 #if defined(__APPLE__) || defined(__linux__) || defined(ANDROID)
 #define EXPORT __attribute__((visibility("default")))

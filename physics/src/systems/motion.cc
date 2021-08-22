@@ -7,8 +7,6 @@
 
 #include "motion.h"
 
-#include "component_data.h"
-
 namespace vstr {
 namespace {
 

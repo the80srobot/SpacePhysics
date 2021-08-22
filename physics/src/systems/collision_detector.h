@@ -5,20 +5,20 @@
 //
 // Author(s): Adam Sindelar <adam@wowsignal.io>
 
-#ifndef VSTR_collision_system
-#define VSTR_collision_system
+#ifndef VSTR_collision_detector
+#define VSTR_collision_detector
 
 #include <iostream>
 
-#include "component_data.h"
 #include "geometry/bvh.h"
 #include "geometry/layer_matrix.h"
+#include "types/required_components.h"
 
 namespace vstr {
 
-class CollisionSystem {
+class CollisionDetector {
  public:
-  CollisionSystem(LayerMatrix layer_matrix) : matrix_(layer_matrix) {}
+  CollisionDetector(LayerMatrix layer_matrix) : matrix_(layer_matrix) {}
   void DetectCollisions(const std::vector<Transform> &positions,
                         const std::vector<Collider> &colliders,
                         const std::vector<Motion> &motion,

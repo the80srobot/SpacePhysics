@@ -11,7 +11,7 @@
 #include <absl/container/flat_hash_map.h>
 #include <absl/types/span.h>
 
-#include "systems/component_data.h"
+#include "types/required_components.h"
 
 namespace vstr {
 

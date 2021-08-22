@@ -5,8 +5,8 @@
 //
 // Author(s): Adam Sindelar <adam@wowsignal.io>
 
-#ifndef VSTR_COMPONENT_DATA
-#define VSTR_COMPONENT_DATA
+#ifndef VSTR_EVENTS
+#define VSTR_EVENTS
 
 #include <iostream>
 #include <vector>
@@ -15,231 +15,9 @@
 #include "geometry/aabb.h"
 #include "geometry/quaternion.h"
 #include "geometry/vector3.h"
+#include "types/optional_components.h"
 
 namespace vstr {
-
-// This file defines three flavors of physics data. Core components, optional
-// components and events.
-//
-// Because every object has an instance of each core component, the data for
-// core components are stored in vectors, such that the offset into the vector
-// is the object ID.
-//
-// Optional components, on the other hand, include their object ID as the first
-// data member.
-//
-// Finally events occur over some interval (possibly just one frame), during
-// which they affect the state of an object. Examples of events are:
-// destruction, acceleration from user input and collisions.
-//
-// For simplicity, core components are always ordered as in this file:
-// Transform, Mass, Motion, Collider, Glue, Flags.
-
-// Core components:
-
-struct Transform {
-  Vector3 position;
-  Quaternion rotation;
-};
-
-static_assert(std::is_standard_layout<Transform>());
-
-inline bool operator==(const Transform &a, const Transform &b) {
-  return a.position == b.position;
-}
-
-std::ostream &operator<<(std::ostream &os, const Transform &position);
-
-struct Mass {
-  float inertial;
-  float active;
-  float cutoff_distance;
-};
-
-static_assert(std::is_standard_layout<Mass>());
-
-inline bool operator==(const Mass &a, const Mass &b) {
-  return a.inertial == b.inertial && a.active == b.active &&
-         a.cutoff_distance == b.cutoff_distance;
-}
-
-std::ostream &operator<<(std::ostream &os, const Mass &mass);
-
-struct Motion {
-  Vector3 velocity;
-  Vector3 new_position;
-  Vector3 acceleration;
-
-  Quaternion spin;
-
-  inline static Motion FromPositionAndVelocity(Vector3 position,
-                                               Vector3 velocity,
-                                               Vector3 acceleration = Vector3{
-                                                   0, 0, 0}) {
-    return Motion{
-        .velocity{velocity},
-        .new_position{position + velocity},
-        .acceleration{acceleration},
-        .spin{0, 0, 0, 1},
-    };
-  }
-};
-
-static_assert(std::is_standard_layout<Motion>());
-
-inline bool operator==(const Motion &a, const Motion &b) {
-  return a.velocity == b.velocity && a.new_position == b.new_position;
-}
-
-std::ostream &operator<<(std::ostream &os, const Motion &motion);
-
-struct Collider {
-  uint32_t layer;
-  float radius;
-  Vector3 center;
-};
-
-static_assert(std::is_standard_layout<Collider>());
-
-inline bool operator==(const Collider &a, const Collider &b) {
-  return a.layer == b.layer && a.radius == b.radius && a.center == b.center;
-}
-
-std::ostream &operator<<(std::ostream &os, const Collider &collider);
-
-struct Glue {
-  int32_t parent_id;
-};
-
-static_assert(std::is_standard_layout<Glue>());
-
-inline bool operator==(const Glue &a, const Glue &b) {
-  return a.parent_id == b.parent_id;
-}
-
-std::ostream &operator<<(std::ostream &os, const Glue &orbit);
-
-struct Flags {
-  uint32_t value;
-
-  static constexpr uint32_t kDestroyed = 1;
-  static constexpr uint32_t kGlued = 1 << 1;
-  static constexpr uint32_t kOrbiting = 1 << 2;
-};
-
-static_assert(std::is_standard_layout<Flags>());
-
-inline bool operator==(const Flags &a, const Flags &b) {
-  return a.value == b.value;
-}
-
-std::ostream &operator<<(std::ostream &os, const Flags &destroyed);
-
-// Optional components:
-
-struct Orbit {
-  int32_t id;
-
-  struct Kepler {
-    float semi_major_axis;
-    float eccentricity;
-    float mean_longitude_deg;
-    float longitude_of_perihelion_deg;
-    float longitude_of_ascending_node_deg;
-    float inclination_deg;
-  };
-
-  Vector3 focus;
-  Kepler epoch;
-  Kepler delta;
-};
-
-static_assert(std::is_standard_layout<Orbit>());
-
-inline bool operator==(const Orbit::Kepler &a, const Orbit::Kepler &b) {
-  return a.semi_major_axis == b.semi_major_axis &&
-         a.eccentricity == b.eccentricity &&
-         a.mean_longitude_deg == b.mean_longitude_deg &&
-         a.longitude_of_perihelion_deg == b.longitude_of_perihelion_deg &&
-         a.longitude_of_ascending_node_deg ==
-             b.longitude_of_ascending_node_deg &&
-         a.inclination_deg == b.inclination_deg;
-}
-
-inline Orbit::Kepler operator+(const Orbit::Kepler &a, const Orbit::Kepler &b) {
-  return Orbit::Kepler{
-      a.semi_major_axis + b.semi_major_axis,
-      a.eccentricity + b.eccentricity,
-      a.mean_longitude_deg + b.mean_longitude_deg,
-      a.longitude_of_perihelion_deg + b.longitude_of_perihelion_deg,
-      a.longitude_of_ascending_node_deg + b.longitude_of_ascending_node_deg,
-      a.inclination_deg + b.inclination_deg,
-  };
-}
-
-inline Orbit::Kepler operator*(const Orbit::Kepler &a, const float b) {
-  return Orbit::Kepler{
-      a.semi_major_axis * b,
-      a.eccentricity * b,
-      a.mean_longitude_deg * b,
-      a.longitude_of_perihelion_deg * b,
-      a.longitude_of_ascending_node_deg * b,
-      a.inclination_deg * b,
-  };
-}
-
-std::ostream &operator<<(std::ostream &os, const Orbit::Kepler &kepler);
-
-inline bool operator==(const Orbit &a, const Orbit &b) {
-  return a.epoch == b.delta && a.focus == b.focus;
-}
-
-std::ostream &operator<<(std::ostream &os, const Orbit &orbit);
-
-struct Durability {
-  int32_t id;
-  int32_t value;
-};
-
-inline bool operator==(const Durability &a, const Durability &b) {
-  return a.id == b.id && a.value == b.value;
-}
-
-std::ostream &operator<<(std::ostream &os, const Durability &durability);
-
-struct Rocket {
-  static constexpr int kMaxFuelTanks = 8;
-
-  int32_t id;
-
-  struct FuelTank {
-    // How much does the fuel in the tank weigh.
-    float mass_flow_rate;
-    // Fuel in seconds: how long can the tank provide thrust
-    float fuel;
-    // The force the fuel tank can produce as kg * ms^-2.
-    float thrust;
-  };
-
-  int32_t fuel_tank_count;
-  FuelTank fuel_tanks[kMaxFuelTanks];
-};
-
-inline bool operator==(const Rocket &a, const Rocket &b) {
-  return a.id == b.id &&
-         absl::MakeConstSpan(a.fuel_tanks) == absl::MakeConstSpan(b.fuel_tanks);
-}
-
-inline bool operator==(const Rocket::FuelTank &a, const Rocket::FuelTank &b) {
-  return a.mass_flow_rate == b.mass_flow_rate && a.fuel == b.fuel &&
-         a.thrust == b.thrust;
-}
-
-std::ostream &operator<<(std::ostream &os, const Rocket &rocket);
-
-std::ostream &operator<<(std::ostream &os, const Rocket::FuelTank &fuel_tank);
-
-// Events:
 
 struct Acceleration {
   enum Flag {
@@ -442,6 +220,9 @@ std::ostream &operator<<(std::ostream &os, const Event &event);
 
 // Specifies a per-object argument to the per-layer collision rule action
 // kTriggerEvent. (Does nothing by itself.)
+//
+// TODO(adam): this shouldn't be defined here once it no longer inlines the
+// event definition.
 struct Trigger {
   int32_t id;
 
