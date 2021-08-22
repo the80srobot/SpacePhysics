@@ -21,7 +21,7 @@ namespace vstr {
 class Timeline {
  public:
   Timeline(const Frame &scene, int first_frame_no, LayerMatrix collision_matrix,
-           const RuleSet &rule_set, float frame_time = 1.0f / 60,
+           const CollisionRuleSet &rule_set, float frame_time = 1.0f / 60,
            int key_frame_period = 30,
            IntegrationMethod integrator = kVelocityVerlet)
       : head_(first_frame_no),

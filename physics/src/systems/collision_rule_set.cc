@@ -5,7 +5,7 @@
 //
 // Author(s): Adam Sindelar <adam@wowsignal.io>
 
-#include "rules.h"
+#include "collision_rule_set.h"
 
 namespace vstr {
 
@@ -38,7 +38,7 @@ void ApplyTrigger(const Event &event, const std::vector<Trigger> &triggers,
   }
 }
 
-void Bounce(const Event &event, const BounceParameters params,
+void Bounce(const Event &event, const CollisionEffect::BounceParameters params,
             const std::vector<Transform> &transforms,
             const std::vector<Collider> &colliders,
             const std::vector<Motion> &motion, const std::vector<Mass> &mass,
@@ -129,7 +129,8 @@ void Bounce(const Event &event, const BounceParameters params,
                 .new_spin = spin}));
 }
 
-void ApplyDamage(const Event &collision, const ApplyDamageParameters params,
+void ApplyDamage(const Event &collision,
+                 const CollisionEffect::ApplyDamageParameters params,
                  const float impactor_energy, std::vector<Event> &out_events) {
   out_events.push_back(
       Event(collision.id, collision.position,
@@ -148,16 +149,17 @@ Event InvertCollision(const Event &event) {
 
 }  // namespace
 
-void RuleSet::Add(LayerPair layer_pair, const Action &action) {
+void CollisionRuleSet::Add(LayerPair layer_pair,
+                           const CollisionEffect &action) {
   collision_rules_[layer_pair].push_back(action);
 }
 
-void RuleSet::Apply(const std::vector<Transform> &transforms,
-                    const std::vector<Mass> &mass,
-                    const std::vector<Motion> &motion,
-                    const std::vector<Collider> &colliders,
-                    const std::vector<Trigger> &triggers,
-                    std::vector<Event> &in_out_events) {
+void CollisionRuleSet::Apply(const std::vector<Transform> &transforms,
+                             const std::vector<Mass> &mass,
+                             const std::vector<Motion> &motion,
+                             const std::vector<Collider> &colliders,
+                             const std::vector<Trigger> &triggers,
+                             std::vector<Event> &in_out_events) {
   int limit = in_out_events.size();
   for (int i = 0; i < limit; ++i) {
     const Event &event = in_out_events[i];
@@ -170,13 +172,11 @@ void RuleSet::Apply(const std::vector<Transform> &transforms,
   }
 }
 
-void RuleSet::ApplyToCollision(const std::vector<Transform> &transforms,
-                               const std::vector<Mass> &mass,
-                               const std::vector<Motion> &motion,
-                               const std::vector<Collider> &colliders,
-                               const std::vector<Trigger> &triggers,
-                               const Event &event,
-                               std::vector<Event> &out_events) {
+void CollisionRuleSet::ApplyToCollision(
+    const std::vector<Transform> &transforms, const std::vector<Mass> &mass,
+    const std::vector<Motion> &motion, const std::vector<Collider> &colliders,
+    const std::vector<Trigger> &triggers, const Event &event,
+    std::vector<Event> &out_events) {
   const auto it = collision_rules_.find(
       std::make_pair(colliders[event.collision.first_id].layer,
                      colliders[event.collision.second_id].layer));
@@ -193,7 +193,7 @@ void RuleSet::ApplyToCollision(const std::vector<Transform> &transforms,
   const float impactor_energy =
       0.5 * impact_speed_sqr * mass[event.collision.second_id].inertial;
 
-  for (const Action &action : it->second) {
+  for (const CollisionEffect &action : it->second) {
     if (impact_speed < action.min_speed || impact_speed > action.max_speed)
       continue;
     if (impactor_energy < action.min_impactor_energy ||
@@ -201,21 +201,21 @@ void RuleSet::ApplyToCollision(const std::vector<Transform> &transforms,
       continue;
 
     switch (action.type) {
-      case Action::kApplyDamage:
+      case CollisionEffect::kApplyDamage:
         ApplyDamage(event, action.apply_damage_parameters, impactor_energy,
                     out_events);
         break;
-      case Action::kBounce:
+      case CollisionEffect::kBounce:
         Bounce(event, action.bounce_parameters, transforms, colliders, motion,
                mass, out_events);
         break;
-      case Action::kDestroy:
+      case CollisionEffect::kDestroy:
         out_events.push_back(Event(event.id, event.position, Destruction{1}));
         break;
-      case Action::kStick:
+      case CollisionEffect::kStick:
         // TODO
         break;
-      case Action::kTriggerEvent:
+      case CollisionEffect::kTriggerEvent:
         ApplyTrigger(event, triggers, out_events);
         break;
       default:

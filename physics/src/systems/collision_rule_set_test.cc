@@ -5,7 +5,7 @@
 //
 // Author(s): Adam Sindelar <adam@wowsignal.io>
 
-#include "rules.h"
+#include "collision_rule_set.h"
 
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
@@ -16,8 +16,8 @@ namespace vstr {
 namespace {
 
 struct Rule {
-  RuleSet::LayerPair layer_pair;
-  Action action;
+  CollisionRuleSet::LayerPair layer_pair;
+  CollisionEffect action;
 };
 
 struct TestCase {
@@ -38,7 +38,7 @@ struct TestCase {
 class RuleSetTest : public testing::TestWithParam<TestCase> {};
 
 TEST_P(RuleSetTest, RuleSetTest) {
-  RuleSet rule_set;
+  CollisionRuleSet rule_set;
   for (const auto& rule : GetParam().rules) {
     rule_set.Add(rule.layer_pair, rule.action);
   }
@@ -71,7 +71,7 @@ INSTANTIATE_TEST_SUITE_P(
             .rules{{
                 .layer_pair{0, 1},
                 .action{
-                    .type = Action::kDestroy,
+                    .type = CollisionEffect::kDestroy,
                     .min_speed = 0,
                     .max_speed = std::numeric_limits<float>::infinity(),
                     .min_impactor_energy = 0,
@@ -113,7 +113,7 @@ INSTANTIATE_TEST_SUITE_P(
                 {
                     .layer_pair{0, 1},
                     .action{
-                        .type = Action::kDestroy,
+                        .type = CollisionEffect::kDestroy,
                         .min_speed = 0,
                         .max_speed = std::numeric_limits<float>::infinity(),
                         .min_impactor_energy = 0,
@@ -124,7 +124,7 @@ INSTANTIATE_TEST_SUITE_P(
                 {
                     .layer_pair{1, 0},
                     .action{
-                        .type = Action::kDestroy,
+                        .type = CollisionEffect::kDestroy,
                         .min_speed = 0,
                         .max_speed = std::numeric_limits<float>::infinity(),
                         .min_impactor_energy = 0,
@@ -168,7 +168,7 @@ INSTANTIATE_TEST_SUITE_P(
                 {
                     .layer_pair{0, 1},
                     .action{
-                        .type = Action::kBounce,
+                        .type = CollisionEffect::kBounce,
                         .min_speed = 0,
                         .max_speed = std::numeric_limits<float>::infinity(),
                         .min_impactor_energy = 0,
@@ -214,7 +214,7 @@ INSTANTIATE_TEST_SUITE_P(
                 {
                     .layer_pair{0, 1},
                     .action{
-                        .type = Action::kBounce,
+                        .type = CollisionEffect::kBounce,
                         .min_speed = 0,
                         .max_speed = std::numeric_limits<float>::infinity(),
                         .min_impactor_energy = 0,
@@ -228,7 +228,7 @@ INSTANTIATE_TEST_SUITE_P(
                 {
                     .layer_pair{1, 0},
                     .action{
-                        .type = Action::kBounce,
+                        .type = CollisionEffect::kBounce,
                         .min_speed = 0,
                         .max_speed = std::numeric_limits<float>::infinity(),
                         .min_impactor_energy = 0,
@@ -277,7 +277,7 @@ INSTANTIATE_TEST_SUITE_P(
                 {
                     .layer_pair{0, 1},
                     .action{
-                        .type = Action::kBounce,
+                        .type = CollisionEffect::kBounce,
                         .min_speed = 0,
                         .max_speed = std::numeric_limits<float>::infinity(),
                         .min_impactor_energy = 0,
@@ -291,7 +291,7 @@ INSTANTIATE_TEST_SUITE_P(
                 {
                     .layer_pair{1, 0},
                     .action{
-                        .type = Action::kBounce,
+                        .type = CollisionEffect::kBounce,
                         .min_speed = 0,
                         .max_speed = std::numeric_limits<float>::infinity(),
                         .min_impactor_energy = 0,
@@ -340,7 +340,7 @@ INSTANTIATE_TEST_SUITE_P(
                 {
                     .layer_pair{0, 1},
                     .action{
-                        .type = Action::kTriggerEvent,
+                        .type = CollisionEffect::kTriggerEvent,
                         .min_speed = 0,
                         .max_speed = std::numeric_limits<float>::infinity(),
                         .min_impactor_energy = 0,

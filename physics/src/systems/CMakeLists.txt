@@ -116,12 +116,12 @@ target_link_libraries(
 )
 
 add_library(
-    rules
-    rules.cc
+    collision_rule_set
+    collision_rule_set.cc
 )
 
 target_link_libraries(
-    rules
+    collision_rule_set
     components
     geometry
     absl::span
@@ -129,13 +129,13 @@ target_link_libraries(
 )
 
 add_executable(
-    rules_test
-    rules_test.cc
+    collision_rule_set_test
+    collision_rule_set.cc
 )
 
 target_link_libraries(
-    rules_test
-    rules
+    collision_rule_set_test
+    collision_rule_set
     gtest_main
     gmock_main
 )

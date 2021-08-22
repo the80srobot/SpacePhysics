@@ -72,7 +72,7 @@ target_link_libraries(
     orbit_system
     collision_detector
     glue_system
-    rules
+    collision_rule_set
 )
 
 add_executable(

@@ -13,10 +13,10 @@
 #include <iostream>
 
 #include "systems/collision_detector.h"
+#include "systems/collision_rule_set.h"
 #include "systems/glue_system.h"
 #include "systems/kepler.h"
 #include "systems/motion.h"
-#include "systems/rules.h"
 #include "types/frame.h"
 #include "types/required_components.h"
 
@@ -28,7 +28,8 @@ class Pipeline {
                     IntegrationMethod integrator = kVelocityVerlet)
       : collision_detector_(collision_matrix), integrator_(integrator) {}
 
-  explicit Pipeline(LayerMatrix collision_matrix, const RuleSet &rule_set,
+  explicit Pipeline(LayerMatrix collision_matrix,
+                    const CollisionRuleSet &rule_set,
                     IntegrationMethod integrator = kVelocityVerlet)
       : collision_detector_(collision_matrix),
         integrator_(integrator),
@@ -44,7 +45,7 @@ class Pipeline {
   IntegrationMethod integrator_;
   CollisionDetector collision_detector_;
   GlueSystem glue_system_;
-  RuleSet rule_set_;
+  CollisionRuleSet rule_set_;
 
   std::vector<Event> event_buffer_;
 };

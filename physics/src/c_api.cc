@@ -124,19 +124,19 @@ Pipeline *CreateFrameSolver(LayerMatrix *collision_matrix,
   return new Pipeline(*collision_matrix, integrator);
 }
 
-RuleSet *CreateRuleSet() { return new RuleSet(); }
+CollisionRuleSet *CreateRuleSet() { return new CollisionRuleSet(); }
 
-void RuleSetAdd(RuleSet *rule_set, uint32_t target_layer, uint32_t other_layer,
-                Action action) {
-  rule_set->Add(RuleSet::LayerPair(target_layer, other_layer), action);
+void RuleSetAdd(CollisionRuleSet *rule_set, uint32_t target_layer,
+                uint32_t other_layer, CollisionEffect action) {
+  rule_set->Add(CollisionRuleSet::LayerPair(target_layer, other_layer), action);
 }
 
-void DestroyRuleSet(RuleSet *rule_set) { delete (rule_set); }
+void DestroyRuleSet(CollisionRuleSet *rule_set) { delete (rule_set); }
 
 Timeline *CreateTimeline(Frame *frame, int first_frame_no,
-                         LayerMatrix *collision_matrix, RuleSet *rule_set,
-                         float frame_time, int key_frame_period,
-                         IntegrationMethod integrator) {
+                         LayerMatrix *collision_matrix,
+                         CollisionRuleSet *rule_set, float frame_time,
+                         int key_frame_period, IntegrationMethod integrator) {
 #if !defined(NDEBUG) && defined(VSTR_BREAK_ON_FLOAT_EXC)
   DebugHelper::Singleton()->EnableFloatExceptions();
 #endif

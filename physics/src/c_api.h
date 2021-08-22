@@ -87,16 +87,16 @@ EXPORT void DestroyLayerMatrix(LayerMatrix *layer_matrix);
 
 // RULE SET API //
 
-EXPORT RuleSet *CreateRuleSet();
-EXPORT void RuleSetAdd(RuleSet *rule_set, uint32_t target_layer,
-                       uint32_t other_layer, Action action);
-EXPORT void DestroyRuleSet(RuleSet *rule_set);
+EXPORT CollisionRuleSet *CreateRuleSet();
+EXPORT void RuleSetAdd(CollisionRuleSet *rule_set, uint32_t target_layer,
+                       uint32_t other_layer, CollisionEffect action);
+EXPORT void DestroyRuleSet(CollisionRuleSet *rule_set);
 
 // TIMELINE API //
 
 EXPORT Timeline *CreateTimeline(Frame *frame, int first_frame_no,
                                 LayerMatrix *collision_matrix,
-                                RuleSet *rule_set, float frame_time,
+                                CollisionRuleSet *rule_set, float frame_time,
                                 int key_frame_period,
                                 IntegrationMethod integrator);
 EXPORT void TimelineInputEvent(Timeline *timeline, int frame_no, Event *event);

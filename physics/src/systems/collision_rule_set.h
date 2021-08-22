@@ -15,19 +15,8 @@
 
 namespace vstr {
 
-struct ApplyDamageParameters {
-  int32_t constant;
-  float from_impactor_energy;
-};
-
-struct BounceParameters {
-  // Otherwise and more technically called Coefficient of Restitution, but
-  // that's a terrible name.
-  float elasticity;
-};
-
 // A recipe to generate other events from a collision event.
-struct Action {
+struct CollisionEffect {
   // The rule engine doesn't apply these effects directly, instead it emits
   // events that have the desired effect. (E.g. kDestroy will result in a
   // Destruction event.) This indirection exists to enable replay.
@@ -44,7 +33,8 @@ struct Action {
     // invalid events (e.g. two objects attached to each other), as the rule
     // engine performs no validation. (Results in a Stick event.)
     kStick,
-    // Fire a custom event specified in the objects Trigger.
+    // Fire a custom event specified in the object's Trigger component defined
+    // in optional_components.h.
     kTriggerEvent,
   };
 
@@ -57,6 +47,17 @@ struct Action {
   float min_impactor_energy;
   float max_impactor_energy;
 
+  struct ApplyDamageParameters {
+    int32_t constant;
+    float from_impactor_energy;
+  };
+
+  struct BounceParameters {
+    // Otherwise and more technically called Coefficient of Restitution, but
+    // that's a terrible name.
+    float elasticity;
+  };
+
   // Parameters for some actions.
   union {
     ApplyDamageParameters apply_damage_parameters;
@@ -64,7 +65,9 @@ struct Action {
   };
 };
 
-class RuleSet {
+// Converts collision events into other types of events, driven by collision
+// rules.
+class CollisionRuleSet {
  public:
   // Rules are not symmetric - a rule will affect an object on the first layer,
   // when the former collides with an object on the second layer. (To express a
@@ -72,7 +75,7 @@ class RuleSet {
   // needed.)
   using LayerPair = std::pair<uint32_t, uint32_t>;
 
-  void Add(LayerPair layer_pair, const Action &action);
+  void Add(LayerPair layer_pair, const CollisionEffect &action);
   void Apply(const std::vector<Transform> &positions,
              const std::vector<Mass> &mass, const std::vector<Motion> &motion,
              const std::vector<Collider> &colliders,
@@ -80,7 +83,7 @@ class RuleSet {
              std::vector<Event> &in_out_events);
 
  private:
-  absl::flat_hash_map<LayerPair, std::vector<Action>> collision_rules_;
+  absl::flat_hash_map<LayerPair, std::vector<CollisionEffect>> collision_rules_;
 
   void ApplyToCollision(const std::vector<Transform> &positions,
                         const std::vector<Mass> &mass,
