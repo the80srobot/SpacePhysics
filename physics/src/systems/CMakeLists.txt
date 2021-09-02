@@ -11,6 +11,34 @@ target_link_libraries(
     components
 )
 
+# Object Pools
+
+add_library(
+    object_pool
+    object_pool.cc
+)
+
+target_link_libraries(
+    object_pool
+    components
+    frame
+    absl::status
+    absl::statusor
+)
+
+add_executable(
+    object_pool_test
+    object_pool_test.cc
+)
+
+target_link_libraries(
+    object_pool_test
+    geometry
+    object_pool
+    gtest_main
+    gmock_main
+)
+
 # Orbit System
 
 add_library(
@@ -79,6 +107,20 @@ target_link_libraries(
     gmock_main
 )
 
+# Event effects & handlers
+
+add_library(
+    event_effects
+    event_effects.cc
+)
+
+target_link_libraries(
+    event_effects
+    object_pool
+    components
+    absl::span
+)
+
 # Collision System
 
 add_library(
@@ -130,7 +172,7 @@ target_link_libraries(
 
 add_executable(
     collision_rule_set_test
-    collision_rule_set.cc
+    collision_rule_set_test.cc
 )
 
 target_link_libraries(

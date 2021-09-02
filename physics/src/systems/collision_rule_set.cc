@@ -33,7 +33,7 @@ void ApplyTrigger(const Event &event, const std::vector<Trigger> &triggers,
     out_events.push_back(new_event);
 
     if (it->flags & Trigger::kDestroyTrigger) {
-      out_events.push_back(Event(event.id, event.position, Destruction{1}));
+      out_events.push_back(Event(event.id, event.position, Destruction{}));
     }
   }
 }
@@ -210,7 +210,7 @@ void CollisionRuleSet::ApplyToCollision(
                mass, out_events);
         break;
       case CollisionEffect::kDestroy:
-        out_events.push_back(Event(event.id, event.position, Destruction{1}));
+        out_events.push_back(Event(event.id, event.position, Destruction{}));
         break;
       case CollisionEffect::kStick:
         // TODO

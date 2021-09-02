@@ -10,6 +10,7 @@
 
 #include <absl/types/span.h>
 
+#include <concepts>
 #include <iostream>
 
 #include "systems/collision_detector.h"
@@ -22,8 +23,10 @@
 namespace vstr {
 
 struct Frame {
+  static int32_t constexpr kMaxObjects = 10000;
+
   // Core components. Point mass moves clumsily, goes fast.
-  std::vector<Transform> positions;
+  std::vector<Transform> transforms;
   std::vector<Mass> mass;
   std::vector<Motion> motion;
   std::vector<Collider> colliders;
@@ -35,7 +38,68 @@ struct Frame {
   std::vector<Durability> durability;
   std::vector<Rocket> rockets;
   std::vector<Trigger> triggers;
+  std::vector<ReusePool> reuse_pools;
+  std::vector<ReuseTag> reuse_tags;
+
+  int32_t Push();
+  int32_t Push(Transform &&transform, Mass &&mass, Motion &&motion,
+               Collider &&collider, Glue &&glue, Flags &&flags);
 };
+
+template <typename T>
+concept OptionalComponent = requires(T x) {
+  { T().id } -> std::same_as<int32_t>;
+};
+
+template <OptionalComponent T>
+ssize_t FindOptionalComponent(const std::vector<T> &component_data,
+                              int32_t id) {
+  auto it = std::lower_bound(
+      component_data.begin(), component_data.end(), T{.id = id},
+      [](const T &a, const T &b) { return a.id < b.id; });
+  if (it != component_data.end() && it->id == id) {
+    return it - component_data.begin();
+  }
+  return -1;
+}
+
+template <OptionalComponent T>
+ssize_t SetOptionalComponent(const int32_t id, const T &component,
+                             std::vector<T> &component_data) {
+  int32_t dst_idx = FindOptionalComponent(component_data, id);
+
+  T cpy = component;
+  cpy.id = id;
+
+  if (dst_idx >= 0) {
+    component_data[dst_idx] = std::move(component);
+    return dst_idx;
+  }
+
+  // The optional component isn't set yet – add it in the right place.
+  // TODO(Adam): this could be a lot more optimal by reusing the
+  // std::lower_bound value from FindOptionalComponent, because the vector
+  // starts out sorted.
+
+  component_data.push_back(std::move(cpy));
+  if (component_data.size() > 1 &&
+      (component_data.end() - 2)->id > (component_data.end() - 3)->id) {
+    // We only hit this codepath when initializing, because components can't
+    // really be added when the simulation is running.
+    std::sort(component_data.begin(), component_data.end(),
+              [](const T &a, const T &b) { return a.id < b.id; });
+  }
+
+  return FindOptionalComponent(component_data, id);
+}
+
+template <OptionalComponent T>
+void CopyOptionalComponent(const int32_t dst, const int32_t src,
+                           std::vector<T> &component_data) {
+  int32_t src_idx = FindOptionalComponent(component_data, src);
+  if (src_idx < 0) return;
+  SetOptionalComponent(dst, component_data[src_idx], component_data);
+}
 
 }  // namespace vstr
 #endif

@@ -61,8 +61,8 @@ TEST(TimelineTest, FallingSphere) {
   // FallingSphere PipelineTest.
   const Frame* frame = timeline.GetFrame(frame_no);
   EXPECT_NE(frame, nullptr);
-  EXPECT_LT(frame->positions[0].position.y, 200);
-  EXPECT_GT(frame->positions[0].position.y, 199);
+  EXPECT_LT(frame->transforms[0].position.y, 200);
+  EXPECT_GT(frame->transforms[0].position.y, 199);
 
   // A collision event should have been recorded by now.
   std::vector<Event> buffer;
@@ -80,8 +80,8 @@ TEST(TimelineTest, FallingSphere) {
 
   frame = timeline.GetFrame(frame_no);
   EXPECT_NE(frame, nullptr);
-  EXPECT_LT(frame->positions[0].position.y, 200);
-  EXPECT_GT(frame->positions[0].position.y, 199);
+  EXPECT_LT(frame->transforms[0].position.y, 200);
+  EXPECT_GT(frame->transforms[0].position.y, 199);
 }
 
 TEST(TimelineTest, AccelerateRewindAccelerate) {
@@ -181,7 +181,7 @@ TEST(TimelineTest, DestroyAttractor) {
 
   Timeline timeline(initial_frame, 0, matrix, {}, dt, 30);
 
-  timeline.InputEvent(30.0f / dt, Event(1, {}, Destruction{true}));
+  timeline.InputEvent(30.0f / dt, Event(1, {}, Destruction{}));
 
   int frame_no = 0;
   for (float t = 0; t < 40.0f; t += dt) {
@@ -207,7 +207,7 @@ TEST(TimelineTest, DestroyAttractor) {
   EXPECT_EQ(frame->motion[0].acceleration, (Vector3{0, 0, 0}));
 
   // Eventually sphere 0 will fall where sphere 1 used to be.
-  for (; frame->positions[0].position.y > 1; ++frame_no) {
+  for (; frame->transforms[0].position.y > 1; ++frame_no) {
     timeline.Simulate();
     frame = timeline.GetFrame(frame_no);
   }
@@ -215,28 +215,30 @@ TEST(TimelineTest, DestroyAttractor) {
   // But no collision should be recorded.
   frame = timeline.GetFrame(frame_no);
   ASSERT_NE(frame, nullptr);
-  EXPECT_GT(frame->positions[0].position.y, 0);
-  EXPECT_LT(frame->positions[0].position.y, 1);
+  EXPECT_GT(frame->transforms[0].position.y, 0);
+  EXPECT_LT(frame->transforms[0].position.y, 1);
   std::vector<Event> buffer;
   EXPECT_TRUE(timeline.GetEvents(frame_no, buffer));
   EXPECT_EQ(buffer.size(), 0);
 
+  // TODO(adam): Re-enable once there is a way to undestroy an object again.
+
   // Undestroying the sphere should trigger a collision due to overlap.
-  timeline.InputEvent(frame_no + 1, Event(1, {}, Destruction{false}));
+  //   timeline.InputEvent(frame_no + 1, Event(1, {}, Destruction{}));
 
   // We have to take two steps, because events take effect at the end of the
   // frame, which means the attractor still cannot participate in collisions on
   // the first frame.
-  timeline.Simulate();
-  ++frame_no;
-  timeline.Simulate();
-  ++frame_no;
+  //   timeline.Simulate();
+  //   ++frame_no;
+  //   timeline.Simulate();
+  //   ++frame_no;
 
-  EXPECT_TRUE(timeline.GetEvents(frame_no, buffer));
-  EXPECT_GE(buffer.size(), 1);
-  EXPECT_EQ(buffer[0].type, Event::kCollision);
-  EXPECT_EQ(buffer[0].id, 0);
-  EXPECT_EQ(buffer[0].collision.second_id, 1);
+  //   EXPECT_TRUE(timeline.GetEvents(frame_no, buffer));
+  //   EXPECT_GE(buffer.size(), 1);
+  //   EXPECT_EQ(buffer[0].type, Event::kCollision);
+  //   EXPECT_EQ(buffer[0].id, 0);
+  //   EXPECT_EQ(buffer[0].collision.second_id, 1);
 }
 
 struct TestCase {

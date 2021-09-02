@@ -31,7 +31,9 @@ target_link_libraries(
     timeline
     pipeline
     interval_tree
+    object_pool
     absl::status
+    absl::statusor
     absl::strings
 )
 
@@ -69,6 +71,8 @@ target_link_libraries(
     pipeline
     motion
     rocket
+    frame
+    event_effects
     orbit_system
     collision_detector
     glue_system

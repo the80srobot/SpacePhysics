@@ -25,7 +25,7 @@ std::ostream &operator<<(std::ostream &os, const Orbit &orbit) {
 
 std::ostream &operator<<(std::ostream &os, const Durability &durability) {
   return os << "Durability{/*id=*/" << durability.id << ", /*value=*/"
-            << durability.value << "}";
+            << durability.value << ", /*max=*/" << durability.max << "}";
 }
 
 std::ostream &operator<<(std::ostream &os, const Rocket &rocket) {

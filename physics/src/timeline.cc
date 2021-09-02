@@ -7,6 +7,8 @@
 
 #include "timeline.h"
 
+#include "systems/object_pool.h"
+
 namespace vstr {
 
 const Frame *Timeline::GetFrame(const int frame_no) {
@@ -128,6 +130,8 @@ bool Timeline::Replay(int frame_no) {
                       absl::MakeSpan(replay_buffer_));
   }
 
+  assert(frame_no == frame_no);
+
   return true;
 }
 
@@ -182,7 +186,7 @@ absl::Status Timeline::Query(int resolution,
       if (buffer_off < 0 || buffer_off >= query.buffer_sz) continue;
 
       if (query.attribute & Trajectory::Attribute::kPosition) {
-        query.buffer[buffer_off] = frame_.positions[query.id].position;
+        query.buffer[buffer_off] = frame_.transforms[query.id].position;
         ++buffer_off;
       }
       if (query.attribute & Trajectory::Attribute::kVelocity) {
@@ -193,6 +197,25 @@ absl::Status Timeline::Query(int resolution,
   }
 
   return absl::OkStatus();
+}
+
+absl::StatusOr<int32_t> Timeline::SpawnFromPool(const int frame_no,
+                                                const int pool_id,
+                                                const Vector3 &position,
+                                                const Vector3 &velocity,
+                                                const Quaternion &rotation) {
+  if (!Replay(frame_no)) {
+    return absl::OutOfRangeError("cannot seek to frame");
+  }
+
+  const auto spawn_event =
+      SpawnEventFromPool(pool_id, position, rotation, velocity, frame_);
+  if (!spawn_event.ok()) {
+    return spawn_event.status();
+  }
+
+  InputEvent(frame_no, spawn_event.value());
+  return spawn_event.value().id;
 }
 
 void Timeline::SetLabel(const int id, Label label) {

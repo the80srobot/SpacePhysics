@@ -10,71 +10,10 @@
 #include <algorithm>
 
 #include "geometry/vector3.h"
+#include "systems/event_effects.h"
 #include "systems/rocket.h"
 
 namespace vstr {
-namespace {
-
-void ApplyEventEffects(absl::Span<Event> events, Frame &frame) {
-  for (const auto &event : events) {
-    switch (event.type) {
-      case Event::kDestruction:
-        if (event.destruction.value) {
-          frame.flags[event.id].value |= Flags::kDestroyed;
-        } else {
-          frame.flags[event.id].value &= ~Flags::kDestroyed;
-        }
-        break;
-      case Event::kStick:
-        if (event.stick.parent_id >= 0) {
-          frame.flags[event.id].value |= Flags::kGlued;
-          frame.glue[event.id].parent_id = event.stick.parent_id;
-        } else {
-          frame.flags[event.id].value &= ~Flags::kGlued;
-          frame.glue[event.id].parent_id = 0;
-        }
-        break;
-      case Event::kDamage: {
-        auto it = std::lower_bound(
-            frame.durability.begin(), frame.durability.end(),
-            Durability{event.id}, [](const Durability &a, const Durability &b) {
-              return a.id < b.id;
-            });
-        if (it != frame.durability.end() && it->id == event.id) {
-          it->value -= event.damage.value;
-          if (it->value <= 0) {
-            frame.flags[event.id].value |= Flags::kDestroyed;
-          }
-        }
-        break;
-      }
-      case Event::kAcceleration:
-        // Nothing to do, acceleration was already used for motion integration.
-        break;
-      case Event::kCollision:
-        // Nothing to do here - collisions effects are already included as other
-        // events.
-        break;
-      case Event::kTeleportation:
-        frame.positions[event.id].position = event.teleportation.new_position;
-        frame.motion[event.id].new_position = event.teleportation.new_position;
-        frame.motion[event.id].velocity = event.teleportation.new_velocity;
-        frame.motion[event.id].spin = event.teleportation.new_spin;
-        break;
-      case Event::kRocketBurn:
-      // Nothing to do - already handled before motion.
-      case Event::kRocketRefuel: {
-        auto status = ApplyRocketRefuel(event, frame.mass, frame.rockets);
-        assert(status.ok());
-        break;
-      }
-      default:
-        break;
-    }
-  }
-}
-
-}  // namespace
 
 void Pipeline::Step(const float dt, const int frame_no, Frame &frame,
                     absl::Span<Event> input, std::vector<Event> &out_events) {
@@ -89,7 +28,7 @@ void Pipeline::Step(const float dt, const int frame_no, Frame &frame,
   // 7) Apply computed velocities and update positions
   // 8) Apply events, including effects of collisions
 
-  UpdateOrbitalMotion(dt * frame_no, frame.positions, frame.orbits,
+  UpdateOrbitalMotion(dt * frame_no, frame.transforms, frame.orbits,
                       frame.motion);
 
   auto status =
@@ -99,27 +38,27 @@ void Pipeline::Step(const float dt, const int frame_no, Frame &frame,
   // The motion system wants input events sorted by ID.
   std::sort(input.begin(), input.end(),
             [](const Event &a, const Event &b) -> bool { return a.id < b.id; });
-  IntegrateMotion(integrator_, dt, input, frame.positions, frame.mass,
+  IntegrateMotion(integrator_, dt, input, frame.transforms, frame.mass,
                   frame.flags, frame.motion);
 
   // TODO: apply glue motion
 
-  collision_detector_.DetectCollisions(frame.positions, frame.colliders,
+  collision_detector_.DetectCollisions(frame.transforms, frame.colliders,
                                        frame.motion, frame.flags, frame.glue,
                                        dt, out_events);
 
   // convert collision events to effects
-  rule_set_.Apply(frame.positions, frame.mass, frame.motion, frame.colliders,
+  rule_set_.Apply(frame.transforms, frame.mass, frame.motion, frame.colliders,
                   frame.triggers, out_events);
 
-  UpdatePositions(dt, frame.motion, frame.flags, frame.positions);
+  UpdatePositions(dt, frame.motion, frame.flags, frame.transforms);
   ApplyEventEffects(input, frame);
   ApplyEventEffects(absl::MakeSpan(out_events), frame);
 }
 
 void Pipeline::Replay(const float dt, const int frame_no, Frame &frame,
                       absl::Span<Event> events) {
-  UpdateOrbitalMotion(dt * frame_no, frame.positions, frame.orbits,
+  UpdateOrbitalMotion(dt * frame_no, frame.transforms, frame.orbits,
                       frame.motion);
 
   auto status =
@@ -133,9 +72,9 @@ void Pipeline::Replay(const float dt, const int frame_no, Frame &frame,
   std::sort(event_buffer_.begin(), event_buffer_.end(),
             [](const Event &a, const Event &b) -> bool { return a.id < b.id; });
   IntegrateMotion(integrator_, dt, absl::MakeSpan(event_buffer_),
-                  frame.positions, frame.mass, frame.flags, frame.motion);
+                  frame.transforms, frame.mass, frame.flags, frame.motion);
 
-  UpdatePositions(dt, frame.motion, frame.flags, frame.positions);
+  UpdatePositions(dt, frame.motion, frame.flags, frame.transforms);
   ApplyEventEffects(events, frame);
 }
 

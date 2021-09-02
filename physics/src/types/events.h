@@ -69,14 +69,14 @@ inline bool operator==(const Stick &a, const Stick &b) {
 
 std::ostream &operator<<(std::ostream &os, const Stick &stick);
 
-struct Destruction {
-  int32_t value;
-};
+// Causes the object to become destroyed, which also returns it to a ReusePool,
+// if one is set.
+struct Destruction {};
 
 static_assert(std::is_standard_layout<Destruction>());
 
 inline bool operator==(const Destruction &a, const Destruction &b) {
-  return a.value == b.value;
+  return true;
 }
 
 std::ostream &operator<<(std::ostream &os, const Destruction &destruction);
@@ -135,6 +135,21 @@ inline bool operator==(const RocketRefuel &a, const RocketRefuel &b) {
 
 std::ostream &operator<<(std::ostream &os, const RocketRefuel &rocket_refuel);
 
+struct Spawn {
+  int32_t pool_id;
+  Vector3 velocity;
+  Quaternion rotation;
+};
+
+static_assert(std::is_standard_layout<Spawn>());
+
+inline bool operator==(const Spawn &a, const Spawn &b) {
+  return a.pool_id == b.pool_id && a.velocity == b.velocity &&
+         a.rotation == b.rotation;
+}
+
+std::ostream &operator<<(std::ostream &os, const Spawn &spawn);
+
 struct Event {
   enum Type {
     kAcceleration = 1,
@@ -145,6 +160,7 @@ struct Event {
     kTeleportation = 6,
     kRocketBurn = 7,
     kRocketRefuel = 8,
+    kSpawn = 9,
   };
 
   Event() = default;
@@ -188,6 +204,9 @@ struct Event {
         rocket_refuel(rocket_refuel),
         position(position) {}
 
+  explicit Event(int id, Vector3 position, Spawn &&spawn)
+      : id(id), type(kSpawn), spawn(spawn), position(position) {}
+
   int32_t id;
   Type type;
   Vector3 position;
@@ -201,6 +220,7 @@ struct Event {
     Teleportation teleportation;
     RocketBurn rocket_burn;
     RocketRefuel rocket_refuel;
+    Spawn spawn;
   };
 };
 

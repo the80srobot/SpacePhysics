@@ -34,9 +34,11 @@ EXPORT Frame *CreateFrame();
 // offset into the core component arrays. (It follows that the arrays must not
 // be reordered.)
 
+// DEPRECATED
 EXPORT int FrameSize(Frame *frame);
 EXPORT void FrameResize(Frame *frame, int count);
 
+// DEPRECATED
 EXPORT Transform *FrameGetMutablePositions(Frame *frame, int *count);
 EXPORT Mass *FrameGetMutableMass(Frame *frame, int *count);
 EXPORT Motion *FrameGetMutableMotion(Frame *frame, int *count);
@@ -51,20 +53,57 @@ EXPORT Flags *FrameGetMutableFlags(Frame *frame, int *count);
 // (With core components that's not needed, because the array offset is the ID.)
 // They must still be kept sorted by object ID, to enable binary search.
 
+// DEPRECATED
 EXPORT void FrameResizeOrbits(Frame *frame, int count);
 EXPORT Orbit *FrameGetMutableOrbits(Frame *frame, int *count);
 
+// DEPRECATED
 EXPORT void FrameResizeDurability(Frame *frame, int count);
 EXPORT Durability *FrameGetMutableDurability(Frame *frame, int *count);
 
+// DEPRECATED
 EXPORT void FrameResizeRockets(Frame *frame, int count);
 EXPORT Rocket *FrameGetMutableRockets(Frame *frame, int *count);
 
+// DEPRECATED
 EXPORT void FrameResizeTriggers(Frame *frame, int count);
 EXPORT Trigger *FrameGetMutableTriggers(Frame *frame, int *count);
 
-EXPORT void DestroyFrame(Frame *frame);
+struct FrameView {
+  size_t object_count;
 
+  Transform *transform_data;
+  Mass *mass_data;
+  Motion *motion_data;
+  Collider *collider_data;
+  Glue *glue_data;
+  Flags *flags_data;
+
+  size_t orbit_count;
+  Orbit *orbit_data;
+
+  size_t durability_count;
+  Durability *durability_data;
+
+  size_t rocket_count;
+  Rocket *rocket_data;
+
+  size_t trigger_count;
+  Trigger *trigger_data;
+
+  size_t reuse_pool_count;
+  ReusePool *reuse_pool_data;
+
+  size_t reuse_tag_count;
+  ReuseTag *reuse_tag_data;
+};
+
+EXPORT void FrameSyncView(Frame *frame, FrameView *out_view);
+
+EXPORT int32_t FramePushObjectPool(Frame *frame, int32_t prototype_id,
+                                   int32_t capacity);
+
+EXPORT void DestroyFrame(Frame *frame);
 // ORBIT API //
 
 EXPORT Vector3 KeplerEllipticalPosition(Orbit::Kepler kepler);
@@ -112,6 +151,9 @@ EXPORT void TimelineGetEvents(Timeline *timeline, int frame_no,
 EXPORT void TimelineGetEventRange(Timeline *timeline, int first_frame_no,
                                   int last_frame_no, EventBuffer *buffer);
 EXPORT void TimelineSetLabel(Timeline *timeline, int id, Timeline::Label label);
+EXPORT int32_t TimelineSpawnEvent(Timeline *timeline, int frame_no, int pool_id,
+                                  Vector3 position, Vector3 velocity,
+                                  Quaternion rotation);
 EXPORT void DestroyTimeline(Timeline *timeline);
 
 // Timeline query API //

@@ -104,7 +104,7 @@ INSTANTIATE_TEST_SUITE_P(
                       }),
             },
             .output{
-                Event(0, Vector3{0.5, 0, 0}, Destruction{.value = 1}),
+                Event(0, Vector3{0.5, 0, 0}, Destruction{}),
             },
         },
         TestCase{
@@ -158,8 +158,8 @@ INSTANTIATE_TEST_SUITE_P(
                       }),
             },
             .output{
-                Event(0, Vector3{0.5, 0, 0}, Destruction{.value = 1}),
-                Event(1, Vector3{0.5, 0, 0}, Destruction{.value = 1}),
+                Event(0, Vector3{0.5, 0, 0}, Destruction{}),
+                Event(1, Vector3{0.5, 0, 0}, Destruction{}),
             },
         },
         TestCase{
@@ -371,7 +371,7 @@ INSTANTIATE_TEST_SUITE_P(
                     .condition = Trigger::kColission,
                     .target = Trigger::kCollidingObject,
                     .flags = Trigger::kDestroyTrigger,
-                    .event = Event(0, {}, Destruction{1}),
+                    .event = Event(0, {}, Destruction{}),
                 },
             },
             .input{
@@ -383,8 +383,8 @@ INSTANTIATE_TEST_SUITE_P(
                       }),
             },
             .output{
-                Event(1, Vector3{0.5, 0, 0}, Destruction{1}),
-                Event(0, Vector3{0.5, 0, 0}, Destruction{1}),
+                Event(1, Vector3{0.5, 0, 0}, Destruction{}),
+                Event(0, Vector3{0.5, 0, 0}, Destruction{}),
             },
         }),
     [](const testing::TestParamInfo<RuleSetTest::ParamType>& tc) {

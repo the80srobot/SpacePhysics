@@ -11,6 +11,7 @@
 #include <vector>
 
 #include "absl/status/status.h"
+#include "absl/status/statusor.h"
 #include "dsa/interval_tree.h"
 #include "pipeline.h"
 #include "types/frame.h"
@@ -49,6 +50,11 @@ class Timeline {
   void InputEvent(int frame_no, const Event &event);
   void InputEvent(int first_frame_no, int last_frame_no, const Event &event);
   void Simulate();
+
+  absl::StatusOr<int32_t> SpawnFromPool(int frame_no, int pool_id,
+                                        const Vector3 &position,
+                                        const Vector3 &velocity,
+                                        const Quaternion &rotation);
 
   struct Trajectory {
     enum Attribute { kPosition = 1 << 0, kVelocity = 1 << 1 };

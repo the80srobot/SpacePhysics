@@ -53,8 +53,8 @@ TEST(PipelineTest, FallingSphere) {
     ++frame_no;
   }
 
-  EXPECT_LT(frame.positions[0].position.y, 1);
-  EXPECT_GT(frame.positions[0].position.y, 0);
+  EXPECT_LT(frame.transforms[0].position.y, 1);
+  EXPECT_GT(frame.transforms[0].position.y, 0);
 
   ASSERT_GE(buffer.size(), 1);
   EXPECT_EQ(buffer[0].type, Event::kCollision);

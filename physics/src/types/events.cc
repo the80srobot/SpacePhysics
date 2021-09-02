@@ -29,7 +29,7 @@ std::ostream &operator<<(std::ostream &os, const Stick &stick) {
 }
 
 std::ostream &operator<<(std::ostream &os, const Destruction &destruction) {
-  return os << "Destruction{/*value=*/" << destruction.value << "}";
+  return os << "Destruction{}";
 }
 
 std::ostream &operator<<(std::ostream &os, const Damage &damage) {

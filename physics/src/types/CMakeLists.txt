@@ -9,3 +9,13 @@ target_link_libraries(
     components
     absl::span
 )
+
+add_library(
+    frame
+    frame.cc
+)
+
+target_link_libraries(
+    frame
+    components
+)

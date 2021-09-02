@@ -107,6 +107,9 @@ struct Flags {
   static constexpr uint32_t kDestroyed = 1;
   static constexpr uint32_t kGlued = 1 << 1;
   static constexpr uint32_t kOrbiting = 1 << 2;
+  static constexpr uint32_t kReusable = 1 << 3;
+
+  // TODO(adam): Store the most recent change and frame.
 };
 
 static_assert(std::is_standard_layout<Flags>());

@@ -80,10 +80,11 @@ std::ostream &operator<<(std::ostream &os, const Orbit &orbit);
 struct Durability {
   int32_t id;
   int32_t value;
+  int32_t max;
 };
 
 inline bool operator==(const Durability &a, const Durability &b) {
-  return a.id == b.id && a.value == b.value;
+  return a.id == b.id && a.value == b.value && a.max == b.max;
 }
 
 std::ostream &operator<<(std::ostream &os, const Durability &durability);
@@ -94,11 +95,11 @@ struct Rocket {
   int32_t id;
 
   struct FuelTank {
-    // How much does the fuel in the tank weigh.
+    // How much does the fuel in the tank weigh in kg per second of thrust.
     float mass_flow_rate;
-    // Fuel in seconds: how long can the tank provide thrust
+    // Fuel in seconds: how long can the tank provide thrust in seconds.
     float fuel;
-    // The force the fuel tank can produce as kg * ms^-2.
+    // The force the fuel tank can produce in N.
     float thrust;
   };
 
@@ -119,6 +120,29 @@ inline bool operator==(const Rocket::FuelTank &a, const Rocket::FuelTank &b) {
 std::ostream &operator<<(std::ostream &os, const Rocket &rocket);
 
 std::ostream &operator<<(std::ostream &os, const Rocket::FuelTank &fuel_tank);
+
+struct ReuseTag {
+  int32_t id;
+  int32_t pool_idx;
+  int32_t next_reuse_tag_idx;
+};
+
+inline bool operator==(const ReuseTag &a, const ReuseTag &b) {
+  return a.id == b.id && a.pool_idx == b.pool_idx &&
+         a.next_reuse_tag_idx == b.next_reuse_tag_idx;
+}
+
+struct ReusePool {
+  int32_t id;
+  int32_t first_reuse_tag_idx;
+
+  int32_t in_use_count;
+  int32_t free_count;
+};
+
+inline bool operator==(const ReusePool &a, const ReusePool &b) {
+  return a.id == b.id && a.first_reuse_tag_idx == b.first_reuse_tag_idx;
+}
 
 }  // namespace vstr
 

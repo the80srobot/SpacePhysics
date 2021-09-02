@@ -66,22 +66,6 @@ struct Quaternion {
   // This order rotation is compatible with Unity.
   static Quaternion FromEulerZXY(Vector3 euler);
 
-  static inline Quaternion FromEulerX(float angle);
-
-  static inline Quaternion FromEulerY(float angle) {
-    angle *= 0.5f;
-    const float sin = std::sinf(angle);
-    const float cos = std::cosf(angle);
-    return Quaternion{0, sin, 0, cos};
-  }
-
-  static inline Quaternion FromEulerZ(float angle) {
-    angle *= 0.5f;
-    const float sin = std::sinf(angle);
-    const float cos = std::cosf(angle);
-    return Quaternion{0, 0, sin, cos};
-  }
-
   static inline float Dot(const Quaternion x, const Quaternion y) {
     return x.a * y.a + x.b * y.b + x.c * y.c + x.d * y.d;
   }

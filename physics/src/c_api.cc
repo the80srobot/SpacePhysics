@@ -12,16 +12,17 @@
 #include <chrono>
 
 #include "debug.h"
+#include "systems/object_pool.h"
 
 namespace vstr {
 extern "C" {
 
 Frame *CreateFrame() { return new Frame(); }
 
-int FrameSize(Frame *frame) { return frame->positions.size(); }
+int FrameSize(Frame *frame) { return frame->transforms.size(); }
 
 void FrameResize(Frame *frame, int count) {
-  frame->positions.resize(count);
+  frame->transforms.resize(count);
   frame->mass.resize(count);
   frame->motion.resize(count);
   frame->colliders.resize(count);
@@ -30,8 +31,8 @@ void FrameResize(Frame *frame, int count) {
 }
 
 Transform *FrameGetMutablePositions(Frame *frame, int *count) {
-  *count = frame->positions.size();
-  return frame->positions.data();
+  *count = frame->transforms.size();
+  return frame->transforms.data();
 }
 
 Mass *FrameGetMutableMass(Frame *frame, int *count) {
@@ -91,6 +92,36 @@ void FrameResizeTriggers(Frame *frame, int count) {
 Trigger *FrameGetMutableTriggers(Frame *frame, int *count) {
   *count = frame->triggers.size();
   return frame->triggers.data();
+}
+
+void FrameSyncView(Frame *frame, FrameView *out_view) {
+  out_view->transform_data = frame->transforms.data();
+  out_view->mass_data = frame->mass.data();
+  out_view->motion_data = frame->motion.data();
+  out_view->collider_data = frame->colliders.data();
+  out_view->glue_data = frame->glue.data();
+  out_view->flags_data = frame->flags.data();
+  out_view->orbit_data = frame->orbits.data();
+  out_view->durability_data = frame->durability.data();
+  out_view->rocket_data = frame->rockets.data();
+  out_view->trigger_data = frame->triggers.data();
+  out_view->reuse_pool_data = frame->reuse_pools.data();
+  out_view->reuse_tag_data = frame->reuse_tags.data();
+
+  out_view->object_count = frame->transforms.size();
+  out_view->orbit_count = frame->orbits.size();
+  out_view->durability_count = frame->durability.size();
+  out_view->rocket_count = frame->rockets.size();
+  out_view->trigger_count = frame->triggers.size();
+  out_view->reuse_pool_count = frame->reuse_pools.size();
+  out_view->reuse_tag_count = frame->reuse_tags.size();
+}
+
+int32_t FramePushObjectPool(Frame *frame, int32_t prototype_id,
+                            int32_t capacity) {
+  frame->reuse_pools.push_back(ReusePool{});
+  InitializePool(frame->reuse_pools.size() - 1, prototype_id, capacity, *frame);
+  return frame->reuse_pools.size() - 1;
 }
 
 void DestroyFrame(Frame *frame) { delete frame; }
@@ -204,6 +235,17 @@ void TimelineGetEventRange(Timeline *timeline, int first_frame_no,
 void TimelineSetLabel(Timeline *timeline, const int id,
                       const Timeline::Label label) {
   timeline->SetLabel(id, label);
+}
+
+int32_t TimelineSpawnEvent(Timeline *timeline, const int frame_no,
+                           const int pool_id, const Vector3 position,
+                           const Vector3 velocity, const Quaternion rotation) {
+  auto result =
+      timeline->SpawnFromPool(frame_no, pool_id, position, velocity, rotation);
+  if (result.ok()) {
+    return result.value();
+  }
+  return -1;
 }
 
 void DestroyTimeline(Timeline *timeline) { delete timeline; }
