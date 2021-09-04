@@ -13,6 +13,7 @@
 #define VSTR_QUATERNION
 
 #include <cmath>
+#include <compare>
 #include <iostream>
 
 #include "geometry/float.h"
@@ -79,15 +80,9 @@ struct Quaternion {
   }
 
   static Quaternion Interpolate(Quaternion a, Quaternion b, const float t);
+
+  auto operator<=>(const Quaternion&) const = default;
 };
-
-inline bool operator==(const Quaternion lhs, const Quaternion rhs) {
-  return lhs.b == rhs.b && lhs.c == rhs.c && lhs.d == rhs.d && lhs.a == rhs.a;
-}
-
-inline bool operator!=(const Quaternion lhs, const Quaternion rhs) {
-  return lhs.b != rhs.b || lhs.c != rhs.c || lhs.d != rhs.d || lhs.a != rhs.a;
-}
 
 Quaternion operator*(const Quaternion lhs, const Quaternion rhs);
 

@@ -11,6 +11,7 @@
 #include <absl/status/statusor.h>
 #include <assert.h>
 
+#include <compare>
 #include <iostream>
 #include <optional>
 #include <vector>
@@ -30,12 +31,10 @@ struct Interval {
     return low < other.high && other.low < high;
   }
 
+  auto operator<=>(const Interval&) const = default;
   inline bool Empty() const { return low >= high; }
 };
 
-bool operator<(const Interval& x, const Interval& y);
-bool operator>(const Interval& x, const Interval& y);
-bool operator==(const Interval& x, const Interval& y);
 std::ostream& operator<<(std::ostream& os, const Interval& interval);
 
 // An interval tree implemented as an augmented red-black tree.

@@ -11,6 +11,7 @@
 #define VSTR_VECTOR3
 
 #include <cmath>
+#include <compare>
 #include <iostream>
 
 #include "geometry/float.h"
@@ -69,6 +70,8 @@ struct Vector3 {
         a.x * b.y - a.y * b.x,
     };
   }
+
+  auto operator<=>(const Vector3&) const = default;
 };
 
 static_assert(std::is_standard_layout<Vector3>());
@@ -136,14 +139,6 @@ inline bool operator>(const Vector3 lhs, const Vector3 rhs) {
 
 inline bool operator>=(const Vector3 lhs, const Vector3 rhs) {
   return lhs.x >= rhs.x && lhs.y >= rhs.y && lhs.z >= rhs.z;
-}
-
-inline bool operator==(const Vector3 lhs, const Vector3 rhs) {
-  return lhs.x == rhs.x && lhs.y == rhs.y && lhs.z == rhs.z;
-}
-
-inline bool operator!=(const Vector3 lhs, const Vector3 rhs) {
-  return lhs.x != rhs.x || lhs.y != rhs.y || lhs.z != rhs.z;
 }
 
 std::ostream& operator<<(std::ostream& os, Vector3 v);
