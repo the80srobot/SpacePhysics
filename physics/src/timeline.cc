@@ -10,6 +10,14 @@
 #include "systems/object_pool.h"
 
 namespace vstr {
+namespace {
+
+bool EventPartialEq(const Event &a, const Event &b) {
+  if (a.type != Event::kSpawnAttempt) return a == b;
+  return a == b && a.position == b.position;
+}
+
+}  // namespace
 
 const Frame *Timeline::GetFrame(const int frame_no) {
   if (frame_no == frame_no_) return &frame_;
@@ -85,14 +93,17 @@ void Timeline::Truncate(int new_head) {
 }
 
 void Timeline::InputEvent(const int frame_no, const Event &event) {
-  Truncate(frame_no);
-  events_.MergeInsert(Interval(frame_no, frame_no + 1), event);
+  assert(frame_no > tail_);
+  Truncate(frame_no - 1);
+  events_.MergeInsert(Interval(frame_no, frame_no + 1), event, EventPartialEq);
 }
 
 void Timeline::InputEvent(int first_frame_no, int last_frame_no,
                           const Event &event) {
-  Truncate(first_frame_no);
-  events_.MergeInsert(Interval(first_frame_no, last_frame_no + 1), event);
+  assert(first_frame_no > tail_);
+  Truncate(first_frame_no - 1);
+  events_.MergeInsert(Interval(first_frame_no, last_frame_no + 1), event,
+                      EventPartialEq);
 }
 
 void Timeline::Simulate() {
@@ -197,25 +208,6 @@ absl::Status Timeline::Query(int resolution,
   }
 
   return absl::OkStatus();
-}
-
-absl::StatusOr<int32_t> Timeline::SpawnFromPool(const int frame_no,
-                                                const int pool_id,
-                                                const Vector3 &position,
-                                                const Vector3 &velocity,
-                                                const Quaternion &rotation) {
-  if (!Replay(frame_no)) {
-    return absl::OutOfRangeError("cannot seek to frame");
-  }
-
-  const auto spawn_event =
-      SpawnEventFromPool(pool_id, position, rotation, velocity, frame_);
-  if (!spawn_event.ok()) {
-    return spawn_event.status();
-  }
-
-  InputEvent(frame_no, spawn_event.value());
-  return spawn_event.value().id;
 }
 
 void Timeline::SetLabel(const int id, Label label) {

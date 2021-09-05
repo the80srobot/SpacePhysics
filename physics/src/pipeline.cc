@@ -11,6 +11,7 @@
 
 #include "geometry/vector3.h"
 #include "systems/event_effects.h"
+#include "systems/object_pool.h"
 #include "systems/rocket.h"
 
 namespace vstr {
@@ -19,6 +20,7 @@ void Pipeline::Step(const float dt, const int frame_no, Frame &frame,
                     absl::Span<Event> input, std::vector<Event> &out_events) {
   // The frame pipeline is as follows:
   //
+  // 0) Convert SpawnAttempt events to Spawns <- SKIPPED ON REPLAY
   // 1) Compute closed-form orbital motion
   // 2) Compute acceleration from rockets
   // 3) Compute forces from acceleration input and gravity, from them velocities
@@ -28,6 +30,7 @@ void Pipeline::Step(const float dt, const int frame_no, Frame &frame,
   // 7) Apply computed velocities and update positions
   // 8) Apply events, including effects of collisions
 
+  ConvertSpawnAttempts(input, out_events, frame);
   UpdateOrbitalMotion(dt * frame_no, frame.transforms, frame.orbits,
                       frame.motion);
 

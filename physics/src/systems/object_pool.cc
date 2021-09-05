@@ -18,6 +18,7 @@ int32_t ClaimFromPool(ReusePool &pool, std::vector<ReuseTag> &reuse_tags) {
     --pool.free_count;
     ++pool.in_use_count;
   }
+  assert(pool.free_count == 0 || pool.first_reuse_tag_idx >= 0);
   return idx;
 }
 
@@ -36,6 +37,7 @@ void CopyObject(const int32_t dst, const int32_t src, Frame &frame) {
 
 void ReturnToPool(const int tag_idx, ReusePool &pool,
                   std::vector<ReuseTag> &reuse_tags) {
+  assert(reuse_tags[tag_idx].next_reuse_tag_idx == -1);
   reuse_tags[tag_idx].next_reuse_tag_idx = pool.first_reuse_tag_idx;
   pool.first_reuse_tag_idx = tag_idx;
   ++pool.free_count;
@@ -87,6 +89,17 @@ void ReleaseObject(const int32_t id, const std::vector<Flags> &flags,
   ReturnToPool(tag_idx, reuse_pools[pool_idx], reuse_tags);
 }
 
+void ConvertSpawnAttempts(absl::Span<Event> in_events,
+                          std::vector<Event> &out_events, Frame &frame) {
+  for (const Event &event : in_events) {
+    if (event.type != Event::kSpawnAttempt) continue;
+    auto spawn_event = SpawnEventFromPool(event.id, event.position,
+                                          event.spawn_attempt.rotation,
+                                          event.spawn_attempt.velocity, frame);
+    if (spawn_event.ok()) out_events.push_back(spawn_event.value());
+  }
+}
+
 absl::StatusOr<Event> SpawnEventFromPool(const int32_t pool_id,
                                          const Vector3 &position,
                                          const Quaternion &rotation,
@@ -115,6 +128,12 @@ void SpawnObject(const Event &spawn_event, Frame &frame) {
   frame.transforms[id].rotation = spawn_event.spawn.rotation;
   frame.motion[id] = Motion::FromPositionAndVelocity(
       spawn_event.position, spawn_event.spawn.velocity);
+
+  const int32_t durability_idx = FindOptionalComponent(frame.durability, id);
+  if (durability_idx >= 0) {
+    frame.durability[durability_idx].value =
+        frame.durability[durability_idx].max;
+  }
 }
 
 }  // namespace vstr

@@ -51,46 +51,68 @@ std::ostream &operator<<(std::ostream &os, const RocketRefuel &rocket_refuel) {
             << ", /*fuel_tank=*/" << rocket_refuel.fuel_tank << "}";
 }
 
-bool operator==(const Event &a, const Event &b) {
-  // TODO(adam): we currently ignore the event position. This is a hack, but it
-  // allows MergeInsert to work with Events even when the previous event
-  // position is unknown, which is most of the time. Possibly the IntervalTree
-  // should support a separate protocol for matching events on their
-  // identifiers, without considering metadata.
-  if (!(a.id == b.id && a.type == b.type)) {
+std::ostream &operator<<(std::ostream &os, const Spawn &spawn) {
+  return os << "Spawn{/*pool_id=*/" << spawn.pool_id << ", /*velocity=*/"
+            << spawn.velocity << ", /*rotation=*/" << spawn.rotation << "}";
+}
+
+std::ostream &operator<<(std::ostream &os, const SpawnAttempt &spawn_attempt) {
+  return os << "SpawnAttempt{/*velocity=*/" << spawn_attempt.velocity
+            << ", /*rotation=*/" << spawn_attempt.rotation << "}";
+}
+
+bool Event::operator==(const Event &other) const {
+  if (!(id == other.id && type == other.type)) {
     return false;
   }
 
-  switch (a.type) {
+  switch (type) {
     case Event::kAcceleration:
-      return a.acceleration == b.acceleration;
+      return acceleration == other.acceleration;
     case Event::kStick:
-      return a.stick == b.stick;
+      return stick == other.stick;
     case Event::kDestruction:
-      return a.destruction == b.destruction;
+      return destruction == other.destruction;
     case Event::kCollision:
-      return a.collision == b.collision;
+      return collision == other.collision;
     case Event::kDamage:
-      return a.damage == b.damage;
+      return damage == other.damage;
     case Event::kTeleportation:
-      return a.teleportation == b.teleportation;
+      return teleportation == other.teleportation;
     case Event::kRocketBurn:
-      return a.rocket_burn == b.rocket_burn;
+      return rocket_burn == other.rocket_burn;
     case Event::kRocketRefuel:
-      return a.rocket_refuel == b.rocket_refuel;
+      return rocket_refuel == other.rocket_refuel;
+    case Event::kSpawn:
+      return spawn == other.spawn;
+    case Event::kSpawnAttempt:
+      return spawn_attempt == other.spawn_attempt;
     default:
       assert(false);  // Programmer error - unreachable.
       return true;
   }
 }
 
-bool operator>(const Event &a, const Event &b) {
-  return (a.id > b.id) || ((a.id == b.id) && a.type > b.type);
+std::partial_ordering Event::operator<=>(const Event &other) const {
+  std::partial_ordering result = id <=> other.id;
+  if (result != std::partial_ordering::equivalent) return result;
+  if ((result = (type <=> other.type)) != std::partial_ordering::equivalent)
+    return result;
+
+  if ((result = (position <=> other.position)) !=
+      std::partial_ordering::equivalent)
+    return result;
 }
 
-bool operator<(const Event &a, const Event &b) {
-  return (a.id < b.id) || ((a.id == b.id) && a.type < b.type);
-}
+// bool operator>(const Event &a, const Event &b) {
+//   if (a.id > b.id) return true;
+
+//   return (a.id > b.id) || ((a.id == b.id) && a.type > b.type);
+// }
+
+// bool operator<(const Event &a, const Event &b) {
+//   return (a.id < b.id) || ((a.id == b.id) && a.type < b.type);
+// }
 
 std::ostream &operator<<(std::ostream &os, const Event::Type event_type) {
   switch (event_type) {
@@ -110,6 +132,10 @@ std::ostream &operator<<(std::ostream &os, const Event::Type event_type) {
       return os << "rocket_burn";
     case Event::Type::kRocketRefuel:
       return os << "rocket_refuel";
+    case Event::Type::kSpawn:
+      return os << "spawn";
+    case Event::Type::kSpawnAttempt:
+      return os << "spawn_attempt";
     default:
       assert("not reachable");
   }
@@ -135,6 +161,10 @@ std::ostream &operator<<(std::ostream &os, const Event &event) {
       return os << ", /*rocket_burn=*/" << event.rocket_burn << "}";
     case Event::Type::kRocketRefuel:
       return os << ", /*rocket_refuel=*/" << event.rocket_refuel << "}";
+    case Event::Type::kSpawn:
+      return os << ", /*spawn=*/" << event.spawn << " }";
+    case Event::Type::kSpawnAttempt:
+      return os << ", /*spawn_attempt=*/" << event.spawn_attempt << " }";
     default:
       assert("not reachable");
   }

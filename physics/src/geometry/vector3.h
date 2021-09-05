@@ -71,7 +71,7 @@ struct Vector3 {
     };
   }
 
-  auto operator<=>(const Vector3&) const = default;
+  std::partial_ordering operator<=>(const Vector3&) const = default;
 };
 
 static_assert(std::is_standard_layout<Vector3>());
@@ -123,22 +123,6 @@ inline void operator/=(Vector3& lhs, const float rhs) {
   lhs.x /= rhs;
   lhs.y /= rhs;
   lhs.z /= rhs;
-}
-
-inline bool operator<(const Vector3 lhs, const Vector3 rhs) {
-  return lhs.x < rhs.x && lhs.y < rhs.y && lhs.z < rhs.z;
-}
-
-inline bool operator<=(const Vector3 lhs, const Vector3 rhs) {
-  return lhs.x <= rhs.x && lhs.y <= rhs.y && lhs.z <= rhs.z;
-}
-
-inline bool operator>(const Vector3 lhs, const Vector3 rhs) {
-  return lhs.x > rhs.x && lhs.y > rhs.y && lhs.z > rhs.z;
-}
-
-inline bool operator>=(const Vector3 lhs, const Vector3 rhs) {
-  return lhs.x >= rhs.x && lhs.y >= rhs.y && lhs.z >= rhs.z;
 }
 
 std::ostream& operator<<(std::ostream& os, Vector3 v);

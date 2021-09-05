@@ -8,6 +8,7 @@
 #ifndef VSTR_EVENTS
 #define VSTR_EVENTS
 
+#include <compare>
 #include <iostream>
 #include <vector>
 
@@ -150,6 +151,19 @@ inline bool operator==(const Spawn &a, const Spawn &b) {
 
 std::ostream &operator<<(std::ostream &os, const Spawn &spawn);
 
+struct SpawnAttempt {
+  Vector3 velocity;
+  Quaternion rotation;
+};
+
+static_assert(std::is_standard_layout<SpawnAttempt>());
+
+inline bool operator==(const SpawnAttempt &a, const SpawnAttempt &b) {
+  return a.velocity == b.velocity && a.rotation == b.rotation;
+}
+
+std::ostream &operator<<(std::ostream &os, const SpawnAttempt &spawn_request);
+
 struct Event {
   enum Type {
     kAcceleration = 1,
@@ -161,6 +175,7 @@ struct Event {
     kRocketBurn = 7,
     kRocketRefuel = 8,
     kSpawn = 9,
+    kSpawnAttempt = 10,
   };
 
   Event() = default;
@@ -207,6 +222,12 @@ struct Event {
   explicit Event(int id, Vector3 position, Spawn &&spawn)
       : id(id), type(kSpawn), spawn(spawn), position(position) {}
 
+  explicit Event(int id, Vector3 position, SpawnAttempt &&spawn_attempt)
+      : id(id),
+        type(kSpawnAttempt),
+        spawn_attempt(spawn_attempt),
+        position(position) {}
+
   int32_t id;
   Type type;
   Vector3 position;
@@ -221,19 +242,17 @@ struct Event {
     RocketBurn rocket_burn;
     RocketRefuel rocket_refuel;
     Spawn spawn;
+    SpawnAttempt spawn_attempt;
   };
+
+  bool operator==(const Event &) const;
+  std::partial_ordering operator<=>(const Event &) const;
 };
 
 static_assert(sizeof(Event) == 60);
 static_assert(std::is_standard_layout<Event>());
 static_assert(std::is_move_assignable<Event>());
 static_assert(std::is_move_constructible<Event>());
-
-bool operator==(const Event &a, const Event &b);
-bool operator>=(const Event &a, const Event &b);
-bool operator>(const Event &a, const Event &b);
-bool operator<(const Event &a, const Event &b);
-bool operator<=(const Event &a, const Event &b);
 
 std::ostream &operator<<(std::ostream &os, Event::Type event_type);
 std::ostream &operator<<(std::ostream &os, const Event &event);

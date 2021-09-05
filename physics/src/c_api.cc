@@ -237,17 +237,6 @@ void TimelineSetLabel(Timeline *timeline, const int id,
   timeline->SetLabel(id, label);
 }
 
-int32_t TimelineSpawnEvent(Timeline *timeline, const int frame_no,
-                           const int pool_id, const Vector3 position,
-                           const Vector3 velocity, const Quaternion rotation) {
-  auto result =
-      timeline->SpawnFromPool(frame_no, pool_id, position, velocity, rotation);
-  if (result.ok()) {
-    return result.value();
-  }
-  return -1;
-}
-
 void DestroyTimeline(Timeline *timeline) { delete timeline; }
 
 bool TimelineRunQuery(Timeline *timeline, TimelineQuery *query) {

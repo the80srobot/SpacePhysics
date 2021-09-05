@@ -10,6 +10,10 @@
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 
+#include <random>
+
+#include "absl/container/flat_hash_map.h"
+#include "systems/object_pool.h"
 #include "test_matchers/vector3.h"
 #include "types/required_components.h"
 
@@ -119,7 +123,7 @@ TEST(TimelineTest, AccelerateRewindAccelerate) {
 
   // One-second 10 ms/s/s burn in the direction of sphere 1. After 1 second, the
   // speed of sphere 0 should be 10 m/s.
-  timeline.InputEvent(0, 1.0f / dt,
+  timeline.InputEvent(1, 1.0f / dt,
                       Event(0, {}, Acceleration{Vector3{0, -10, 0}}));
 
   // After two seconds, sphere 0 should be on its way towards sphere 1.
@@ -135,15 +139,15 @@ TEST(TimelineTest, AccelerateRewindAccelerate) {
 
   // Rewind the clock to 0.5 second and burn in the opposite direction. The
   // resulting speed should be 0.
-  timeline.InputEvent(0.5f / dt, 1.0f / dt,
+  timeline.InputEvent(0.5f / dt + 1, 1.0f / dt,
                       Event(0, {}, Acceleration{Vector3{0, 10, 0}}));
-  frame_no = 0.5f / dt;
-  for (float t = 0.5; t < 2; t += dt) {
+  // At the two-second mark, the speed should be 0 - simulate until the frame at
+  // 2 seconds in is available.
+  frame_no = 2.0f / dt;
+  for (frame = nullptr; frame == nullptr; frame = timeline.GetFrame(frame_no)) {
     timeline.Simulate();
-    ++frame_no;
   }
 
-  frame = timeline.GetFrame(frame_no);
   ASSERT_NE(frame, nullptr);
   EXPECT_THAT(frame->motion[0].velocity, Vector3ApproxEq(Vector3{0, 0, 0}));
 }
@@ -241,6 +245,115 @@ TEST(TimelineTest, DestroyAttractor) {
   //   EXPECT_EQ(buffer[0].collision.second_id, 1);
 }
 
+// Spawns a bunch of asteroids from a pool and tests that they get correctly
+// destroyed on collisions.
+TEST(TimelineTest, ObjectPoolCollisions) {
+  const float dt = 1.0f / 30;
+  Frame initial_frame;
+  const int32_t asteroid_pool_id = initial_frame.Push();
+  const int32_t asteroid_prototype_id =
+      initial_frame.Push(Transform{}, Mass{.inertial = 10}, Motion{},
+                         Collider{.layer = 1, .radius = 0.5}, Glue{}, Flags{});
+  SetOptionalComponent(asteroid_prototype_id, Durability{.value = 2, .max = 2},
+                       initial_frame.durability);
+  InitializePool(asteroid_pool_id, asteroid_prototype_id, 8, initial_frame);
+
+  // Big attractor in the middle - asteroids should bounce off its surface,
+  // colliding with it and becoming damaged in the process. Any asteroids that
+  // manage to move out of max range are also destroyed directly.
+  const float kMaxRange = 1000;
+  const int32_t attractor_id = initial_frame.Push(
+      Transform{.position{0, 0, 0}},
+      Mass{.inertial = 9999, .active = 9999, .cutoff_distance = kMaxRange},
+      Motion{}, Collider{.layer = 1, .radius = 5}, Glue{},
+      Flags{.value = Flags::kOrbiting});
+  // The orbit component ensures the attractor doesn't move during collisions.
+  SetOptionalComponent(attractor_id, Orbit{}, initial_frame.orbits);
+
+  LayerMatrix matrix({{1, 1}});
+  CollisionRuleSet rules;
+  rules.Add({1, 1},
+            CollisionEffect{
+                .type = CollisionEffect::kApplyDamage,
+                .apply_damage_parameters{.constant = 1},
+                .min_speed = 0,
+                .max_speed = std::numeric_limits<float>::infinity(),
+                .min_impactor_energy = 0,
+                .max_impactor_energy = std::numeric_limits<float>::infinity(),
+            });
+  rules.Add({1, 1},
+            CollisionEffect{
+                .type = CollisionEffect::kBounce,
+                .bounce_parameters{.elasticity = 1},
+                .min_speed = 0,
+                .max_speed = std::numeric_limits<float>::infinity(),
+                .min_impactor_energy = 0,
+                .max_impactor_energy = std::numeric_limits<float>::infinity(),
+            });
+
+  Timeline timeline(initial_frame, 0, matrix, rules, dt, 30, kFirstOrderEuler);
+
+  // Run until 100 collisions occur. Whenever a collision happens, check that
+  // objects are destroyed after the second time they collide with something,
+  // and that this frees up free_count in the pool.
+  std::vector<Event> events;
+  int collisions = 0;
+  int live_asteroids = 0;
+  std::mt19937 random_generator;
+  std::uniform_real_distribution<float> position_distribution(-10, 10);
+  absl::flat_hash_map<int32_t, int32_t> asteroids;
+  for (int frame_no = 1; collisions < 100; ++frame_no) {
+    if (frame_no > 100.0f / dt) {
+      FAIL() << "collision_count=" << collisions << " after 100 s "
+             << " (waiting for 100 collisions)";
+    }
+
+    int pending_spawn_attempts = 0;
+    while (live_asteroids < initial_frame.reuse_pools[0].free_count) {
+      timeline.InputEvent(
+          frame_no, Event(asteroid_pool_id,
+                          Vector3{position_distribution(random_generator),
+                                  position_distribution(random_generator),
+                                  position_distribution(random_generator)},
+                          SpawnAttempt{}));
+      ++live_asteroids;
+      ++pending_spawn_attempts;
+    }
+
+    timeline.Simulate();
+
+    events.clear();
+    timeline.GetEvents(frame_no, events);
+
+    // Make sure all spawn attempts succeed.
+    for (const Event& event : events) {
+      if (event.type != Event::kSpawn) continue;
+      // Asteroids start with two hit points.
+      asteroids[event.id] = 2;
+      --pending_spawn_attempts;
+    }
+    ASSERT_EQ(pending_spawn_attempts, 0);
+
+    // Instead of listening for destruction events, monitor the outcomes - each
+    // object should be destroyed after the second collision.
+    for (const Event& event : events) {
+      if (event.type != Event::kCollision) continue;
+      ++collisions;
+
+      auto it = asteroids.find(event.collision.first_id);
+      if (it != asteroids.end()) {
+        if (--it->second == 0) asteroids.erase(it);
+      }
+
+      it = asteroids.find(event.collision.second_id);
+      if (it != asteroids.end()) {
+        if (--it->second == 0) asteroids.erase(it);
+      }
+    }
+    live_asteroids = asteroids.size();
+  }
+}
+
 struct TestCase {
   const std::string comment;
   const int resolution;
@@ -300,7 +413,7 @@ TEST_P(QueryTest, QueryTest) {
 
   // One-second 1 ms/s/s burn in the direction away from the attractor should
   // exactly cancel the gravitational pull for the fist 10 frames.
-  timeline.InputEvent(0, 1.0f / dt,
+  timeline.InputEvent(1, 1.0f / dt,
                       Event(0, {}, Acceleration{Vector3{1, 0, 0}}));
 
   // Simulate 10 seconds = 100 frames.

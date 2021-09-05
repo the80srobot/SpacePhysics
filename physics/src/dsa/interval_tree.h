@@ -171,13 +171,17 @@ class IntervalTree {
     return false;
   }
 
-  void MergeInsert(Interval interval, const T value) {
+  void MergeInsert(
+      Interval interval, const T value,
+      std::function<bool(const T& a, const T& b)> eq =
+          [](const T& a, const T& b) { return a == b; }) {
     auto end = End();
     for (auto it = Overlap(Interval(interval.low - 1, interval.high));
          it != end; ++it) {
-      if (it->second == value) {
-        // This might look like it does nothing, but the equality operator for T
-        // might ignore certain metadata that we'd prefer to keep.
+      if (eq(it->second, value)) {
+        // We have found an event that overlaps with the event being inserted
+        // and the caller-defined partial equality function considers it the
+        // same event. Merge the fucker.
         const T old_value = it->second;
         interval.low = std::min(it->first.low, interval.low);
         interval.high = std::max(it->first.high, interval.high);

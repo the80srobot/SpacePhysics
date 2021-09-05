@@ -47,6 +47,7 @@ target_link_libraries(
     timeline
     gtest_main
     gmock_main
+    absl::flat_hash_map
 )
 
 add_executable(

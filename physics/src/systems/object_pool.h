@@ -16,6 +16,9 @@
 
 namespace vstr {
 
+void ConvertSpawnAttempts(absl::Span<Event> in_events,
+                          std::vector<Event> &out_events, Frame &frame);
+
 // Claims a free object from the pool and returns an event that will spawn it.
 // Fails if there are no free objects.
 absl::StatusOr<Event> SpawnEventFromPool(int32_t pool_id,

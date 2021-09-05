@@ -151,9 +151,6 @@ EXPORT void TimelineGetEvents(Timeline *timeline, int frame_no,
 EXPORT void TimelineGetEventRange(Timeline *timeline, int first_frame_no,
                                   int last_frame_no, EventBuffer *buffer);
 EXPORT void TimelineSetLabel(Timeline *timeline, int id, Timeline::Label label);
-EXPORT int32_t TimelineSpawnEvent(Timeline *timeline, int frame_no, int pool_id,
-                                  Vector3 position, Vector3 velocity,
-                                  Quaternion rotation);
 EXPORT void DestroyTimeline(Timeline *timeline);
 
 // Timeline query API //

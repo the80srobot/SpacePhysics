@@ -13,13 +13,19 @@
 namespace vstr {
 namespace {
 
+inline bool IsDestroyed(const int32_t id, const Frame &frame) {
+  return frame.flags[id].value & Flags::kDestroyed;
+}
+
 void HandleDestroy(int32_t id, Frame &frame) {
+  if (IsDestroyed(id, frame)) return;
   frame.flags[id].value |= Flags::kDestroyed;
   if (frame.flags[id].value & Flags::kReusable)
     ReleaseObject(id, frame.flags, frame.reuse_pools, frame.reuse_tags);
 }
 
 void HandleDamage(const Event &event, Frame &frame) {
+  if (IsDestroyed(event.id, frame)) return;
   int32_t idx = FindOptionalComponent(frame.durability, event.id);
   if (idx >= 0) {
     frame.durability[idx].value -= event.damage.value;
