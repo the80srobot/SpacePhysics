@@ -123,25 +123,24 @@ std::ostream &operator<<(std::ostream &os, const Rocket::FuelTank &fuel_tank);
 
 struct ReuseTag {
   int32_t id;
-  int32_t pool_idx;
-  int32_t next_reuse_tag_idx;
+  int32_t pool_id;
+  int32_t next_id;
 };
 
 inline bool operator==(const ReuseTag &a, const ReuseTag &b) {
-  return a.id == b.id && a.pool_idx == b.pool_idx &&
-         a.next_reuse_tag_idx == b.next_reuse_tag_idx;
+  return a.id == b.id && a.pool_id == b.pool_id && a.next_id == b.next_id;
 }
 
 struct ReusePool {
   int32_t id;
-  int32_t first_reuse_tag_idx;
+  int32_t first_id;
 
   int32_t in_use_count;
   int32_t free_count;
 };
 
 inline bool operator==(const ReusePool &a, const ReusePool &b) {
-  return a.id == b.id && a.first_reuse_tag_idx == b.first_reuse_tag_idx;
+  return a.id == b.id && a.first_id == b.first_id;
 }
 
 }  // namespace vstr

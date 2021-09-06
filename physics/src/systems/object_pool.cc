@@ -11,15 +11,17 @@ namespace vstr {
 namespace {
 
 int32_t ClaimFromPool(ReusePool &pool, std::vector<ReuseTag> &reuse_tags) {
-  int32_t idx = pool.first_reuse_tag_idx;
-  if (idx >= 0) {
-    pool.first_reuse_tag_idx = reuse_tags[idx].next_reuse_tag_idx;
-    reuse_tags[idx].next_reuse_tag_idx = -1;
+  int32_t id = pool.first_id;
+  if (id >= 0) {
+    int32_t idx = FindOptionalComponent(reuse_tags, id);
+    assert(idx >= 0);
+    pool.first_id = reuse_tags[idx].next_id;
+    reuse_tags[idx].next_id = -1;
     --pool.free_count;
     ++pool.in_use_count;
   }
-  assert(pool.free_count == 0 || pool.first_reuse_tag_idx >= 0);
-  return idx;
+  assert(pool.free_count == 0 || pool.first_id >= 0);
+  return id;
 }
 
 void CopyObject(const int32_t dst, const int32_t src, Frame &frame) {
@@ -37,9 +39,9 @@ void CopyObject(const int32_t dst, const int32_t src, Frame &frame) {
 
 void ReturnToPool(const int tag_idx, ReusePool &pool,
                   std::vector<ReuseTag> &reuse_tags) {
-  assert(reuse_tags[tag_idx].next_reuse_tag_idx == -1);
-  reuse_tags[tag_idx].next_reuse_tag_idx = pool.first_reuse_tag_idx;
-  pool.first_reuse_tag_idx = tag_idx;
+  assert(reuse_tags[tag_idx].next_id == -1);
+  reuse_tags[tag_idx].next_id = pool.first_id;
+  pool.first_id = tag_idx;
   ++pool.free_count;
   --pool.in_use_count;
 }
@@ -53,14 +55,13 @@ void InitializePool(const int32_t pool_id, const int32_t prototype_id,
                            ReusePool{.id = pool_id,
                                      .free_count = 0,
                                      .in_use_count = capacity,
-                                     .first_reuse_tag_idx = -1},
+                                     .first_id = -1},
                            frame.reuse_pools);
   assert(pool_idx >= 0);
 
   const int32_t tag_idx = SetOptionalComponent(
       prototype_id,
-      ReuseTag{
-          .id = prototype_id, .next_reuse_tag_idx = -1, .pool_idx = pool_idx},
+      ReuseTag{.id = prototype_id, .next_id = -1, .pool_id = pool_id},
       frame.reuse_tags);
 
   frame.flags[prototype_id].value |= Flags::kReusable | Flags::kDestroyed;
@@ -81,7 +82,8 @@ void ReleaseObject(const int32_t id, const std::vector<Flags> &flags,
   if (!(flags[id].value & Flags::kReusable)) return;
 
   const int32_t tag_idx = FindOptionalComponent(reuse_tags, id);
-  const int32_t pool_idx = reuse_tags[tag_idx].pool_idx;
+  const int32_t pool_idx =
+      FindOptionalComponent(reuse_pools, reuse_tags[tag_idx].pool_id);
 
   assert(pool_idx >= 0);
   assert(tag_idx >= 0);
@@ -109,15 +111,15 @@ absl::StatusOr<Event> SpawnEventFromPool(const int32_t pool_id,
   if (pool_idx < 0)
     return absl::InvalidArgumentError("object has no pool component");
 
-  const int tag_idx =
+  const int tag_id =
       ClaimFromPool(frame.reuse_pools[pool_idx], frame.reuse_tags);
-  if (tag_idx < 0) {
+  if (tag_id < 0) {
     return absl::ResourceExhaustedError(
         "no free objects available in the pool");
   }
 
   return Event(
-      frame.reuse_tags[tag_idx].id, position,
+      tag_id, position,
       Spawn{.pool_id = pool_id, .rotation = rotation, .velocity = velocity});
 }
 
