@@ -70,7 +70,7 @@ EXPORT void FrameResizeTriggers(Frame *frame, int count);
 EXPORT Trigger *FrameGetMutableTriggers(Frame *frame, int *count);
 
 struct FrameView {
-  size_t object_count;
+  int32_t object_count;
 
   Transform *transform_data;
   Mass *mass_data;
@@ -79,22 +79,22 @@ struct FrameView {
   Glue *glue_data;
   Flags *flags_data;
 
-  size_t orbit_count;
+  int32_t orbit_count;
   Orbit *orbit_data;
 
-  size_t durability_count;
+  int32_t durability_count;
   Durability *durability_data;
 
-  size_t rocket_count;
+  int32_t rocket_count;
   Rocket *rocket_data;
 
-  size_t trigger_count;
+  int32_t trigger_count;
   Trigger *trigger_data;
 
-  size_t reuse_pool_count;
+  int32_t reuse_pool_count;
   ReusePool *reuse_pool_data;
 
-  size_t reuse_tag_count;
+  int32_t reuse_tag_count;
   ReuseTag *reuse_tag_data;
 };
 
