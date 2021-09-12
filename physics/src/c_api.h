@@ -27,48 +27,15 @@ extern "C" {
 
 EXPORT Frame *CreateFrame();
 
-// CORE COMPONENT DATA
-
 // Every object has all six core components. Consequently, the six arrays that
 // hold the component data are all the same size, and each object's ID acts as
 // offset into the core component arrays. (It follows that the arrays must not
 // be reordered.)
-
-// DEPRECATED
-EXPORT int FrameSize(Frame *frame);
-EXPORT void FrameResize(Frame *frame, int count);
-
-// DEPRECATED
-EXPORT Transform *FrameGetMutablePositions(Frame *frame, int *count);
-EXPORT Mass *FrameGetMutableMass(Frame *frame, int *count);
-EXPORT Motion *FrameGetMutableMotion(Frame *frame, int *count);
-EXPORT Collider *FrameGetMutableColliders(Frame *frame, int *count);
-EXPORT Glue *FrameGetMutableGlue(Frame *frame, int *count);
-EXPORT Flags *FrameGetMutableFlags(Frame *frame, int *count);
-
-// OPTIONAL COMPONENT DATA
-
+//
 // Optional components are handled differently from core components. Optional
 // components include as their first field the ID of the object they belong to.
 // (With core components that's not needed, because the array offset is the ID.)
 // They must still be kept sorted by object ID, to enable binary search.
-
-// DEPRECATED
-EXPORT void FrameResizeOrbits(Frame *frame, int count);
-EXPORT Orbit *FrameGetMutableOrbits(Frame *frame, int *count);
-
-// DEPRECATED
-EXPORT void FrameResizeDurability(Frame *frame, int count);
-EXPORT Durability *FrameGetMutableDurability(Frame *frame, int *count);
-
-// DEPRECATED
-EXPORT void FrameResizeRockets(Frame *frame, int count);
-EXPORT Rocket *FrameGetMutableRockets(Frame *frame, int *count);
-
-// DEPRECATED
-EXPORT void FrameResizeTriggers(Frame *frame, int count);
-EXPORT Trigger *FrameGetMutableTriggers(Frame *frame, int *count);
-
 struct FrameView {
   int32_t object_count;
 
@@ -106,6 +73,11 @@ EXPORT int32_t FramePush(Frame *frame, Transform transform, Mass mass,
 
 EXPORT int32_t FramePushObjectPool(Frame *frame, int32_t prototype_id,
                                    int32_t capacity);
+
+EXPORT int32_t FrameSetOrbit(Frame *frame, Orbit orbit);
+EXPORT int32_t FrameSetDurability(Frame *frame, Durability durability);
+EXPORT int32_t FrameSetRocket(Frame *frame, Rocket rocket);
+EXPORT int32_t FrameSetTrigger(Frame *frame, Trigger trigger);
 
 EXPORT void DestroyFrame(Frame *frame);
 

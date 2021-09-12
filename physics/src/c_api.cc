@@ -19,81 +19,6 @@ extern "C" {
 
 Frame *CreateFrame() { return new Frame(); }
 
-int FrameSize(Frame *frame) { return frame->transforms.size(); }
-
-void FrameResize(Frame *frame, int count) {
-  frame->transforms.resize(count);
-  frame->mass.resize(count);
-  frame->motion.resize(count);
-  frame->colliders.resize(count);
-  frame->glue.resize(count);
-  frame->flags.resize(count);
-}
-
-Transform *FrameGetMutablePositions(Frame *frame, int *count) {
-  *count = frame->transforms.size();
-  return frame->transforms.data();
-}
-
-Mass *FrameGetMutableMass(Frame *frame, int *count) {
-  *count = frame->mass.size();
-  return frame->mass.data();
-}
-
-Motion *FrameGetMutableMotion(Frame *frame, int *count) {
-  *count = frame->motion.size();
-  return frame->motion.data();
-}
-
-Collider *FrameGetMutableColliders(Frame *frame, int *count) {
-  *count = frame->colliders.size();
-  return frame->colliders.data();
-}
-
-Glue *FrameGetMutableGlue(Frame *frame, int *count) {
-  *count = frame->glue.size();
-  return frame->glue.data();
-}
-
-Flags *FrameGetMutableFlags(Frame *frame, int *count) {
-  *count = frame->flags.size();
-  return frame->flags.data();
-}
-
-void FrameResizeOrbits(Frame *frame, int count) { frame->orbits.resize(count); }
-
-Orbit *FrameGetMutableOrbits(Frame *frame, int *count) {
-  *count = frame->orbits.size();
-  return frame->orbits.data();
-}
-
-void FrameResizeDurability(Frame *frame, int count) {
-  frame->durability.resize(count);
-}
-
-Durability *FrameGetMutableDurability(Frame *frame, int *count) {
-  *count = frame->durability.size();
-  return frame->durability.data();
-}
-
-void FrameResizeRockets(Frame *frame, int count) {
-  frame->rockets.resize(count);
-}
-
-Rocket *FrameGetMutableRockets(Frame *frame, int *count) {
-  *count = frame->rockets.size();
-  return frame->rockets.data();
-}
-
-void FrameResizeTriggers(Frame *frame, int count) {
-  frame->triggers.resize(count);
-}
-
-Trigger *FrameGetMutableTriggers(Frame *frame, int *count) {
-  *count = frame->triggers.size();
-  return frame->triggers.data();
-}
-
 void FrameSyncView(Frame *frame, FrameView *out_view) {
   out_view->transform_data = frame->transforms.data();
   out_view->mass_data = frame->mass.data();
@@ -128,6 +53,22 @@ int32_t FramePushObjectPool(Frame *frame, int32_t prototype_id,
   frame->reuse_pools.push_back(ReusePool{});
   InitializePool(frame->reuse_pools.size() - 1, prototype_id, capacity, *frame);
   return frame->reuse_pools.size() - 1;
+}
+
+int32_t FrameSetOrbit(Frame *frame, Orbit orbit) {
+  SetOptionalComponent(orbit.id, orbit, frame->orbits);
+}
+
+int32_t FrameSetDurability(Frame *frame, Durability durability) {
+  SetOptionalComponent(durability.id, durability, frame->durability);
+}
+
+int32_t FrameSetRocket(Frame *frame, Rocket rocket) {
+  SetOptionalComponent(rocket.id, rocket, frame->rockets);
+}
+
+int32_t FrameSetTrigger(Frame *frame, Trigger trigger) {
+  SetOptionalComponent(trigger.id, trigger, frame->triggers);
 }
 
 void DestroyFrame(Frame *frame) { delete frame; }
