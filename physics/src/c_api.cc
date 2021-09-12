@@ -117,6 +117,12 @@ void FrameSyncView(Frame *frame, FrameView *out_view) {
   out_view->reuse_tag_count = frame->reuse_tags.size();
 }
 
+int32_t FramePush(Frame *frame, Transform transform, Mass mass, Motion motion,
+                  Collider collider, Glue glue, Flags flags) {
+  return frame->Push(std::move(transform), std::move(mass), std::move(motion),
+                     std::move(collider), std::move(glue), std::move(flags));
+}
+
 int32_t FramePushObjectPool(Frame *frame, int32_t prototype_id,
                             int32_t capacity) {
   frame->reuse_pools.push_back(ReusePool{});

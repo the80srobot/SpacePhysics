@@ -100,10 +100,15 @@ struct FrameView {
 
 EXPORT void FrameSyncView(Frame *frame, FrameView *out_view);
 
+EXPORT int32_t FramePush(Frame *frame, Transform transform, Mass mass,
+                         Motion motion, Collider collider, Glue glue,
+                         Flags flags);
+
 EXPORT int32_t FramePushObjectPool(Frame *frame, int32_t prototype_id,
                                    int32_t capacity);
 
 EXPORT void DestroyFrame(Frame *frame);
+
 // ORBIT API //
 
 EXPORT Vector3 KeplerEllipticalPosition(Orbit::Kepler kepler);
