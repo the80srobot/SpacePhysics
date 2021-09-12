@@ -37,11 +37,11 @@ void CopyObject(const int32_t dst, const int32_t src, Frame &frame) {
   CopyOptionalComponent(dst, src, frame.reuse_tags);
 }
 
-void ReturnToPool(const int tag_idx, ReusePool &pool,
+void ReturnToPool(const int id, const int tag_idx, ReusePool &pool,
                   std::vector<ReuseTag> &reuse_tags) {
   assert(reuse_tags[tag_idx].next_id == -1);
   reuse_tags[tag_idx].next_id = pool.first_id;
-  pool.first_id = tag_idx;
+  pool.first_id = id;
   ++pool.free_count;
   --pool.in_use_count;
 }
@@ -71,9 +71,11 @@ void InitializePool(const int32_t pool_id, const int32_t prototype_id,
     CopyObject(id, prototype_id, frame);
     ReleaseObject(id, frame.flags, frame.reuse_pools, frame.reuse_tags);
   }
-  ReturnToPool(tag_idx, frame.reuse_pools[pool_idx], frame.reuse_tags);
+  ReturnToPool(prototype_id, tag_idx, frame.reuse_pools[pool_idx],
+               frame.reuse_tags);
 
   assert(frame.reuse_pools[pool_idx].free_count == capacity);
+  assert(frame.reuse_pools[pool_idx].first_id != pool_id);
 }
 
 void ReleaseObject(const int32_t id, const std::vector<Flags> &flags,
@@ -88,7 +90,7 @@ void ReleaseObject(const int32_t id, const std::vector<Flags> &flags,
   assert(pool_idx >= 0);
   assert(tag_idx >= 0);
 
-  ReturnToPool(tag_idx, reuse_pools[pool_idx], reuse_tags);
+  ReturnToPool(id, tag_idx, reuse_pools[pool_idx], reuse_tags);
 }
 
 void ConvertSpawnAttempts(absl::Span<Event> in_events,
