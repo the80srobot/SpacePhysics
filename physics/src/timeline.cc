@@ -215,7 +215,7 @@ void Timeline::SetLabel(const int id, Label label) {
     labels_.reserve(id * 2);
     labels_.resize(id + 1, {0});
   }
-  label.label[7] = 0;
+  label.label[sizeof(label.label) - 1] = 0;
   labels_[id] = label;
 }
 

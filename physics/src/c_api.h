@@ -71,8 +71,8 @@ EXPORT int32_t FramePush(Frame *frame, Transform transform, Mass mass,
                          Motion motion, Collider collider, Glue glue,
                          Flags flags);
 
-EXPORT int32_t FramePushObjectPool(Frame *frame, int32_t prototype_id,
-                                   int32_t capacity);
+EXPORT int32_t FramePushObjectPool(Frame *frame, int32_t pool_id,
+                                   int32_t prototype_id, int32_t capacity, int32_t *out_ids);
 
 EXPORT int32_t FrameSetOrbit(Frame *frame, Orbit orbit);
 EXPORT int32_t FrameSetDurability(Frame *frame, Durability durability);

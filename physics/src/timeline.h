@@ -68,7 +68,7 @@ class Timeline {
   inline int tail() const { return tail_; }
 
   struct Label {
-    char label[8];
+    char label[32];
   };
 
   void SetLabel(int id, Label label);

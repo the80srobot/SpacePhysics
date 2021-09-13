@@ -84,7 +84,7 @@ ssize_t SetOptionalComponent(const int32_t id, const T &component,
   component_data.push_back(std::move(cpy));
   // This check: is the component we just added out of order?
   if (component_data.size() > 1 &&
-      (component_data.end() - 2)->id > (component_data.end() - 3)->id) {
+      (component_data.end() - 1)->id < (component_data.end() - 2)->id) {
     // We only hit this codepath when initializing, because components can't be
     // added when the simulation is running.
     std::sort(component_data.begin(), component_data.end(),

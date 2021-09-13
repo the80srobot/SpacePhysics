@@ -48,8 +48,8 @@ void ReturnToPool(const int id, const int tag_idx, ReusePool &pool,
 
 }  // namespace
 
-void InitializePool(const int32_t pool_id, const int32_t prototype_id,
-                    const int32_t capacity, Frame &frame) {
+int32_t InitializePool(const int32_t pool_id, const int32_t prototype_id,
+                       const int32_t capacity, Frame &frame) {
   const int32_t pool_idx =
       SetOptionalComponent(pool_id,
                            ReusePool{.id = pool_id,
@@ -58,6 +58,7 @@ void InitializePool(const int32_t pool_id, const int32_t prototype_id,
                                      .first_id = -1},
                            frame.reuse_pools);
   assert(pool_idx >= 0);
+  assert(prototype_id != pool_id);
 
   const int32_t tag_idx = SetOptionalComponent(
       prototype_id,
@@ -76,6 +77,8 @@ void InitializePool(const int32_t pool_id, const int32_t prototype_id,
 
   assert(frame.reuse_pools[pool_idx].free_count == capacity);
   assert(frame.reuse_pools[pool_idx].first_id != pool_id);
+
+  return pool_idx;
 }
 
 void ReleaseObject(const int32_t id, const std::vector<Flags> &flags,

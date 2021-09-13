@@ -48,27 +48,39 @@ int32_t FramePush(Frame *frame, Transform transform, Mass mass, Motion motion,
                      std::move(collider), std::move(glue), std::move(flags));
 }
 
-int32_t FramePushObjectPool(Frame *frame, int32_t prototype_id,
-                            int32_t capacity) {
-  frame->reuse_pools.push_back(ReusePool{});
-  InitializePool(frame->reuse_pools.size() - 1, prototype_id, capacity, *frame);
-  return frame->reuse_pools.size() - 1;
+int32_t FramePushObjectPool(Frame *frame, int32_t pool_id, int32_t prototype_id,
+                            int32_t capacity, int32_t *obj_ids) {
+  if (pool_id == prototype_id) {
+    return -1;
+  }
+
+  int32_t pool_idx = InitializePool(pool_id, prototype_id, capacity, *frame);
+
+  for (int id = frame->reuse_pools[pool_idx].first_id; id >= 0;
+       id = frame->reuse_tags[FindOptionalComponent(frame->reuse_tags, id)]
+                .next_id) {
+    *obj_ids = id;
+    ++obj_ids;
+    assert(--capacity >= 0);
+  }
+
+  return pool_idx;
 }
 
 int32_t FrameSetOrbit(Frame *frame, Orbit orbit) {
-  SetOptionalComponent(orbit.id, orbit, frame->orbits);
+  return SetOptionalComponent(orbit.id, orbit, frame->orbits);
 }
 
 int32_t FrameSetDurability(Frame *frame, Durability durability) {
-  SetOptionalComponent(durability.id, durability, frame->durability);
+  return SetOptionalComponent(durability.id, durability, frame->durability);
 }
 
 int32_t FrameSetRocket(Frame *frame, Rocket rocket) {
-  SetOptionalComponent(rocket.id, rocket, frame->rockets);
+  return SetOptionalComponent(rocket.id, rocket, frame->rockets);
 }
 
 int32_t FrameSetTrigger(Frame *frame, Trigger trigger) {
-  SetOptionalComponent(trigger.id, trigger, frame->triggers);
+  return SetOptionalComponent(trigger.id, trigger, frame->triggers);
 }
 
 void DestroyFrame(Frame *frame) { delete frame; }

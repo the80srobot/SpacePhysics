@@ -39,8 +39,8 @@ void ReleaseObject(int32_t id, const std::vector<Flags> &flags,
 // Initializes the pool by copying the prototype up to capacity. The prototype
 // will become one of the reusable objects and be set to destroyed in the
 // process.
-void InitializePool(int32_t pool_id, int32_t prototype_id, int32_t capacity,
-                    Frame &frame);
+int32_t InitializePool(int32_t pool_id, int32_t prototype_id, int32_t capacity,
+                       Frame &frame);
 
 }  // namespace vstr
 
