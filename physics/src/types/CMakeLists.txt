@@ -7,6 +7,7 @@ add_library(
 
 target_link_libraries(
     components
+    geometry
     absl::span
 )
 

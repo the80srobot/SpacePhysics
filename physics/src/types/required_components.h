@@ -22,13 +22,11 @@ namespace vstr {
 struct Transform {
   Vector3 position;
   Quaternion rotation;
+
+  bool operator==(const Transform &) const = default;
 };
 
 static_assert(std::is_standard_layout<Transform>());
-
-inline bool operator==(const Transform &a, const Transform &b) {
-  return a.position == b.position;
-}
 
 std::ostream &operator<<(std::ostream &os, const Transform &position);
 
@@ -36,14 +34,11 @@ struct Mass {
   float inertial;
   float active;
   float cutoff_distance;
+
+  bool operator==(const Mass &) const = default;
 };
 
 static_assert(std::is_standard_layout<Mass>());
-
-inline bool operator==(const Mass &a, const Mass &b) {
-  return a.inertial == b.inertial && a.active == b.active &&
-         a.cutoff_distance == b.cutoff_distance;
-}
 
 std::ostream &operator<<(std::ostream &os, const Mass &mass);
 
@@ -79,25 +74,21 @@ struct Collider {
   uint32_t layer;
   float radius;
   Vector3 center;
+
+  bool operator==(const Collider &) const = default;
 };
 
 static_assert(std::is_standard_layout<Collider>());
-
-inline bool operator==(const Collider &a, const Collider &b) {
-  return a.layer == b.layer && a.radius == b.radius && a.center == b.center;
-}
 
 std::ostream &operator<<(std::ostream &os, const Collider &collider);
 
 struct Glue {
   int32_t parent_id;
+
+  bool operator==(const Glue &) const = default;
 };
 
 static_assert(std::is_standard_layout<Glue>());
-
-inline bool operator==(const Glue &a, const Glue &b) {
-  return a.parent_id == b.parent_id;
-}
 
 std::ostream &operator<<(std::ostream &os, const Glue &orbit);
 
@@ -109,14 +100,12 @@ struct Flags {
   static constexpr uint32_t kOrbiting = 1 << 2;
   static constexpr uint32_t kReusable = 1 << 3;
 
+  bool operator==(const Flags &) const = default;
+
   // TODO(adam): Store the most recent change and frame.
 };
 
 static_assert(std::is_standard_layout<Flags>());
-
-inline bool operator==(const Flags &a, const Flags &b) {
-  return a.value == b.value;
-}
 
 std::ostream &operator<<(std::ostream &os, const Flags &destroyed);
 

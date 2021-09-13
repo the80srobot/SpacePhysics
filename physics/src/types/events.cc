@@ -102,17 +102,9 @@ std::partial_ordering Event::operator<=>(const Event &other) const {
   if ((result = (position <=> other.position)) !=
       std::partial_ordering::equivalent)
     return result;
+
+  return std::partial_ordering::equivalent;
 }
-
-// bool operator>(const Event &a, const Event &b) {
-//   if (a.id > b.id) return true;
-
-//   return (a.id > b.id) || ((a.id == b.id) && a.type > b.type);
-// }
-
-// bool operator<(const Event &a, const Event &b) {
-//   return (a.id < b.id) || ((a.id == b.id) && a.type < b.type);
-// }
 
 std::ostream &operator<<(std::ostream &os, const Event::Type event_type) {
   switch (event_type) {

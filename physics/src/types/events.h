@@ -31,13 +31,11 @@ struct Acceleration {
   Vector3 linear;
   Flag flags;
   Quaternion angular;
+
+  bool operator==(const Acceleration &) const = default;
 };
 
 static_assert(std::is_standard_layout<Acceleration>());
-
-inline bool operator==(const Acceleration &a, const Acceleration &b) {
-  return a.linear == b.linear && a.angular == b.angular;
-}
 
 std::ostream &operator<<(std::ostream &os, const Acceleration &acceleration);
 
@@ -60,13 +58,10 @@ std::ostream &operator<<(std::ostream &os, const Collision &collision);
 
 struct Stick {
   int32_t parent_id;
+  bool operator==(const Stick &) const = default;
 };
 
 static_assert(std::is_standard_layout<Stick>());
-
-inline bool operator==(const Stick &a, const Stick &b) {
-  return a.parent_id == b.parent_id;
-}
 
 std::ostream &operator<<(std::ostream &os, const Stick &stick);
 
@@ -84,13 +79,10 @@ std::ostream &operator<<(std::ostream &os, const Destruction &destruction);
 
 struct Damage {
   int32_t value;
+  bool operator==(const Damage &) const = default;
 };
 
 static_assert(std::is_standard_layout<Damage>());
-
-inline bool operator==(const Damage &a, const Damage &b) {
-  return a.value == b.value;
-}
 
 std::ostream &operator<<(std::ostream &os, const Damage &damage);
 
@@ -98,13 +90,11 @@ struct Teleportation {
   Vector3 new_position;
   Vector3 new_velocity;
   Quaternion new_spin;
+
+  bool operator==(const Teleportation &) const = default;
 };
 
 static_assert(std::is_standard_layout<Teleportation>());
-
-inline bool operator==(const Teleportation &a, const Teleportation &b) {
-  return a.new_position == b.new_position && a.new_velocity == b.new_velocity;
-}
 
 std::ostream &operator<<(std::ostream &os, const Teleportation &teleportation);
 
@@ -113,26 +103,22 @@ struct RocketBurn {
   // The desired thrust as fraction of the rocket's output. (So ranging in
   // magnitude from 0 to 1.)
   Vector3 thrust;
+
+  bool operator==(const RocketBurn &) const = default;
 };
 
 static_assert(std::is_standard_layout<RocketBurn>());
-
-inline bool operator==(const RocketBurn &a, const RocketBurn &b) {
-  return a.fuel_tank == b.fuel_tank && a.thrust == b.thrust;
-}
 
 std::ostream &operator<<(std::ostream &os, const RocketBurn &rocket_burn);
 
 struct RocketRefuel {
   int32_t fuel_tank_no;
   Rocket::FuelTank fuel_tank;
+
+  bool operator==(const RocketRefuel &) const = default;
 };
 
 static_assert(std::is_standard_layout<RocketRefuel>());
-
-inline bool operator==(const RocketRefuel &a, const RocketRefuel &b) {
-  return a.fuel_tank_no == b.fuel_tank_no && a.fuel_tank == b.fuel_tank;
-}
 
 std::ostream &operator<<(std::ostream &os, const RocketRefuel &rocket_refuel);
 
@@ -140,27 +126,22 @@ struct Spawn {
   int32_t pool_id;
   Vector3 velocity;
   Quaternion rotation;
+
+  bool operator==(const Spawn &) const = default;
 };
 
 static_assert(std::is_standard_layout<Spawn>());
-
-inline bool operator==(const Spawn &a, const Spawn &b) {
-  return a.pool_id == b.pool_id && a.velocity == b.velocity &&
-         a.rotation == b.rotation;
-}
 
 std::ostream &operator<<(std::ostream &os, const Spawn &spawn);
 
 struct SpawnAttempt {
   Vector3 velocity;
   Quaternion rotation;
+
+  bool operator==(const SpawnAttempt &) const = default;
 };
 
 static_assert(std::is_standard_layout<SpawnAttempt>());
-
-inline bool operator==(const SpawnAttempt &a, const SpawnAttempt &b) {
-  return a.velocity == b.velocity && a.rotation == b.rotation;
-}
 
 std::ostream &operator<<(std::ostream &os, const SpawnAttempt &spawn_request);
 
