@@ -18,7 +18,7 @@
 #include "systems/glue_system.h"
 #include "systems/kepler.h"
 #include "systems/motion.h"
-#include "types/id.h"
+#include "types/entity.h"
 #include "types/optional_components.h"
 #include "types/required_components.h"
 

@@ -15,7 +15,7 @@
 #include "geometry/aabb.h"
 #include "geometry/quaternion.h"
 #include "geometry/vector3.h"
-#include "types/id.h"
+#include "types/entity.h"
 
 namespace vstr {
 
