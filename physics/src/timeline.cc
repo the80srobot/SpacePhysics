@@ -12,9 +12,12 @@
 namespace vstr {
 namespace {
 
+// Used with IntervalTree::MergeInsert, to ensure that most events can only
+// occur once per frame per position. Spawn events are excepted, and may occur
+// multiple times per frame at the same position.
 bool EventPartialEq(const Event &a, const Event &b) {
-  if (a.type != Event::kSpawnAttempt) return a == b;
-  return a == b && a.position == b.position;
+  if (a.type != Event::kSpawnAttempt) return a.CanMergeWith(b);
+  return a == b;
 }
 
 }  // namespace
@@ -115,7 +118,7 @@ void Timeline::Simulate() {
   pipeline_->Step(frame_time_, head_, head_frame_,
                   absl::MakeSpan(input_buffer_), simulate_buffer_);
   for (const auto &event : simulate_buffer_) {
-    events_.MergeInsert(Interval{head_, head_ + 1}, event);
+    events_.MergeInsert(Interval{head_, head_ + 1}, event, EventPartialEq);
   }
 
   if ((head_ % key_frame_period_) == 0) {

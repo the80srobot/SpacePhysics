@@ -61,7 +61,7 @@ std::ostream &operator<<(std::ostream &os, const SpawnAttempt &spawn_attempt) {
             << ", /*rotation=*/" << spawn_attempt.rotation << "}";
 }
 
-bool Event::operator==(const Event &other) const {
+bool Event::CanMergeWith(const Event &other) const {
   if (!(id == other.id && type == other.type)) {
     return false;
   }
@@ -91,6 +91,10 @@ bool Event::operator==(const Event &other) const {
       assert(false);  // Programmer error - unreachable.
       return true;
   }
+}
+
+bool Event::operator==(const Event &other) const {
+  return position == other.position && CanMergeWith(other);
 }
 
 std::partial_ordering Event::operator<=>(const Event &other) const {

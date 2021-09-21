@@ -214,6 +214,7 @@ struct Event {
   Type type;
   Vector3 position;
 
+  // Payloads - which is set is controlled by type.
   union {
     Acceleration acceleration;
     Collision collision;
@@ -227,7 +228,13 @@ struct Event {
     SpawnAttempt spawn_attempt;
   };
 
+  // A partial equality check, ignoring metadata. Unlike ==, ignores event
+  // position and payload-specific fields that are derived from position, or
+  // related to position.
+  bool CanMergeWith(const Event &other) const;
+
   bool operator==(const Event &) const;
+
   std::partial_ordering operator<=>(const Event &) const;
 };
 
