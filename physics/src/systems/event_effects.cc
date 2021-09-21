@@ -70,17 +70,22 @@ void ApplyEventEffects(absl::Span<Event> events, Frame &frame) {
         event.id.Get(frame.motion).spin = event.teleportation.new_spin;
         break;
       case Event::kRocketBurn:
-      // Nothing to do - already handled before motion.
+        assert("RocketBurn should be converted to acceleration by this stage");
+        break;
       case Event::kRocketRefuel: {
         auto status = ApplyRocketRefuel(event, frame.mass, frame.rockets);
         assert(status.ok());
         break;
       }
+      case Event::kSpawnAttempt:
+        assert("SpawnAttempt should be converted to Spawn by this stage");
+        break;
       case Event::kSpawn: {
         SpawnObject(event, frame);
         break;
       }
       default:
+        assert("not reachable");
         break;
     }
   }
