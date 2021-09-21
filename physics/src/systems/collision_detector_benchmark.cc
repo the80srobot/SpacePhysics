@@ -42,7 +42,7 @@ void GenerateCluster(const int size, const bool collision,
     Vector3 velocity = (collision ? -offset : offset);
     frame.colliders.push_back(Collider{1, radius});
     frame.flags.push_back(Flags{false});
-    frame.glue.push_back(Glue{-1});
+    frame.glue.push_back(Glue{Entity::Nil()});
     frame.positions.push_back(Transform{center});
     frame.motion.push_back(Motion::FromPositionAndVelocity(center, velocity));
   }

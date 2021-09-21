@@ -47,7 +47,7 @@ INSTANTIATE_TEST_SUITE_P(
             .rockets = {},
             .expect_mass = {},
             .expect_rockets = {},
-            .event = Event(0, {}, RocketRefuel{}),
+            .event = Event(Entity(0), {}, RocketRefuel{}),
             .status_code = absl::StatusCode::kNotFound,
         },
         TestCase{
@@ -57,7 +57,7 @@ INSTANTIATE_TEST_SUITE_P(
                     {.inertial = 10},
                 },
             .rockets = {{
-                .id = 0,
+                .id = Entity(0),
                 .fuel_tank_count = 1,
                 .fuel_tanks{
                     {.mass_flow_rate = 0, .fuel = 0, .thrust = 0},
@@ -70,7 +70,7 @@ INSTANTIATE_TEST_SUITE_P(
             .expect_rockets =
                 {
                     {
-                        .id = 0,
+                        .id = Entity(0),
                         .fuel_tank_count = 1,
                         .fuel_tanks{
                             {.mass_flow_rate = 1, .fuel = 10, .thrust = 10},
@@ -78,7 +78,7 @@ INSTANTIATE_TEST_SUITE_P(
                     },
                 },
             .event = Event(
-                0, {0},
+                Entity(0), {0},
                 RocketRefuel{
                     .fuel_tank_no = -1,
                     .fuel_tank{.mass_flow_rate = 1, .fuel = 10, .thrust = 10},

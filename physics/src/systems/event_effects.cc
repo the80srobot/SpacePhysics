@@ -13,20 +13,20 @@
 namespace vstr {
 namespace {
 
-inline bool IsDestroyed(const int32_t id, const Frame &frame) {
-  return frame.flags[id].value & Flags::kDestroyed;
+inline bool IsDestroyed(const Entity id, const Frame &frame) {
+  return id.Get(frame.flags).value & Flags::kDestroyed;
 }
 
-void HandleDestroy(int32_t id, Frame &frame) {
+void HandleDestroy(Entity id, Frame &frame) {
   if (IsDestroyed(id, frame)) return;
-  frame.flags[id].value |= Flags::kDestroyed;
-  if (frame.flags[id].value & Flags::kReusable)
+  id.Get(frame.flags).value |= Flags::kDestroyed;
+  if (id.Get(frame.flags).value & Flags::kReusable)
     ReleaseObject(id, frame.flags, frame.reuse_pools, frame.reuse_tags);
 }
 
 void HandleDamage(const Event &event, Frame &frame) {
   if (IsDestroyed(event.id, frame)) return;
-  int32_t idx = FindOptionalComponent(frame.durability, event.id);
+  ssize_t idx = FindOptionalComponent(frame.durability, event.id);
   if (idx >= 0) {
     frame.durability[idx].value -= event.damage.value;
     if (frame.durability[idx].value <= 0) HandleDestroy(event.id, frame);
@@ -42,12 +42,12 @@ void ApplyEventEffects(absl::Span<Event> events, Frame &frame) {
         HandleDestroy(event.id, frame);
         break;
       case Event::kStick:
-        if (event.stick.parent_id >= 0) {
-          frame.flags[event.id].value |= Flags::kGlued;
-          frame.glue[event.id].parent_id = event.stick.parent_id;
+        if (event.stick.parent_id != Entity::Nil()) {
+          event.id.Get(frame.flags).value |= Flags::kGlued;
+          event.id.Get(frame.glue).parent_id = event.stick.parent_id;
         } else {
-          frame.flags[event.id].value &= ~Flags::kGlued;
-          frame.glue[event.id].parent_id = 0;
+          event.id.Get(frame.flags).value &= ~Flags::kGlued;
+          event.id.Get(frame.glue).parent_id = Entity::Nil();
         }
         break;
       case Event::kDamage: {
@@ -62,10 +62,12 @@ void ApplyEventEffects(absl::Span<Event> events, Frame &frame) {
         // events.
         break;
       case Event::kTeleportation:
-        frame.transforms[event.id].position = event.teleportation.new_position;
-        frame.motion[event.id].new_position = event.teleportation.new_position;
-        frame.motion[event.id].velocity = event.teleportation.new_velocity;
-        frame.motion[event.id].spin = event.teleportation.new_spin;
+        event.id.Get(frame.transforms).position =
+            event.teleportation.new_position;
+        event.id.Get(frame.motion).new_position =
+            event.teleportation.new_position;
+        event.id.Get(frame.motion).velocity = event.teleportation.new_velocity;
+        event.id.Get(frame.motion).spin = event.teleportation.new_spin;
         break;
       case Event::kRocketBurn:
       // Nothing to do - already handled before motion.

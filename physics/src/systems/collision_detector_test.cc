@@ -5,10 +5,11 @@
 //
 // Author(s): Adam Sindelar <adam@wowsignal.io>
 
+#include "collision_detector.h"
+
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 
-#include "collision_detector.h"
 #include "test_matchers/events.h"
 
 namespace vstr {
@@ -60,8 +61,8 @@ INSTANTIATE_TEST_SUITE_P(
                 Collider{.layer = 1, .radius = 0.5, .center{0, 0, 0}},
             },
             .glue{
-                Glue{-1},
-                Glue{-1},
+                Glue{Entity::Nil()},
+                Glue{Entity::Nil()},
             },
             .flags{
                 Flags{0},
@@ -71,8 +72,8 @@ INSTANTIATE_TEST_SUITE_P(
                 std::make_pair(1, 1)})},
             .expect{
                 Event(Vector3{9.5, 0, 0},
-                      Collision{.first_id = 0,
-                                .second_id = 1,
+                      Collision{.first_id = Entity(0),
+                                .second_id = Entity(1),
                                 .first_frame_offset_seconds = 0.9}),
             },
         },
@@ -94,8 +95,8 @@ INSTANTIATE_TEST_SUITE_P(
                 Collider{.layer = 1, .radius = 0.5, .center{-10, 0, 0}},
             },
             .glue{
-                Glue{-1},
-                Glue{-1},
+                Glue{Entity::Nil()},
+                Glue{Entity::Nil()},
             },
             .flags{
                 Flags{0},
@@ -105,8 +106,8 @@ INSTANTIATE_TEST_SUITE_P(
                 std::make_pair(1, 1)})},
             .expect{
                 Event(Vector3{9.5, 0, 0},
-                      Collision{.first_id = 0,
-                                .second_id = 1,
+                      Collision{.first_id = Entity(0),
+                                .second_id = Entity(1),
                                 .first_frame_offset_seconds = 0.9}),
             },
         },
@@ -128,8 +129,8 @@ INSTANTIATE_TEST_SUITE_P(
                 Collider{.layer = 1, .radius = 0.5, .center{0, 0, 0}},
             },
             .glue{
-                Glue{-1},
-                Glue{-1},
+                Glue{Entity::Nil()},
+                Glue{Entity::Nil()},
             },
             .flags{
                 Flags{0},
@@ -139,8 +140,8 @@ INSTANTIATE_TEST_SUITE_P(
                 std::make_pair(1, 1)}),
             .expect{
                 Event(Vector3{9.5, 0, 0},
-                      Collision{.first_id = 0,
-                                .second_id = 1,
+                      Collision{.first_id = Entity(0),
+                                .second_id = Entity(1),
                                 .first_frame_offset_seconds = 0}),
             },
         },
@@ -162,8 +163,8 @@ INSTANTIATE_TEST_SUITE_P(
                 Collider{.layer = 1, .radius = 0.5, .center{0, 0, 0}},
             },
             .glue{
-                Glue{-1},
-                Glue{-1},
+                Glue{Entity::Nil()},
+                Glue{Entity::Nil()},
             },
             .flags{
                 Flags{0},
@@ -173,8 +174,8 @@ INSTANTIATE_TEST_SUITE_P(
                 std::make_pair(1, 1)}),
             .expect{
                 Event(Vector3{5, 0, 0},
-                      Collision{.first_id = 0,
-                                .second_id = 1,
+                      Collision{.first_id = Entity(0),
+                                .second_id = Entity(1),
                                 .first_frame_offset_seconds = 0}),
             },
         },
@@ -196,8 +197,8 @@ INSTANTIATE_TEST_SUITE_P(
                 Collider{.layer = 1, .radius = 0.5, .center{0, 0, 0}},
             },
             .glue{
-                Glue{-1},
-                Glue{-1},
+                Glue{Entity::Nil()},
+                Glue{Entity::Nil()},
             },
             .flags{
                 Flags{0},
@@ -216,8 +217,8 @@ INSTANTIATE_TEST_SUITE_P(
                 // final formula.
                 Event(Vector3{-1.0f / (2 * std::sqrtf(2)),
                               -1.0f / (2 * std::sqrtf(2)), 0},
-                      Collision{.first_id = 0,
-                                .second_id = 1,
+                      Collision{.first_id = Entity(0),
+                                .second_id = Entity(1),
                                 .first_frame_offset_seconds =
                                     1.0f - (1.0f / std::sqrtf(2)) / 10.0f}),
             },
@@ -240,8 +241,8 @@ INSTANTIATE_TEST_SUITE_P(
                 Collider{.layer = 1, .radius = 0.5, .center{0, 0, 0}},
             },
             .glue{
-                Glue{-1},
-                Glue{-1},
+                Glue{Entity::Nil()},
+                Glue{Entity::Nil()},
             },
             .flags{
                 Flags{0},
@@ -252,8 +253,8 @@ INSTANTIATE_TEST_SUITE_P(
             .expect{
                 Event(Vector3{-1.0f / (2 * std::sqrtf(2)),
                               -1.0f / (2 * std::sqrtf(2)), 0},
-                      Collision{.first_id = 0,
-                                .second_id = 1,
+                      Collision{.first_id = Entity(0),
+                                .second_id = Entity(1),
                                 .first_frame_offset_seconds = 0}),
             },
         },
@@ -275,8 +276,8 @@ INSTANTIATE_TEST_SUITE_P(
                 Collider{.layer = 1, .radius = 0.5, .center{0, 0, 0}},
             },
             .glue{
-                Glue{-1},
-                Glue{-1},
+                Glue{Entity::Nil()},
+                Glue{Entity::Nil()},
             },
             .flags{
                 Flags{Flags::kDestroyed},
@@ -304,8 +305,8 @@ INSTANTIATE_TEST_SUITE_P(
                 Collider{.layer = 1, .radius = 0.5, .center{0, 0, 0}},
             },
             .glue{
-                Glue{-1},
-                Glue{-1},
+                Glue{Entity::Nil()},
+                Glue{Entity::Nil()},
             },
             .flags{
                 Flags{0},
@@ -333,8 +334,8 @@ INSTANTIATE_TEST_SUITE_P(
                 {.layer = 1, .radius = 9, .center{0, 0, 0}},
             },
             .glue{
-                Glue{-1},
-                Glue{-1},
+                Glue{Entity::Nil()},
+                Glue{Entity::Nil()},
             },
             .flags{
                 Flags{0},
@@ -344,8 +345,8 @@ INSTANTIATE_TEST_SUITE_P(
                 std::make_pair(1, 1)})},
             .expect{
                 Event(Vector3{-4, 0, 0},
-                      Collision{.first_id = 0,
-                                .second_id = 1,
+                      Collision{.first_id = Entity(0),
+                                .second_id = Entity(1),
                                 .first_frame_offset_seconds = 0.5}),
             },
         }),

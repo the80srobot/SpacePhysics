@@ -83,7 +83,7 @@ static_assert(std::is_standard_layout<Collider>());
 std::ostream &operator<<(std::ostream &os, const Collider &collider);
 
 struct Glue {
-  int32_t parent_id;
+  Entity parent_id;
 
   bool operator==(const Glue &) const = default;
 };

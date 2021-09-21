@@ -5,9 +5,10 @@
 //
 // Author(s): Adam Sindelar <adam@wowsignal.io>
 
+#include "collision_detector.h"
+
 #include <limits>
 
-#include "collision_detector.h"
 #include "geometry/aabb.h"
 #include "geometry/float.h"
 #include "geometry/layer_matrix.h"
@@ -19,22 +20,22 @@ namespace {
 
 float DistanceToCollision(const std::vector<Transform> &positions,
                           const std::vector<Collider> &colliders,
-                          const std::vector<Motion> &motion, const int a,
-                          const int b, const float t) {
-  Vector3 a_pos =
-      positions[a].position + motion[a].velocity * t + colliders[a].center;
-  Vector3 b_pos =
-      positions[b].position + motion[b].velocity * t + colliders[b].center;
-  return Vector3::Magnitude(a_pos - b_pos) - colliders[a].radius -
-         colliders[b].radius;
+                          const std::vector<Motion> &motion, const Entity a,
+                          const Entity b, const float t) {
+  Vector3 a_pos = a.Get(positions).position + a.Get(motion).velocity * t +
+                  a.Get(colliders).center;
+  Vector3 b_pos = b.Get(positions).position + b.Get(motion).velocity * t +
+                  b.Get(colliders).center;
+  return Vector3::Magnitude(a_pos - b_pos) - a.Get(colliders).radius -
+         b.Get(colliders).radius;
 }
 
 // Returns the earliest time objects a and b will collide based on their current
 // velocities. If no such time can be found, returns a time greater than dt.
 float CollisionTime(const std::vector<Transform> &positions,
                     const std::vector<Collider> &colliders,
-                    const std::vector<Motion> &motion, const int a, const int b,
-                    const float dt) {
+                    const std::vector<Motion> &motion, const Entity a,
+                    const Entity b, const float dt) {
   // The distance between the two objects is a function of time:
   //
   //  d(t) = |(posA + vA * t) - (posB + vB * t)|
@@ -150,23 +151,23 @@ float CollisionTime(const std::vector<Transform> &positions,
 
 bool Eligible(const std::vector<Collider> &colliders,
               const std::vector<Flags> &flags, const std::vector<Glue> &glue,
-              const LayerMatrix &matrix, const int a, const int b) {
+              const LayerMatrix &matrix, const Entity a, const Entity b) {
   if (b <= a) {
     return false;  // Checked in the other direction or self-collision.
   }
 
-  if ((flags[a].value & Flags::kDestroyed) ||
-      (flags[b].value & Flags::kDestroyed)) {
+  if ((a.Get(flags).value & Flags::kDestroyed) ||
+      (b.Get(flags).value & Flags::kDestroyed)) {
     return false;
   }
 
-  if (!matrix.Check(colliders[a].layer, colliders[b].layer)) {
+  if (!matrix.Check(a.Get(colliders).layer, b.Get(colliders).layer)) {
     return false;
   }
 
   // TODO: recursive glue?
-  if (((flags[a].value & Flags::kGlued) && glue[a].parent_id == b) ||
-      (flags[b].value & Flags::kGlued) && glue[b].parent_id == a) {
+  if (((a.Get(flags).value & Flags::kGlued) && a.Get(glue).parent_id == b) ||
+      (b.Get(flags).value & Flags::kGlued) && b.Get(glue).parent_id == a) {
     return false;
   }
 
@@ -176,13 +177,13 @@ bool Eligible(const std::vector<Collider> &colliders,
 Vector3 CollisionLocation(const std::vector<Transform> &positions,
                           const std::vector<Motion> &motion,
                           const std::vector<Collider> &colliders, const float t,
-                          const int a, const int b) {
-  Vector3 a_pos =
-      positions[a].position + motion[a].velocity * t + colliders[a].center;
-  Vector3 b_pos =
-      positions[b].position + motion[b].velocity * t + colliders[b].center;
-  return (colliders[b].radius * a_pos + colliders[a].radius * b_pos) /
-         (colliders[a].radius + colliders[b].radius);
+                          const Entity a, const Entity b) {
+  Vector3 a_pos = a.Get(positions).position + a.Get(motion).velocity * t +
+                  a.Get(colliders).center;
+  Vector3 b_pos = b.Get(positions).position + b.Get(motion).velocity * t +
+                  b.Get(colliders).center;
+  return (b.Get(colliders).radius * a_pos + a.Get(colliders).radius * b_pos) /
+         (a.Get(colliders).radius + b.Get(colliders).radius);
 }
 
 };  // namespace
@@ -194,29 +195,31 @@ void CollisionDetector::DetectCollisions(
     const float dt, std::vector<Event> &out_events) {
   cache_bvh_kvs_.clear();
   cache_object_swept_bounds_.clear();
-  for (int id = 0; id < colliders.size(); ++id) {
-    float radius = colliders[id].radius;
+  for (size_t i = 0; i < colliders.size(); ++i) {
+    float radius = colliders[i].radius;
     AABB bounds = AABB::FromCenterAndHalfExtents(
-        positions[id].position + colliders[id].center,
+        positions[i].position + colliders[i].center,
         Vector3{radius, radius, radius});
     bounds.Encapsulate(AABB::FromCenterAndHalfExtents(
-        motion[id].new_position, Vector3{radius, radius, radius}));
-    cache_bvh_kvs_.push_back(BVH::KV(bounds, id));
+        motion[i].new_position, Vector3{radius, radius, radius}));
+    cache_bvh_kvs_.push_back(BVH::KV(bounds, Entity(i)));
     cache_object_swept_bounds_.push_back(bounds);
   }
   cache_bvh_.Rebuild(cache_bvh_kvs_);
 
   std::vector<BVH::KV> buffer;
-  for (int id = 0; id < colliders.size(); ++id) {
+  for (size_t i = 0; i < colliders.size(); ++i) {
     buffer.clear();
-    cache_bvh_.Overlap(cache_object_swept_bounds_[id], buffer);
+    cache_bvh_.Overlap(cache_object_swept_bounds_[i], buffer);
     for (const auto &kv : buffer) {
-      if (Eligible(colliders, flags, glue, matrix_, id, kv.value)) {
-        float t = CollisionTime(positions, colliders, motion, id, kv.value, dt);
+      if (Eligible(colliders, flags, glue, matrix_, Entity(i), kv.value)) {
+        float t = CollisionTime(positions, colliders, motion, Entity(i),
+                                kv.value, dt);
         if (t <= dt) {
-          out_events.push_back(Event(
-              CollisionLocation(positions, motion, colliders, t, id, kv.value),
-              Collision{id, kv.value, t}));
+          out_events.push_back(
+              Event(CollisionLocation(positions, motion, colliders, t,
+                                      Entity(i), kv.value),
+                    Collision{Entity(i), kv.value, t}));
         }
       }
     }

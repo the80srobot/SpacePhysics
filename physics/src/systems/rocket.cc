@@ -42,7 +42,7 @@ absl::StatusOr<Event> ApplyRocketBurn(const float dt, const Event &event,
       it->fuel_tanks[event.rocket_burn.fuel_tank].mass_flow_rate * fuel_used;
 
   it->fuel_tanks[event.rocket_burn.fuel_tank].fuel -= fuel_used;
-  mass[event.id].inertial -= fuel_mass_used;
+  event.id.Get(mass).inertial -= fuel_mass_used;
 
   return Event(event.id, event.position,
                Acceleration{
@@ -82,11 +82,11 @@ absl::Status ApplyRocketRefuel(const Event &event, std::vector<Mass> &mass,
     return absl::OutOfRangeError("fuel tank out of allowed range");
   }
 
-  mass[event.id].inertial -=
+  event.id.Get(mass).inertial -=
       it->fuel_tanks[fuel_tank].mass_flow_rate * it->fuel_tanks[fuel_tank].fuel;
   it->fuel_tanks[fuel_tank] = event.rocket_refuel.fuel_tank;
-  mass[event.id].inertial += event.rocket_refuel.fuel_tank.fuel *
-                             event.rocket_refuel.fuel_tank.mass_flow_rate;
+  event.id.Get(mass).inertial += event.rocket_refuel.fuel_tank.fuel *
+                                 event.rocket_refuel.fuel_tank.mass_flow_rate;
   return absl::OkStatus();
 }
 

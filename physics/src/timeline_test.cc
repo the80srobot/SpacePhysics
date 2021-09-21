@@ -73,8 +73,8 @@ TEST(TimelineTest, FallingSphere) {
   EXPECT_TRUE(timeline.GetEvents(frame_no, buffer));
   ASSERT_GE(buffer.size(), 1);
   EXPECT_EQ(buffer[0].type, Event::kCollision);
-  EXPECT_EQ(buffer[0].id, 0);
-  EXPECT_EQ(buffer[0].collision.second_id, 1);
+  EXPECT_EQ(buffer[0].id, Entity(0));
+  EXPECT_EQ(buffer[0].collision.second_id, Entity(1));
   EXPECT_NE(buffer[0].collision.first_frame_offset_seconds, 0);
 
   // Simulate some way into the future, then look back.
@@ -124,7 +124,7 @@ TEST(TimelineTest, AccelerateRewindAccelerate) {
   // One-second 10 ms/s/s burn in the direction of sphere 1. After 1 second, the
   // speed of sphere 0 should be 10 m/s.
   timeline.InputEvent(1, 1.0f / dt,
-                      Event(0, {}, Acceleration{Vector3{0, -10, 0}}));
+                      Event(Entity(0), {}, Acceleration{Vector3{0, -10, 0}}));
 
   // After two seconds, sphere 0 should be on its way towards sphere 1.
   int frame_no = 0;
@@ -140,7 +140,7 @@ TEST(TimelineTest, AccelerateRewindAccelerate) {
   // Rewind the clock to 0.5 second and burn in the opposite direction. The
   // resulting speed should be 0.
   timeline.InputEvent(0.5f / dt + 1, 1.0f / dt,
-                      Event(0, {}, Acceleration{Vector3{0, 10, 0}}));
+                      Event(Entity(0), {}, Acceleration{Vector3{0, 10, 0}}));
   // At the two-second mark, the speed should be 0 - simulate until the frame at
   // 2 seconds in is available.
   frame_no = 2.0f / dt;
@@ -185,7 +185,7 @@ TEST(TimelineTest, DestroyAttractor) {
 
   Timeline timeline(initial_frame, 0, matrix, {}, dt, 30);
 
-  timeline.InputEvent(30.0f / dt, Event(1, {}, Destruction{}));
+  timeline.InputEvent(30.0f / dt, Event(Entity(1), {}, Destruction{}));
 
   int frame_no = 0;
   for (float t = 0; t < 40.0f; t += dt) {
@@ -250,8 +250,8 @@ TEST(TimelineTest, DestroyAttractor) {
 TEST(TimelineTest, ObjectPoolCollisions) {
   const float dt = 1.0f / 30;
   Frame initial_frame;
-  const int32_t asteroid_pool_id = initial_frame.Push();
-  const int32_t asteroid_prototype_id =
+  const Entity asteroid_pool_id = initial_frame.Push();
+  const Entity asteroid_prototype_id =
       initial_frame.Push(Transform{}, Mass{.inertial = 10}, Motion{},
                          Collider{.layer = 1, .radius = 0.5}, Glue{}, Flags{});
   SetOptionalComponent(asteroid_prototype_id, Durability{.value = 2, .max = 2},
@@ -262,7 +262,7 @@ TEST(TimelineTest, ObjectPoolCollisions) {
   // colliding with it and becoming damaged in the process. Any asteroids that
   // manage to move out of max range are also destroyed directly.
   const float kMaxRange = 1000;
-  const int32_t attractor_id = initial_frame.Push(
+  const Entity attractor_id = initial_frame.Push(
       Transform{.position{0, 0, 0}},
       Mass{.inertial = 9999, .active = 9999, .cutoff_distance = kMaxRange},
       Motion{}, Collider{.layer = 1, .radius = 5}, Glue{},
@@ -301,7 +301,7 @@ TEST(TimelineTest, ObjectPoolCollisions) {
   int live_asteroids = 0;
   std::mt19937 random_generator;
   std::uniform_real_distribution<float> position_distribution(-10, 10);
-  absl::flat_hash_map<int32_t, int32_t> asteroids;
+  absl::flat_hash_map<Entity, int> asteroids;
   for (int frame_no = 1; collisions < 100; ++frame_no) {
     if (frame_no > 100.0f / dt) {
       FAIL() << "collision_count=" << collisions << " after 100 s "
@@ -414,7 +414,7 @@ TEST_P(QueryTest, QueryTest) {
   // One-second 1 ms/s/s burn in the direction away from the attractor should
   // exactly cancel the gravitational pull for the fist 10 frames.
   timeline.InputEvent(1, 1.0f / dt,
-                      Event(0, {}, Acceleration{Vector3{1, 0, 0}}));
+                      Event(Entity(0), {}, Acceleration{Vector3{1, 0, 0}}));
 
   // Simulate 10 seconds = 100 frames.
   int frame_no = 0;

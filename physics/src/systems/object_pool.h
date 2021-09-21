@@ -21,7 +21,7 @@ void ConvertSpawnAttempts(absl::Span<Event> in_events,
 
 // Claims a free object from the pool and returns an event that will spawn it.
 // Fails if there are no free objects.
-absl::StatusOr<Event> SpawnEventFromPool(int32_t pool_id,
+absl::StatusOr<Event> SpawnEventFromPool(Entity pool_id,
                                          const Vector3 &position,
                                          const Quaternion &rotation,
                                          const Vector3 &velocity, Frame &frame);
@@ -32,14 +32,14 @@ void SpawnObject(const Event &spawn_event, Frame &frame);
 // Releases the object back into its pool for future reuse. Does nothing if the
 // object is not reusable. DOES NOT DESTROY THE OBJECT - the caller must do
 // that, if desired.
-void ReleaseObject(int32_t id, const std::vector<Flags> &flags,
+void ReleaseObject(Entity id, const std::vector<Flags> &flags,
                    std::vector<ReusePool> &reuse_pools,
                    std::vector<ReuseTag> &reuse_tags);
 
 // Initializes the pool by copying the prototype up to capacity. The prototype
 // will become one of the reusable objects and be set to destroyed in the
 // process.
-int32_t InitializePool(int32_t pool_id, int32_t prototype_id, int32_t capacity,
+int32_t InitializePool(Entity pool_id, Entity prototype_id, int32_t capacity,
                        Frame &frame);
 
 }  // namespace vstr

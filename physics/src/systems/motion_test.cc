@@ -40,11 +40,13 @@ TEST(MotionTest, GravityForceOn) {
       Flags{},
   };
 
-  std::vector<std::pair<int, Vector3>> contributions;
-  Vector3 force = GravityForceOn(positions, mass, flags, 0, contributions);
+  std::vector<std::pair<Entity, Vector3>> contributions;
+  Vector3 force =
+      GravityForceOn(positions, mass, flags, Entity(0), contributions);
   EXPECT_EQ(force, (Vector3{0, -100.0f / (100 * 100), 0}));
-  EXPECT_THAT(contributions, testing::UnorderedElementsAre(std::make_pair(
-                                 1, Vector3{0, -100.0f / (100 * 100), 0})));
+  EXPECT_THAT(contributions,
+              testing::UnorderedElementsAre(std::make_pair(
+                  Entity(1), Vector3{0, -100.0f / (100 * 100), 0})));
 }
 
 // Tests that the Verlet velocity integrator takes velocity input.
@@ -167,7 +169,8 @@ TEST(MotionTest, PointMassHover) {
   // The acceleration due to gravity at point particle 0 is 100 / 100^2. The
   // inverse input should exactly counter.
   std::vector<Event> input{
-      Event(0, {}, Acceleration{Vector3{0, 0.01, 0}, Acceleration::kNone}),
+      Event(Entity(0), {},
+            Acceleration{Vector3{0, 0.01, 0}, Acceleration::kNone}),
   };
 
   for (float f = 0; f < duration; f += dt) {
@@ -181,7 +184,7 @@ TEST(MotionTest, PointMassHover) {
   // If we now also apply acceleration to particle 1, the force of gravity
   // acting on particle 0 should decrease and its own acceleration should allow
   // it to escape.
-  input.push_back(Event(1, {}, Acceleration{Vector3{0, -0.01, 0}}));
+  input.push_back(Event(Entity(1), {}, Acceleration{Vector3{0, -0.01, 0}}));
 
   for (float f = 0; f < duration; f += dt) {
     IntegrateMotion(kVelocityVerlet, dt, absl::MakeSpan(input), positions, mass,
@@ -221,7 +224,7 @@ TEST(MotionTest, ForceImpulse) {
   EXPECT_EQ(positions[0].position, (Vector3{0, 100, 0}));
 
   std::vector<Event> input{
-      Event(0, {},
+      Event(Entity(0), {},
             Acceleration{Vector3{0, 100, 0},
                          static_cast<Acceleration::Flag>(
                              Acceleration::kImpulse | Acceleration::kForce)}),

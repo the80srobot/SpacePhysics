@@ -40,8 +40,8 @@ static_assert(std::is_standard_layout<Acceleration>());
 std::ostream &operator<<(std::ostream &os, const Acceleration &acceleration);
 
 struct Collision {
-  int32_t first_id;
-  int32_t second_id;
+  Entity first_id;
+  Entity second_id;
   float first_frame_offset_seconds;
 };
 
@@ -57,7 +57,7 @@ inline bool operator==(const Collision &a, const Collision &b) {
 std::ostream &operator<<(std::ostream &os, const Collision &collision);
 
 struct Stick {
-  int32_t parent_id;
+  Entity parent_id;
   bool operator==(const Stick &) const = default;
 };
 
@@ -123,7 +123,7 @@ static_assert(std::is_standard_layout<RocketRefuel>());
 std::ostream &operator<<(std::ostream &os, const RocketRefuel &rocket_refuel);
 
 struct Spawn {
-  int32_t pool_id;
+  Entity pool_id;
   Vector3 velocity;
   Quaternion rotation;
 
@@ -147,6 +147,7 @@ std::ostream &operator<<(std::ostream &os, const SpawnAttempt &spawn_request);
 
 struct Event {
   enum Type {
+    kNil = 0,
     kAcceleration = 1,
     kCollision = 2,
     kStick = 3,
@@ -159,7 +160,7 @@ struct Event {
     kSpawnAttempt = 10,
   };
 
-  Event() = default;
+  Event() : type(kNil), id(Entity::Nil()) {}
 
   explicit Event(Vector3 position, Collision &&collision)
       : type(kCollision),
@@ -167,49 +168,49 @@ struct Event {
         position(position),
         collision(std::move(collision)) {}
 
-  explicit Event(int id, Vector3 position, Acceleration &&acceleration)
+  explicit Event(Entity id, Vector3 position, Acceleration &&acceleration)
       : id(id),
         type(kAcceleration),
         acceleration(acceleration),
         position(position) {}
 
-  explicit Event(int id, Vector3 position, Destruction &&destruction)
+  explicit Event(Entity id, Vector3 position, Destruction &&destruction)
       : id(id),
         type(kDestruction),
         destruction(destruction),
         position(position) {}
 
-  explicit Event(int id, Vector3 position, Damage &&damage)
+  explicit Event(Entity id, Vector3 position, Damage &&damage)
       : id(id), type(kDamage), damage(damage), position(position) {}
 
-  explicit Event(int id, Vector3 position, Teleportation &&teleportation)
+  explicit Event(Entity id, Vector3 position, Teleportation &&teleportation)
       : id(id),
         position(position),
         type(kTeleportation),
         teleportation(teleportation) {}
 
-  explicit Event(int id, Vector3 position, RocketBurn &&rocket_burn)
+  explicit Event(Entity id, Vector3 position, RocketBurn &&rocket_burn)
       : id(id),
         type(kRocketBurn),
         rocket_burn(rocket_burn),
         position(position) {}
 
-  explicit Event(int id, Vector3 position, RocketRefuel &&rocket_refuel)
+  explicit Event(Entity id, Vector3 position, RocketRefuel &&rocket_refuel)
       : id(id),
         type(kRocketRefuel),
         rocket_refuel(rocket_refuel),
         position(position) {}
 
-  explicit Event(int id, Vector3 position, Spawn &&spawn)
+  explicit Event(Entity id, Vector3 position, Spawn &&spawn)
       : id(id), type(kSpawn), spawn(spawn), position(position) {}
 
-  explicit Event(int id, Vector3 position, SpawnAttempt &&spawn_attempt)
+  explicit Event(Entity id, Vector3 position, SpawnAttempt &&spawn_attempt)
       : id(id),
         type(kSpawnAttempt),
         spawn_attempt(spawn_attempt),
         position(position) {}
 
-  int32_t id;
+  Entity id;
   Type type;
   Vector3 position;
 
@@ -244,7 +245,7 @@ std::ostream &operator<<(std::ostream &os, const Event &event);
 // TODO(adam): this shouldn't be defined here once it no longer inlines the
 // event definition.
 struct Trigger {
-  int32_t id;
+  Entity id;
 
   enum Condition {
     kColission,

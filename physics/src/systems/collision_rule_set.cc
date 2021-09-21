@@ -48,12 +48,12 @@ void Bounce(const Event &event, const CollisionEffect::BounceParameters params,
   // v_a refers to the velocity of the object we're operating on, while v_b the
   // velocity of the object being collided with.
   const float t = event.collision.first_frame_offset_seconds;
-  const Vector3 v_a = motion[event.collision.first_id].velocity;
-  const Vector3 v_b = motion[event.collision.second_id].velocity;
+  const Vector3 v_a = event.collision.first_id.Get(motion).velocity;
+  const Vector3 v_b = event.collision.second_id.Get(motion).velocity;
 
   // Positions at the time of collision.
-  Vector3 a = transforms[event.collision.first_id].position + v_a * t;
-  Vector3 b = transforms[event.collision.second_id].position + v_b * t;
+  Vector3 a = event.collision.first_id.Get(transforms).position + v_a * t;
+  Vector3 b = event.collision.second_id.Get(transforms).position + v_b * t;
 
   // If A and B are very close, or even occupy the same space, most of the below
   // vector operations will be inaccurate or have undefined results. This should
@@ -79,8 +79,8 @@ void Bounce(const Event &event, const CollisionEffect::BounceParameters params,
   Vector3 v = v_a - v_b;
   float dot = Vector3::Dot(n, v);
 
-  float m_a = mass[event.collision.first_id].inertial;
-  float m_b = mass[event.collision.second_id].inertial;
+  float m_a = event.collision.first_id.Get(mass).inertial;
+  float m_b = event.collision.second_id.Get(mass).inertial;
   // The direction of the bounce is -R. The magnitude is determined by the ratio
   // of the inertial mass of both objects (the lighter object gets more speed)
   // and the elasticity. Recall that overall momentum is conserved.
@@ -110,14 +110,14 @@ void Bounce(const Event &event, const CollisionEffect::BounceParameters params,
   // This code is basically a big hack to get things looking alright by
   // eyeballing the quantities involved.
   float s = Vector3::Magnitude(v);
-  const float r_a = colliders[event.collision.first_id].radius;
+  const float r_a = event.collision.first_id.Get(colliders).radius;
   float angle = std::acosf(dot / (Vector3::Magnitude(n) * s));
   float rate = std::sinf(angle);
-  Quaternion spin = motion[event.collision.first_id].spin;
+  Quaternion spin = event.collision.first_id.Get(motion).spin;
   if (rate > 0.005f) {
     float L = r_a * m_b * s;
     Vector3 axis = Vector3::Normalize(Vector3::Cross(v, n));
-    axis = transforms[event.collision.first_id].rotation * axis;
+    axis = event.collision.first_id.Get(transforms).rotation * axis;
     spin *= Quaternion::FromAngle(axis, (L / m_a) * rate);
   }
 
@@ -178,8 +178,8 @@ void CollisionRuleSet::ApplyToCollision(
     const std::vector<Trigger> &triggers, const Event &event,
     std::vector<Event> &out_events) {
   const auto it = collision_rules_.find(
-      std::make_pair(colliders[event.collision.first_id].layer,
-                     colliders[event.collision.second_id].layer));
+      std::make_pair(event.collision.first_id.Get(colliders).layer,
+                     event.collision.second_id.Get(colliders).layer));
 
   if (it == collision_rules_.end()) return;
 
@@ -187,11 +187,11 @@ void CollisionRuleSet::ApplyToCollision(
   // them once and pass to both invocations, if it turns out we need to shave
   // off a sqrt op here.
   const float impact_speed_sqr =
-      Vector3::SqrMagnitude(motion[event.collision.first_id].velocity -
-                            motion[event.collision.second_id].velocity);
+      Vector3::SqrMagnitude(event.collision.first_id.Get(motion).velocity -
+                            event.collision.second_id.Get(motion).velocity);
   const float impact_speed = sqrtf(impact_speed_sqr);
   const float impactor_energy =
-      0.5 * impact_speed_sqr * mass[event.collision.second_id].inertial;
+      0.5 * impact_speed_sqr * event.collision.second_id.Get(mass).inertial;
 
   for (const CollisionEffect &action : it->second) {
     if (impact_speed < action.min_speed || impact_speed > action.max_speed)

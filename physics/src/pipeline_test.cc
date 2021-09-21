@@ -58,8 +58,8 @@ TEST(PipelineTest, FallingSphere) {
 
   ASSERT_GE(buffer.size(), 1);
   EXPECT_EQ(buffer[0].type, Event::kCollision);
-  EXPECT_EQ(buffer[0].id, 0);
-  EXPECT_EQ(buffer[0].collision.second_id, 1);
+  EXPECT_EQ(buffer[0].id, Entity(0));
+  EXPECT_EQ(buffer[0].collision.second_id, Entity(1));
   EXPECT_NE(buffer[0].collision.first_frame_offset_seconds, 0);
 }
 

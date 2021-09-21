@@ -10,6 +10,7 @@
 
 #include <absl/types/span.h>
 
+#include <compare>
 #include <concepts>
 #include <iostream>
 
@@ -17,6 +18,7 @@
 #include "systems/glue_system.h"
 #include "systems/kepler.h"
 #include "systems/motion.h"
+#include "types/id.h"
 #include "types/optional_components.h"
 #include "types/required_components.h"
 
@@ -41,19 +43,19 @@ struct Frame {
   std::vector<ReusePool> reuse_pools;
   std::vector<ReuseTag> reuse_tags;
 
-  int32_t Push();
-  int32_t Push(Transform &&transform, Mass &&mass, Motion &&motion,
-               Collider &&collider, Glue &&glue, Flags &&flags);
+  Entity Push();
+  Entity Push(Transform &&transform, Mass &&mass, Motion &&motion,
+              Collider &&collider, Glue &&glue, Flags &&flags);
 };
 
 template <typename T>
 concept OptionalComponent = requires(T x) {
-  { T().id } -> std::same_as<int32_t>;
+  { T().id } -> std::same_as<Entity>;
 };
 
 template <OptionalComponent T>
 ssize_t FindOptionalComponent(const std::vector<T> &component_data,
-                              int32_t id) {
+                              const Entity id) {
   auto it = std::lower_bound(
       component_data.begin(), component_data.end(), T{.id = id},
       [](const T &a, const T &b) { return a.id < b.id; });
@@ -64,7 +66,7 @@ ssize_t FindOptionalComponent(const std::vector<T> &component_data,
 }
 
 template <OptionalComponent T>
-ssize_t SetOptionalComponent(const int32_t id, const T &component,
+ssize_t SetOptionalComponent(const Entity id, const T &component,
                              std::vector<T> &component_data) {
   int32_t dst_idx = FindOptionalComponent(component_data, id);
 
@@ -95,9 +97,9 @@ ssize_t SetOptionalComponent(const int32_t id, const T &component,
 }
 
 template <OptionalComponent T>
-void CopyOptionalComponent(const int32_t dst, const int32_t src,
+void CopyOptionalComponent(const Entity dst, const Entity src,
                            std::vector<T> &component_data) {
-  int32_t src_idx = FindOptionalComponent(component_data, src);
+  ssize_t src_idx = FindOptionalComponent(component_data, src);
   if (src_idx < 0) return;
   SetOptionalComponent(dst, component_data[src_idx], component_data);
 }

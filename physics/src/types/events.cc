@@ -130,6 +130,7 @@ std::ostream &operator<<(std::ostream &os, const Event::Type event_type) {
       return os << "spawn_attempt";
     default:
       assert("not reachable");
+      return os;
   }
 }
 
@@ -159,6 +160,7 @@ std::ostream &operator<<(std::ostream &os, const Event &event) {
       return os << ", /*spawn_attempt=*/" << event.spawn_attempt << " }";
     default:
       assert("not reachable");
+      return os;
   }
 }
 

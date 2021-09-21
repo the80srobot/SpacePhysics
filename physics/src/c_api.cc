@@ -44,8 +44,10 @@ void FrameSyncView(Frame *frame, FrameView *out_view) {
 
 int32_t FramePush(Frame *frame, Transform transform, Mass mass, Motion motion,
                   Collider collider, Glue glue, Flags flags) {
-  return frame->Push(std::move(transform), std::move(mass), std::move(motion),
-                     std::move(collider), std::move(glue), std::move(flags));
+  return frame
+      ->Push(std::move(transform), std::move(mass), std::move(motion),
+             std::move(collider), std::move(glue), std::move(flags))
+      .value();
 }
 
 int32_t FramePushObjectPool(Frame *frame, int32_t pool_id, int32_t prototype_id,
@@ -54,12 +56,13 @@ int32_t FramePushObjectPool(Frame *frame, int32_t pool_id, int32_t prototype_id,
     return -1;
   }
 
-  int32_t pool_idx = InitializePool(pool_id, prototype_id, capacity, *frame);
+  int32_t pool_idx =
+      InitializePool(Entity(pool_id), Entity(prototype_id), capacity, *frame);
 
-  for (int id = frame->reuse_pools[pool_idx].first_id; id >= 0;
+  for (Entity id = frame->reuse_pools[pool_idx].first_id; id != Entity::Nil();
        id = frame->reuse_tags[FindOptionalComponent(frame->reuse_tags, id)]
                 .next_id) {
-    *obj_ids = id;
+    *obj_ids = id.value();
     ++obj_ids;
     assert(--capacity >= 0);
   }

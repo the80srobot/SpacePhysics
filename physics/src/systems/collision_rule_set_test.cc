@@ -98,13 +98,13 @@ INSTANTIATE_TEST_SUITE_P(
             .input{
                 Event(Vector3{0.5, 0, 0},
                       Collision{
-                          .first_id = 0,
-                          .second_id = 1,
+                          .first_id = Entity(0),
+                          .second_id = Entity(1),
                           .first_frame_offset_seconds = 0,
                       }),
             },
             .output{
-                Event(0, Vector3{0.5, 0, 0}, Destruction{}),
+                Event(Entity(0), Vector3{0.5, 0, 0}, Destruction{}),
             },
         },
         TestCase{
@@ -152,14 +152,14 @@ INSTANTIATE_TEST_SUITE_P(
             .input{
                 Event(Vector3{0.5, 0, 0},
                       Collision{
-                          .first_id = 0,
-                          .second_id = 1,
+                          .first_id = Entity(0),
+                          .second_id = Entity(1),
                           .first_frame_offset_seconds = 0,
                       }),
             },
             .output{
-                Event(0, Vector3{0.5, 0, 0}, Destruction{}),
-                Event(1, Vector3{0.5, 0, 0}, Destruction{}),
+                Event(Entity(0), Vector3{0.5, 0, 0}, Destruction{}),
+                Event(Entity(1), Vector3{0.5, 0, 0}, Destruction{}),
             },
         },
         TestCase{
@@ -199,12 +199,12 @@ INSTANTIATE_TEST_SUITE_P(
             .input{
                 Event(Vector3{1, 0, 0},
                       Collision{
-                          .first_id = 0,
-                          .second_id = 1,
+                          .first_id = Entity(0),
+                          .second_id = Entity(1),
                           .first_frame_offset_seconds = 0,
                       }),
             },
-            .output{Event(0, Vector3{1, 0, 0},
+            .output{Event(Entity(0), Vector3{1, 0, 0},
                           Teleportation{.new_position{-0.005, 0, 0},
                                         .new_velocity{-1, 0, 0}})},
         },
@@ -259,15 +259,15 @@ INSTANTIATE_TEST_SUITE_P(
             .input{
                 Event(Vector3{0, 0.5, 0},
                       Collision{
-                          .first_id = 0,
-                          .second_id = 1,
+                          .first_id = Entity(0),
+                          .second_id = Entity(1),
                           .first_frame_offset_seconds = 0.5,
                       }),
             },
-            .output{Event(0, Vector3{0, 0.5, 0},
+            .output{Event(Entity(0), Vector3{0, 0.5, 0},
                           Teleportation{.new_position{-0.5, 0.5},
                                         .new_velocity{0, -1, 0}}),
-                    Event(1, Vector3{0, 0.5, 0},
+                    Event(Entity(1), Vector3{0, 0.5, 0},
                           Teleportation{.new_position{0.5, 0.5, 0},
                                         .new_velocity{1, 0, 0}})},
         },
@@ -322,15 +322,15 @@ INSTANTIATE_TEST_SUITE_P(
             .input{
                 Event(Vector3{0, 0.5, 0},
                       Collision{
-                          .first_id = 0,
-                          .second_id = 1,
+                          .first_id = Entity(0),
+                          .second_id = Entity(1),
                           .first_frame_offset_seconds = 0.5,
                       }),
             },
-            .output{Event(0, Vector3{0, 0.5, 0},
+            .output{Event(Entity(0), Vector3{0, 0.5, 0},
                           Teleportation{.new_position{-0.5, 0.5},
                                         .new_velocity{-0.8, -1, 0}}),
-                    Event(1, Vector3{0, 0.5, 0},
+                    Event(Entity(1), Vector3{0, 0.5, 0},
                           Teleportation{.new_position{0.5, 0.5, 0},
                                         .new_velocity{0.2, 0, 0}})},
         },
@@ -367,24 +367,24 @@ INSTANTIATE_TEST_SUITE_P(
             },
             .triggers{
                 {
-                    .id = 0,
+                    .id = Entity(0),
                     .condition = Trigger::kColission,
                     .target = Trigger::kCollidingObject,
                     .flags = Trigger::kDestroyTrigger,
-                    .event = Event(0, {}, Destruction{}),
+                    .event = Event(Entity(0), {}, Destruction{}),
                 },
             },
             .input{
                 Event(Vector3{0.5, 0, 0},
                       Collision{
-                          .first_id = 0,
-                          .second_id = 1,
+                          .first_id = Entity(0),
+                          .second_id = Entity(1),
                           .first_frame_offset_seconds = 0,
                       }),
             },
             .output{
-                Event(1, Vector3{0.5, 0, 0}, Destruction{}),
-                Event(0, Vector3{0.5, 0, 0}, Destruction{}),
+                Event(Entity(1), Vector3{0.5, 0, 0}, Destruction{}),
+                Event(Entity(0), Vector3{0.5, 0, 0}, Destruction{}),
             },
         }),
     [](const testing::TestParamInfo<RuleSetTest::ParamType>& tc) {

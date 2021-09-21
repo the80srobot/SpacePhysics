@@ -41,12 +41,12 @@ void UpdatePositions(float dt, const std::vector<Motion> &motion,
 
 Vector3 GravityForceOn(const std::vector<Transform> &positions,
                        const std::vector<Mass> &mass,
-                       const std::vector<Flags> &flags, int object_id);
+                       const std::vector<Flags> &flags, Entity object_id);
 
 Vector3 GravityForceOn(const std::vector<Transform> &positions,
                        const std::vector<Mass> &mass,
-                       const std::vector<Flags> &flags, int object_id,
-                       std::vector<std::pair<int, Vector3>> &contributions);
+                       const std::vector<Flags> &flags, Entity object_id,
+                       std::vector<std::pair<Entity, Vector3>> &contributions);
 
 void IntegrateFirstOrderEuler(float dt, absl::Span<Event> input,
                               const std::vector<Transform> &positions,

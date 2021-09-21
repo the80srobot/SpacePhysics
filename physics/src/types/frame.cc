@@ -9,7 +9,7 @@
 
 namespace vstr {
 
-int32_t Frame::Push() {
+Entity Frame::Push() {
   size_t id = transforms.size();
   assert(id < kMaxObjects);
 
@@ -20,11 +20,12 @@ int32_t Frame::Push() {
   glue.resize(id + 1);
   flags.resize(id + 1);
 
-  return id;
+  // Static cast checked by assert.
+  return Entity{static_cast<int32_t>(id)};
 }
 
-int32_t Frame::Push(Transform &&transform, Mass &&mass, Motion &&motion,
-                    Collider &&collider, Glue &&glue, Flags &&flags) {
+Entity Frame::Push(Transform &&transform, Mass &&mass, Motion &&motion,
+                   Collider &&collider, Glue &&glue, Flags &&flags) {
   assert(this->transforms.size() < kMaxObjects);
 
   this->transforms.push_back(std::move(transform));
@@ -34,7 +35,8 @@ int32_t Frame::Push(Transform &&transform, Mass &&mass, Motion &&motion,
   this->glue.push_back(std::move(glue));
   this->flags.push_back(std::move(flags));
 
-  return transforms.size() - 1;
+  // Static cast checked by assert.
+  return Entity{static_cast<int32_t>(transforms.size() - 1)};
 }
 
 }  // namespace vstr

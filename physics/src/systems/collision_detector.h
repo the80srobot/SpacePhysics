@@ -29,7 +29,7 @@ class CollisionDetector {
   const inline LayerMatrix &matrix() const { return matrix_; }
 
  private:
-  using BVH = BoundingVolumeHierarchy<int>;
+  using BVH = BoundingVolumeHierarchy<Entity>;
   LayerMatrix matrix_;
   BVH cache_bvh_;
   std::vector<BVH::KV> cache_bvh_kvs_;

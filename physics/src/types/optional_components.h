@@ -15,11 +15,12 @@
 #include "geometry/aabb.h"
 #include "geometry/quaternion.h"
 #include "geometry/vector3.h"
+#include "types/id.h"
 
 namespace vstr {
 
 struct Orbit {
-  int32_t id;
+  Entity id;
 
   struct Kepler {
     float semi_major_axis;
@@ -68,7 +69,7 @@ std::ostream &operator<<(std::ostream &os, const Orbit::Kepler &kepler);
 std::ostream &operator<<(std::ostream &os, const Orbit &orbit);
 
 struct Durability {
-  int32_t id;
+  Entity id;
   int32_t value;
   int32_t max;
 
@@ -80,7 +81,7 @@ std::ostream &operator<<(std::ostream &os, const Durability &durability);
 struct Rocket {
   static constexpr int kMaxFuelTanks = 8;
 
-  int32_t id;
+  Entity id;
 
   struct FuelTank {
     // How much does the fuel in the tank weigh in kg per second of thrust.
@@ -107,16 +108,16 @@ std::ostream &operator<<(std::ostream &os, const Rocket &rocket);
 std::ostream &operator<<(std::ostream &os, const Rocket::FuelTank &fuel_tank);
 
 struct ReuseTag {
-  int32_t id;
-  int32_t pool_id;
-  int32_t next_id;
+  Entity id;
+  Entity pool_id;
+  Entity next_id;
 
   bool operator==(const ReuseTag &) const = default;
 };
 
 struct ReusePool {
-  int32_t id;
-  int32_t first_id;
+  Entity id;
+  Entity first_id;
 
   int32_t in_use_count;
   int32_t free_count;
