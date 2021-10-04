@@ -57,7 +57,7 @@ struct Motion {
         .velocity{velocity},
         .new_position{position + velocity},
         .acceleration{acceleration},
-        .spin{0, 0, 0, 1},
+        .spin = Quaternion::Identity(),
     };
   }
 };

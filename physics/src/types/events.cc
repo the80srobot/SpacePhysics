@@ -61,6 +61,10 @@ std::ostream &operator<<(std::ostream &os, const SpawnAttempt &spawn_attempt) {
             << ", /*rotation=*/" << spawn_attempt.rotation << "}";
 }
 
+std::ostream &operator<<(std::ostream &os, const TimeTravel &time_travel) {
+  return os << "TimeTravel{/*frame_no=*/" << time_travel.frame_no << "}";
+}
+
 bool Event::CanMergeWith(const Event &other) const {
   if (!(id == other.id && type == other.type)) {
     return false;
@@ -87,6 +91,8 @@ bool Event::CanMergeWith(const Event &other) const {
       return spawn == other.spawn;
     case Event::kSpawnAttempt:
       return spawn_attempt == other.spawn_attempt;
+    case Event::kTimeTravel:
+      return time_travel == other.time_travel;
     default:
       assert(false);  // Programmer error - unreachable.
       return true;
@@ -132,6 +138,8 @@ std::ostream &operator<<(std::ostream &os, const Event::Type event_type) {
       return os << "spawn";
     case Event::Type::kSpawnAttempt:
       return os << "spawn_attempt";
+    case Event::Type::kTimeTravel:
+      return os << "time_travel";
     default:
       assert("not reachable");
       return os;
@@ -159,9 +167,11 @@ std::ostream &operator<<(std::ostream &os, const Event &event) {
     case Event::Type::kRocketRefuel:
       return os << ", /*rocket_refuel=*/" << event.rocket_refuel << "}";
     case Event::Type::kSpawn:
-      return os << ", /*spawn=*/" << event.spawn << " }";
+      return os << ", /*spawn=*/" << event.spawn << "}";
     case Event::Type::kSpawnAttempt:
-      return os << ", /*spawn_attempt=*/" << event.spawn_attempt << " }";
+      return os << ", /*spawn_attempt=*/" << event.spawn_attempt << "}";
+    case Event::Type::kTimeTravel:
+      return os << ", /*time_travel=*/" << event.time_travel << "}";
     default:
       assert("not reachable");
       return os;

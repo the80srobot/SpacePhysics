@@ -35,6 +35,7 @@ target_link_libraries(
     absl::status
     absl::statusor
     absl::strings
+    absl::span
 )
 
 add_executable(

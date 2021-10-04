@@ -20,6 +20,41 @@ bool EventPartialEq(const Event &a, const Event &b) {
   return a == b;
 }
 
+void CopyUserInput(IntervalTree<Event> &tree, const Interval source,
+                   const int target) {
+  std::vector<IntervalTree<Event>::KV> buffer;
+  tree.Overlap(source, buffer);
+
+  int offset = -source.low + target;
+  for (const auto &event : buffer) {
+    if (event.second.system_flags & Event::kUserInput) {
+      tree.Insert(Interval(event.first.low + offset, event.first.high + offset),
+                  event.second);
+    }
+  }
+}
+
+absl::StatusOr<Event *> ShouldResetTimeline(absl::Span<Event> events,
+                                            const int key_frame_period) {
+  Event *out_event = nullptr;
+  for (Event &event : events) {
+    if (event.type != Event::kTimeTravel) continue;
+    if (out_event != nullptr) {
+      return absl::AlreadyExistsError(
+          "cannot reset the timeline twice in one frame");
+    }
+
+    if ((event.time_travel.frame_no % key_frame_period) != 0) {
+      return absl::InvalidArgumentError(
+          "can only reset the timeline to a keyframe");
+    }
+
+    out_event = &event;
+  }
+
+  return out_event;
+}
+
 }  // namespace
 
 const Frame *Timeline::GetFrame(const int frame_no) {
@@ -66,7 +101,7 @@ bool Timeline::GetEvents(const int first_frame_no, const int last_frame_no,
   return true;
 }
 
-void Timeline::Truncate(int new_head) {
+void Timeline::Truncate(const int new_head, const Entity user_input_target) {
   if (new_head >= head_) return;
 
   // TODO(adam): this could be about 5-10 times faster and require no allocation
@@ -75,6 +110,10 @@ void Timeline::Truncate(int new_head) {
     std::vector<IntervalTree<Event>::KV> to_delete;
     events_.Overlap(Interval(new_head, events_.MaxPoint()), to_delete);
     for (auto &kv : to_delete) {
+      if ((kv.second.flags & Event::kUserInput) == 0 &&
+          kv.second.id != user_input_target) {
+        continue;
+      }
       events_.Delete(kv);
       if (kv.first.low < new_head) {
         kv.first.high = new_head;
@@ -97,14 +136,14 @@ void Timeline::Truncate(int new_head) {
 
 void Timeline::InputEvent(const int frame_no, const Event &event) {
   assert(frame_no > tail_);
-  Truncate(frame_no - 1);
+  Truncate(frame_no - 1, event.id);
   events_.MergeInsert(Interval(frame_no, frame_no + 1), event, EventPartialEq);
 }
 
 void Timeline::InputEvent(int first_frame_no, int last_frame_no,
                           const Event &event) {
   assert(first_frame_no > tail_);
-  Truncate(first_frame_no - 1);
+  Truncate(first_frame_no - 1, event.id);
   events_.MergeInsert(Interval(first_frame_no, last_frame_no + 1), event,
                       EventPartialEq);
 }
@@ -115,10 +154,23 @@ void Timeline::Simulate() {
   simulate_buffer_.clear();
 
   events_.Overlap(head_, input_buffer_);
-  pipeline_->Step(frame_time_, head_, head_frame_,
-                  absl::MakeSpan(input_buffer_), simulate_buffer_);
-  for (const auto &event : simulate_buffer_) {
-    events_.MergeInsert(Interval{head_, head_ + 1}, event, EventPartialEq);
+  auto reset_event =
+      ShouldResetTimeline(absl::MakeSpan(input_buffer_), key_frame_period_);
+  assert(reset_event.ok());
+
+  if (reset_event.value() != nullptr) {
+    head_frame_ = key_frames_[reset_event.value()->time_travel.frame_no /
+                              key_frame_period_];
+    // Copy user input events that took place in the intervening period.
+    CopyUserInput(events_,
+                  Interval(reset_event.value()->time_travel.frame_no, head_),
+                  head_);
+  } else {
+    pipeline_->Step(frame_time_, head_, head_frame_,
+                    absl::MakeSpan(input_buffer_), simulate_buffer_);
+    for (const auto &event : simulate_buffer_) {
+      events_.MergeInsert(Interval{head_, head_ + 1}, event, EventPartialEq);
+    }
   }
 
   if ((head_ % key_frame_period_) == 0) {
@@ -140,8 +192,17 @@ bool Timeline::Replay(int frame_no) {
   for (; frame_no_ < frame_no; ++frame_no_) {
     replay_buffer_.clear();
     events_.Overlap(frame_no_, replay_buffer_);
-    pipeline_->Replay(frame_time_, frame_no_, frame_,
-                      absl::MakeSpan(replay_buffer_));
+    auto reset_event =
+        ShouldResetTimeline(absl::MakeSpan(replay_buffer_), key_frame_period_);
+    assert(reset_event.ok());
+
+    if (reset_event.value() != nullptr) {
+      frame_ = key_frames_[reset_event.value()->time_travel.frame_no /
+                           key_frame_period_];
+    } else {
+      pipeline_->Replay(frame_time_, frame_no_, frame_,
+                        absl::MakeSpan(replay_buffer_));
+    }
   }
 
   assert(frame_no == frame_no);

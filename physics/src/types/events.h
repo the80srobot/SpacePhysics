@@ -145,6 +145,14 @@ static_assert(std::is_standard_layout<SpawnAttempt>());
 
 std::ostream &operator<<(std::ostream &os, const SpawnAttempt &spawn_request);
 
+struct TimeTravel {
+  int64_t frame_no;
+
+  bool operator==(const TimeTravel &) const = default;
+};
+
+std::ostream &operator<<(std::ostream &os, const TimeTravel &time_travel);
+
 struct Event {
   enum Type {
     kNil = 0,
@@ -158,6 +166,7 @@ struct Event {
     kRocketRefuel = 8,
     kSpawn = 9,
     kSpawnAttempt = 10,
+    kTimeTravel = 11,
   };
 
   Event() : type(kNil), id(Entity::Nil()) {}
@@ -210,9 +219,26 @@ struct Event {
         spawn_attempt(spawn_attempt),
         position(position) {}
 
+  explicit Event(Entity id, Vector3 position, TimeTravel &&time_travel)
+      : id(id),
+        type(kTimeTravel),
+        time_travel(time_travel),
+        position(position) {}
+
   Entity id;
   Type type;
   Vector3 position;
+
+  union {
+    struct {
+      uint8_t system_flags;
+      uint8_t reserved;
+      uint16_t user_flags;
+    };
+    uint32_t flags;
+  };
+
+  static constexpr uint8_t kUserInput = 1 << 0;
 
   // Payloads - which is set is controlled by type.
   union {
@@ -226,6 +252,7 @@ struct Event {
     RocketRefuel rocket_refuel;
     Spawn spawn;
     SpawnAttempt spawn_attempt;
+    TimeTravel time_travel;
   };
 
   // A partial equality check, ignoring metadata. Unlike ==, ignores event
@@ -238,7 +265,7 @@ struct Event {
   std::partial_ordering operator<=>(const Event &) const;
 };
 
-static_assert(sizeof(Event) == 60);
+static_assert(sizeof(Event) == 64);
 static_assert(std::is_standard_layout<Event>());
 static_assert(std::is_move_assignable<Event>());
 static_assert(std::is_move_constructible<Event>());

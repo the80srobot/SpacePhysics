@@ -84,6 +84,10 @@ void ApplyEventEffects(absl::Span<Event> events, Frame &frame) {
         SpawnObject(event, frame);
         break;
       }
+      case Event::kTimeTravel:
+        // Needs access to past key frames, so must be handled at the timeline
+        // level.
+        break;
       default:
         assert("not reachable");
         break;

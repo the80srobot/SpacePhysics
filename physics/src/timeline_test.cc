@@ -152,6 +152,65 @@ TEST(TimelineTest, AccelerateRewindAccelerate) {
   EXPECT_THAT(frame->motion[0].velocity, Vector3ApproxEq(Vector3{0, 0, 0}));
 }
 
+TEST(TimelineTest, TimeTravel) {
+  const float dt = 0.1;
+  const int key_frame_every = 5;
+  Frame initial_frame;
+
+  const Entity spaceship = initial_frame.Push();
+  spaceship.Set(
+      initial_frame.transforms,
+      Transform{.position{100, 0, 0}, .rotation = Quaternion::Identity()});
+  spaceship.Set(initial_frame.mass, Mass{.active = 0, .inertial = 10});
+  spaceship.Set(initial_frame.colliders,
+                Collider{.center{0, 0, 0}, .layer = 1, .radius = 1});
+  spaceship.Set(initial_frame.motion, Motion{.velocity{0, 0, 0}});
+  SetOptionalComponent(
+      spaceship,
+      Rocket{.fuel_tank_count = 2,
+             .fuel_tanks =
+                 {
+                     {.fuel = 1, .mass_flow_rate = 1, .thrust = 10},
+                     {.fuel = 1, .mass_flow_rate = 1, .thrust = 10},
+                 }},
+      initial_frame.rockets);
+
+  const Entity planet = initial_frame.Push();
+  planet.Set(initial_frame.transforms, Transform{.position{0, 0, 0}});
+  planet.Set(initial_frame.mass,
+             Mass{.active = 1000, .inertial = 1000, .cutoff_distance = 1000});
+  planet.Set(initial_frame.colliders,
+             Collider{.center{0, 0, 0}, .layer = 2, .radius = 10});
+  planet.Set(initial_frame.motion,
+             Motion{.spin = Quaternion::FromAngle(
+                        {0, 0, 1}, 10 * Quaternion::kRadiansPerDeg / dt)});
+
+  LayerMatrix matrix({{1, 1}});
+
+  Timeline timeline(initial_frame, 0, matrix, {}, dt, key_frame_every,
+                    kFirstOrderEuler);
+
+  timeline.InputEvent(
+      10, 19,
+      Event(spaceship, {}, RocketBurn{.fuel_tank = 0, .thrust{1, 0, 0}}));
+  timeline.InputEvent(20, Event(spaceship, {}, TimeTravel{.frame_no = 5}));
+
+  int frame_no;
+  for (frame_no = 0; frame_no < 20; ++frame_no) {
+    timeline.Simulate();
+  }
+
+  const Frame* frame = timeline.GetFrame(19);
+  ASSERT_NE(frame, nullptr);
+  EXPECT_THAT(spaceship.Get(frame->motion).velocity,
+              Vector3ApproxEq(Vector3{10, 0, 0}, 0.5));
+
+  frame = timeline.GetFrame(20);
+  ASSERT_NE(frame, nullptr);
+  EXPECT_THAT(spaceship.Get(frame->motion).velocity,
+              Vector3ApproxEq(Vector3{0, 0, 0}, 0.5));
+}
+
 TEST(TimelineTest, DestroyAttractor) {
   const float dt = 1.0f / 30;
 
