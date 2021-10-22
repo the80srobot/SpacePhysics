@@ -25,32 +25,19 @@ TEST(TimelineTest, FallingSphere) {
   // The spheres should take about 111 seconds to come into contact.
   const float duration = 111;
 
-  std::vector<Transform> positions{
-      Transform{Vector3{0, 100, 0}},
-      Transform{Vector3{0, 200, 0}},
-  };
-  std::vector<Mass> mass{
-      Mass{},
-      Mass{100, 100},
-  };
-  std::vector<Motion> motion{
-      Motion{},
-      Motion{},
-  };
-  std::vector<Collider> colliders{
-      Collider{1, 1},
-      Collider{1, 1},
-  };
-  std::vector<Glue> glue{
-      Glue{},
-      Glue{},
-  };
-  std::vector<Flags> flags{
-      Flags{},
-      Flags{},
-  };
+  Frame initial_frame;
+  Entity massless_sphere = initial_frame.Push();
+  Entity massive_sphere = initial_frame.Push();
 
-  Frame initial_frame{positions, mass, motion, colliders, glue, flags};
+  massless_sphere.Set(initial_frame.transforms,
+                      Transform{.position{0, 100, 0}});
+  massless_sphere.Set(initial_frame.colliders,
+                      Collider{.radius = 1, .layer = 1});
+  massive_sphere.Set(initial_frame.transforms, Transform{0, 200, 0});
+  massive_sphere.Set(initial_frame.colliders,
+                     Collider{.radius = 1, .layer = 1});
+  massive_sphere.Set(initial_frame.mass, Mass{.active = 100, .inertial = 100});
+
   LayerMatrix matrix({{1, 1}});
 
   Timeline timeline(initial_frame, 0, matrix, {}, dt, 30);
@@ -73,8 +60,8 @@ TEST(TimelineTest, FallingSphere) {
   EXPECT_TRUE(timeline.GetEvents(frame_no, buffer));
   ASSERT_GE(buffer.size(), 1);
   EXPECT_EQ(buffer[0].type, Event::kCollision);
-  EXPECT_EQ(buffer[0].id, Entity(0));
-  EXPECT_EQ(buffer[0].collision.second_id, Entity(1));
+  EXPECT_EQ(buffer[0].id, massless_sphere);
+  EXPECT_EQ(buffer[0].collision.second_id, massive_sphere);
   EXPECT_NE(buffer[0].collision.first_frame_offset_seconds, 0);
 
   // Simulate some way into the future, then look back.
@@ -84,49 +71,32 @@ TEST(TimelineTest, FallingSphere) {
 
   frame = timeline.GetFrame(frame_no);
   EXPECT_NE(frame, nullptr);
-  EXPECT_LT(frame->transforms[0].position.y, 200);
-  EXPECT_GT(frame->transforms[0].position.y, 199);
+  EXPECT_LT(massless_sphere.Get(frame->transforms).position.y, 200);
+  EXPECT_GT(massless_sphere.Get(frame->transforms).position.y, 199);
 }
 
 TEST(TimelineTest, AccelerateRewindAccelerate) {
   const float dt = 0.01;
 
-  std::vector<Transform> positions{
-      Transform{Vector3{0, 100, 0}},
-      Transform{Vector3{0, 0, 0}},
-  };
-  std::vector<Mass> mass{
-      Mass{},
-      Mass{},
-  };
-  std::vector<Motion> motion{
-      Motion{},
-      Motion{},
-  };
-  std::vector<Collider> colliders{
-      Collider{1, 1},
-      Collider{1, 1},
-  };
-  std::vector<Glue> glue{
-      Glue{},
-      Glue{},
-  };
-  std::vector<Flags> flags{
-      Flags{},
-      Flags{},
-  };
+  Frame initial_frame;
+  Entity rocket = initial_frame.Push();
+  Entity planet = initial_frame.Push();
 
-  Frame initial_frame{positions, mass, motion, colliders, glue, flags};
+  rocket.Set(initial_frame.transforms, Transform{.position{0, 100, 0}});
+  rocket.Set(initial_frame.colliders, Collider{.layer = 1, .radius = 1});
+  planet.Set(initial_frame.transforms, Transform{.position{0, 0, 0}});
+  planet.Set(initial_frame.colliders, Collider{.layer = 1, .radius = 1});
+
   LayerMatrix matrix({{1, 1}});
 
   Timeline timeline(initial_frame, 0, matrix, {}, dt, 30);
 
-  // One-second 10 ms/s/s burn in the direction of sphere 1. After 1 second, the
-  // speed of sphere 0 should be 10 m/s.
+  // One-second 10 ms/s/s burn in the direction of the planet. After 1 second,
+  // the speed should be 10 m/s.
   timeline.InputEvent(1, 1.0f / dt,
-                      Event(Entity(0), {}, Acceleration{Vector3{0, -10, 0}}));
+                      Event(rocket, {}, Acceleration{Vector3{0, -10, 0}}));
 
-  // After two seconds, sphere 0 should be on its way towards sphere 1.
+  // After two seconds the rocket should be on its way towards sphere 1.
   int frame_no = 0;
   for (float t = 0; t < 2; t += dt) {
     timeline.Simulate();
@@ -135,21 +105,23 @@ TEST(TimelineTest, AccelerateRewindAccelerate) {
 
   const Frame* frame = timeline.GetFrame(frame_no);
   ASSERT_NE(frame, nullptr);
-  EXPECT_THAT(frame->motion[0].velocity, Vector3ApproxEq(Vector3{0, -10, 0}));
+  EXPECT_THAT(rocket.Get(frame->motion).velocity,
+              Vector3ApproxEq(Vector3{0, -10, 0}));
 
   // Rewind the clock to 0.5 second and burn in the opposite direction. The
   // resulting speed should be 0.
   timeline.InputEvent(0.5f / dt + 1, 1.0f / dt,
-                      Event(Entity(0), {}, Acceleration{Vector3{0, 10, 0}}));
-  // At the two-second mark, the speed should be 0 - simulate until the frame at
-  // 2 seconds in is available.
+                      Event(rocket, {}, Acceleration{Vector3{0, 10, 0}}));
+  // At the two-second mark, the speed should be 0 - simulate until the frame
+  // at 2 seconds in is available.
   frame_no = 2.0f / dt;
   for (frame = nullptr; frame == nullptr; frame = timeline.GetFrame(frame_no)) {
     timeline.Simulate();
   }
 
   ASSERT_NE(frame, nullptr);
-  EXPECT_THAT(frame->motion[0].velocity, Vector3ApproxEq(Vector3{0, 0, 0}));
+  EXPECT_THAT(rocket.Get(frame->motion).velocity,
+              Vector3ApproxEq(Vector3{0, 0, 0}));
 }
 
 TEST(TimelineTest, TimeTravel) {
@@ -214,32 +186,17 @@ TEST(TimelineTest, TimeTravel) {
 TEST(TimelineTest, DestroyAttractor) {
   const float dt = 1.0f / 30;
 
-  std::vector<Transform> positions{
-      Transform{Vector3{0, 100, 0}},
-      Transform{Vector3{0, 0, 0}},
-  };
-  std::vector<Mass> mass{
-      Mass{},
-      Mass{100, 100},
-  };
-  std::vector<Motion> motion{
-      Motion{},
-      Motion{},
-  };
-  std::vector<Collider> colliders{
-      Collider{1, 1},
-      Collider{1, 1},
-  };
-  std::vector<Glue> glue{
-      Glue{},
-      Glue{},
-  };
-  std::vector<Flags> flags{
-      Flags{},
-      Flags{},
-  };
+  Frame initial_frame;
+  Entity rock = initial_frame.Push();
+  Entity attractor = initial_frame.Push();
 
-  Frame initial_frame{positions, mass, motion, colliders, glue, flags};
+  rock.Set(initial_frame.transforms, Transform{.position{0, 100, 0}});
+  rock.Set(initial_frame.colliders, Collider{.layer = 1, .radius = 1});
+
+  attractor.Set(initial_frame.transforms, Transform{.position{0, 0, 0}});
+  attractor.Set(initial_frame.colliders, Collider{.layer = 1, .radius = 1});
+  attractor.Set(initial_frame.mass, Mass{.active = 100, .inertial = 100});
+
   LayerMatrix matrix({{1, 1}});
 
   Timeline timeline(initial_frame, 0, matrix, {}, dt, 30);
@@ -252,25 +209,26 @@ TEST(TimelineTest, DestroyAttractor) {
     ++frame_no;
   }
 
-  // The massive sphere should stop existing after 30 seconds. After that, gone
-  // should be the gravitational force, and no collision should occur.
+  // The massive sphere should stop existing after 30 seconds. After that,
+  // gone should be the gravitational force, and no collision should occur.
   const Frame* frame = timeline.GetFrame(30.0f / dt);
   ASSERT_NE(frame, nullptr);
-  EXPECT_FALSE(frame->flags[1].value & Flags::kDestroyed);
-  EXPECT_THAT(frame->motion[0].acceleration,
-              Vector3ApproxEq(
-                  Vector3{0,
-                          -100 / Vector3::SqrMagnitude(positions[0].position -
-                                                       positions[1].position),
-                          0}));
+  EXPECT_FALSE(attractor.Get(frame->flags).value & Flags::kDestroyed);
+  EXPECT_THAT(rock.Get(frame->motion).acceleration,
+              Vector3ApproxEq(Vector3{
+                  0,
+                  -100 / Vector3::SqrMagnitude(
+                             rock.Get(initial_frame.transforms).position -
+                             attractor.Get(initial_frame.transforms).position),
+                  0}));
 
   frame = timeline.GetFrame(30.0f / dt + 1);
   ASSERT_NE(frame, nullptr);
-  EXPECT_TRUE(frame->flags[1].value & Flags::kDestroyed);
-  EXPECT_EQ(frame->motion[0].acceleration, (Vector3{0, 0, 0}));
+  EXPECT_TRUE(attractor.Get(frame->flags).value & Flags::kDestroyed);
+  EXPECT_EQ(rock.Get(frame->motion).acceleration, (Vector3{0, 0, 0}));
 
   // Eventually sphere 0 will fall where sphere 1 used to be.
-  for (; frame->transforms[0].position.y > 1; ++frame_no) {
+  for (; rock.Get(frame->transforms).position.y > 1; ++frame_no) {
     timeline.Simulate();
     frame = timeline.GetFrame(frame_no);
   }
@@ -278,8 +236,8 @@ TEST(TimelineTest, DestroyAttractor) {
   // But no collision should be recorded.
   frame = timeline.GetFrame(frame_no);
   ASSERT_NE(frame, nullptr);
-  EXPECT_GT(frame->transforms[0].position.y, 0);
-  EXPECT_LT(frame->transforms[0].position.y, 1);
+  EXPECT_GT(rock.Get(frame->transforms).position.y, 0);
+  EXPECT_LT(rock.Get(frame->transforms).position.y, 1);
   std::vector<Event> buffer;
   EXPECT_TRUE(timeline.GetEvents(frame_no, buffer));
   EXPECT_EQ(buffer.size(), 0);
@@ -290,8 +248,8 @@ TEST(TimelineTest, DestroyAttractor) {
   //   timeline.InputEvent(frame_no + 1, Event(1, {}, Destruction{}));
 
   // We have to take two steps, because events take effect at the end of the
-  // frame, which means the attractor still cannot participate in collisions on
-  // the first frame.
+  // frame, which means the attractor still cannot participate in collisions
+  // on the first frame.
   //   timeline.Simulate();
   //   ++frame_no;
   //   timeline.Simulate();
@@ -393,8 +351,8 @@ TEST(TimelineTest, ObjectPoolCollisions) {
     }
     ASSERT_EQ(pending_spawn_attempts, 0);
 
-    // Instead of listening for destruction events, monitor the outcomes - each
-    // object should be destroyed after the second collision.
+    // Instead of listening for destruction events, monitor the outcomes -
+    // each object should be destroyed after the second collision.
     for (const Event& event : events) {
       if (event.type != Event::kCollision) continue;
       ++collisions;
