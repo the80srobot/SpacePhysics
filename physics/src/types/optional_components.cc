@@ -47,4 +47,17 @@ std::ostream &operator<<(std::ostream &os, const Rocket::FuelTank &fuel_tank) {
             << fuel_tank.thrust << "}";
 }
 
+std::ostream &operator<<(std::ostream &os, const ReuseTag &reuse_tag) {
+  return os << "ReuseTag{/*id=*/" << reuse_tag.id << ", /*pool_id=*/"
+            << reuse_tag.pool_id << ", /*next_id=*/" << reuse_tag.next_id
+            << "}";
+}
+
+std::ostream &operator<<(std::ostream &os, const ReusePool &reuse_pool) {
+  return os << "ReusePool{/*id=*/" << reuse_pool.id << ", /*first_id=*/"
+            << reuse_pool.first_id << ", /*in_use_count=*/"
+            << reuse_pool.in_use_count << ", /*free_count=*/"
+            << reuse_pool.free_count << "}";
+}
+
 }  // namespace vstr

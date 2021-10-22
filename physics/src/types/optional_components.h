@@ -115,6 +115,8 @@ struct ReuseTag {
   bool operator==(const ReuseTag &) const = default;
 };
 
+std::ostream &operator<<(std::ostream &os, const ReuseTag &reuse_tag);
+
 struct ReusePool {
   Entity id;
   Entity first_id;
@@ -124,6 +126,8 @@ struct ReusePool {
 
   bool operator==(const ReusePool &) const = default;
 };
+
+std::ostream &operator<<(std::ostream &os, const ReusePool &reuse_pool);
 
 }  // namespace vstr
 

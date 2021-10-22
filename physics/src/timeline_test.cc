@@ -137,15 +137,12 @@ TEST(TimelineTest, TimeTravel) {
   spaceship.Set(initial_frame.colliders,
                 Collider{.center{0, 0, 0}, .layer = 1, .radius = 1});
   spaceship.Set(initial_frame.motion, Motion{.velocity{0, 0, 0}});
-  SetOptionalComponent(
-      spaceship,
-      Rocket{.fuel_tank_count = 2,
-             .fuel_tanks =
-                 {
-                     {.fuel = 1, .mass_flow_rate = 1, .thrust = 10},
-                     {.fuel = 1, .mass_flow_rate = 1, .thrust = 10},
-                 }},
-      initial_frame.rockets);
+  spaceship.Set(initial_frame.rockets,
+                Rocket{.fuel_tank_count = 2,
+                       .fuel_tanks = {
+                           {.fuel = 1, .mass_flow_rate = 1, .thrust = 10},
+                           {.fuel = 1, .mass_flow_rate = 1, .thrust = 10},
+                       }});
 
   const Entity planet = initial_frame.Push();
   planet.Set(initial_frame.transforms, Transform{.position{0, 0, 0}});
@@ -271,8 +268,8 @@ TEST(TimelineTest, ObjectPoolCollisions) {
   const Entity asteroid_prototype_id =
       initial_frame.Push(Transform{}, Mass{.inertial = 10}, Motion{},
                          Collider{.layer = 1, .radius = 0.5}, Glue{}, Flags{});
-  SetOptionalComponent(asteroid_prototype_id, Durability{.value = 2, .max = 2},
-                       initial_frame.durability);
+  asteroid_prototype_id.Set(initial_frame.durability,
+                            Durability{.value = 2, .max = 2});
   InitializePool(asteroid_pool_id, asteroid_prototype_id, 8, initial_frame);
 
   // Big attractor in the middle - asteroids should bounce off its surface,
@@ -284,8 +281,9 @@ TEST(TimelineTest, ObjectPoolCollisions) {
       Mass{.inertial = 9999, .active = 9999, .cutoff_distance = kMaxRange},
       Motion{}, Collider{.layer = 1, .radius = 5}, Glue{},
       Flags{.value = Flags::kOrbiting});
-  // The orbit component ensures the attractor doesn't move during collisions.
-  SetOptionalComponent(attractor_id, Orbit{}, initial_frame.orbits);
+
+  // An empty orbit fixes the attractor in place, even during collisions.
+  attractor_id.Set(initial_frame.orbits, Orbit{});
 
   LayerMatrix matrix({{1, 1}});
   CollisionRuleSet rules;
