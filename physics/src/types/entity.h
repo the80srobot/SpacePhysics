@@ -149,12 +149,14 @@ class Entity {
   }
 
   // Sets optional component data for this entity. This is equivalent to calling
-  // GetOrInit and overwriting the result.
+  // GetOrInit and overwriting the result. Returns the newly set optional
+  // component.
   template <OptionalComponent T>
-  void Set(std::vector<T> &component_data, const T &value) const {
+  T &Set(std::vector<T> &component_data, const T &value) const {
     T &current = GetOrInit(component_data);
     current = value;
     current.id = *this;
+    return current;
   }
 
   // Sentinel value meaning no entity.
@@ -220,6 +222,7 @@ void CopyOptionalComponent(const Entity dst, const Entity src,
   if (src_value == nullptr) return;
   T &dst_value = dst.GetOrInit(component_data);
   dst_value = *src_value;
+  dst_value.id = dst;
 }
 
 }  // namespace vstr

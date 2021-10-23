@@ -29,6 +29,8 @@ void CopyObject(const Entity dst, const Entity src, Frame &frame) {
   dst.Set(frame.colliders, src.Get(frame.colliders));
   dst.Set(frame.glue, src.Get(frame.glue));
   dst.Set(frame.flags, src.Get(frame.flags));
+  dst.Set(frame.transforms, src.Get(frame.transforms));
+  dst.Set(frame.motion, src.Get(frame.motion));
 
   CopyOptionalComponent(dst, src, frame.orbits);
   CopyOptionalComponent(dst, src, frame.durability);
@@ -37,10 +39,9 @@ void CopyObject(const Entity dst, const Entity src, Frame &frame) {
   CopyOptionalComponent(dst, src, frame.reuse_tags);
 }
 
-void ReturnToPool(const Entity id, const int tag_idx, ReusePool &pool,
-                  std::vector<ReuseTag> &reuse_tags) {
-  assert(reuse_tags[tag_idx].next_id == Entity::Nil());
-  reuse_tags[tag_idx].next_id = pool.first_id;
+void ReturnToPool(const Entity id, ReuseTag &tag, ReusePool &pool) {
+  assert(tag.next_id == Entity::Nil());
+  tag.next_id = pool.first_id;
   pool.first_id = id;
   ++pool.free_count;
   --pool.in_use_count;
@@ -50,21 +51,18 @@ void ReturnToPool(const Entity id, const int tag_idx, ReusePool &pool,
 
 int32_t InitializePool(const Entity pool_id, const Entity prototype_id,
                        const int32_t capacity, Frame &frame) {
-  const int32_t pool_idx =
-      SetOptionalComponent(pool_id,
-                           ReusePool{.id = pool_id,
-                                     .free_count = 0,
-                                     .in_use_count = capacity,
-                                     .first_id = Entity::Nil()},
-                           frame.reuse_pools);
-  assert(pool_idx >= 0);
   assert(prototype_id != pool_id);
 
-  const int32_t tag_idx = SetOptionalComponent(
-      prototype_id,
-      ReuseTag{
-          .id = prototype_id, .next_id = Entity::Nil(), .pool_id = pool_id},
-      frame.reuse_tags);
+  ReusePool &pool =
+      pool_id.Set(frame.reuse_pools, ReusePool{.id = pool_id,
+                                               .free_count = 0,
+                                               .in_use_count = capacity,
+                                               .first_id = Entity::Nil()});
+
+  ReuseTag &tag =
+      prototype_id.Set(frame.reuse_tags, ReuseTag{.id = prototype_id,
+                                                  .next_id = Entity::Nil(),
+                                                  .pool_id = pool_id});
 
   prototype_id.Get(frame.flags).value |= Flags::kReusable | Flags::kDestroyed;
 
@@ -73,28 +71,28 @@ int32_t InitializePool(const Entity pool_id, const Entity prototype_id,
     CopyObject(id, prototype_id, frame);
     ReleaseObject(id, frame.flags, frame.reuse_pools, frame.reuse_tags);
   }
-  ReturnToPool(prototype_id, tag_idx, frame.reuse_pools[pool_idx],
-               frame.reuse_tags);
+  ReturnToPool(prototype_id, tag, pool);
 
-  assert(frame.reuse_pools[pool_idx].free_count == capacity);
-  assert(frame.reuse_pools[pool_idx].first_id != pool_id);
+  assert(pool.free_count == capacity);
+  assert(pool.first_id != pool_id);
 
-  return pool_idx;
+  // TODO: this should return a reference, but the C-compatible API expects an
+  // offset. Refactor.
+  return FindOptionalComponent(frame.reuse_pools, pool_id);
 }
 
 void ReleaseObject(const Entity id, const std::vector<Flags> &flags,
                    std::vector<ReusePool> &reuse_pools,
                    std::vector<ReuseTag> &reuse_tags) {
-  if (!(id.Get(flags).value & Flags::kReusable)) return;
+  assert(id.Get(flags).value & Flags::kReusable);
 
-  const int32_t tag_idx = FindOptionalComponent(reuse_tags, id);
-  const int32_t pool_idx =
-      FindOptionalComponent(reuse_pools, reuse_tags[tag_idx].pool_id);
+  ReuseTag *tag = id.Get(reuse_tags);
+  assert(tag != nullptr);
 
-  assert(pool_idx >= 0);
-  assert(tag_idx >= 0);
+  ReusePool *pool = tag->pool_id.Get(reuse_pools);
+  assert(pool != nullptr);
 
-  ReturnToPool(id, tag_idx, reuse_pools[pool_idx], reuse_tags);
+  ReturnToPool(id, *tag, *pool);
 }
 
 void ConvertSpawnAttempts(absl::Span<Event> in_events,
@@ -113,12 +111,11 @@ absl::StatusOr<Event> SpawnEventFromPool(const Entity pool_id,
                                          const Quaternion &rotation,
                                          const Vector3 &velocity,
                                          Frame &frame) {
-  const int pool_idx = FindOptionalComponent(frame.reuse_pools, pool_id);
-  if (pool_idx < 0)
+  ReusePool *pool = pool_id.Get(frame.reuse_pools);
+  if (pool == nullptr)
     return absl::InvalidArgumentError("object has no pool component");
 
-  const Entity tag_id =
-      ClaimFromPool(frame.reuse_pools[pool_idx], frame.reuse_tags);
+  const Entity tag_id = ClaimFromPool(*pool, frame.reuse_tags);
   if (tag_id == Entity::Nil()) {
     return absl::ResourceExhaustedError(
         "no free objects available in the pool");
@@ -137,10 +134,11 @@ void SpawnObject(const Event &spawn_event, Frame &frame) {
   id.Get(frame.motion) = Motion::FromPositionAndVelocity(
       spawn_event.position, spawn_event.spawn.velocity);
 
-  const int32_t durability_idx = FindOptionalComponent(frame.durability, id);
-  if (durability_idx >= 0) {
-    frame.durability[durability_idx].value =
-        frame.durability[durability_idx].max;
+  // When spawning objects that have a durability component, heal them to their
+  // max hit points.
+  Durability *durability = id.Get(frame.durability);
+  if (durability != nullptr) {
+    durability->value = durability->max;
   }
 }
 
