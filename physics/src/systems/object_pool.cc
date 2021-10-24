@@ -54,15 +54,12 @@ int32_t InitializePool(const Entity pool_id, const Entity prototype_id,
   assert(prototype_id != pool_id);
 
   ReusePool &pool =
-      pool_id.Set(frame.reuse_pools, ReusePool{.id = pool_id,
-                                               .free_count = 0,
+      pool_id.Set(frame.reuse_pools, ReusePool{.free_count = 0,
                                                .in_use_count = capacity,
                                                .first_id = Entity::Nil()});
 
-  ReuseTag &tag =
-      prototype_id.Set(frame.reuse_tags, ReuseTag{.id = prototype_id,
-                                                  .next_id = Entity::Nil(),
-                                                  .pool_id = pool_id});
+  prototype_id.Set(frame.reuse_tags,
+                   ReuseTag{.next_id = Entity::Nil(), .pool_id = pool_id});
 
   prototype_id.Get(frame.flags).value |= Flags::kReusable | Flags::kDestroyed;
 
@@ -71,7 +68,11 @@ int32_t InitializePool(const Entity pool_id, const Entity prototype_id,
     CopyObject(id, prototype_id, frame);
     ReleaseObject(id, frame.flags, frame.reuse_pools, frame.reuse_tags);
   }
-  ReturnToPool(prototype_id, tag, pool);
+  // The dereference of Get's return value is safe because we created the
+  // optional component right before the loop. (We cannot reuse the reference
+  // returned from Set, because the CopyObject operations in the loop will have
+  // invalidated it by now.)
+  ReturnToPool(prototype_id, *prototype_id.Get(frame.reuse_tags), pool);
 
   assert(pool.free_count == capacity);
   assert(pool.first_id != pool_id);

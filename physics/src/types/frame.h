@@ -24,6 +24,15 @@
 
 namespace vstr {
 
+// Groups all the data required to render a frame. Each frame is the
+// deterministic result of modifying the previous by calling Pipeline::Step.
+//
+// The frame consists of (1) required components, which are dense vectors with
+// offsets equivalent to entity IDs; and (2) optional components, which are
+// sorted vectors of structures that include the entity ID as their first field.
+//
+// The recommended way of accessing data in Frames is by using Entity::Get and
+// Entity::Set, which maintain all of the above invariants.
 struct Frame {
   static int32_t constexpr kMaxObjects = 10000;
 
@@ -43,6 +52,10 @@ struct Frame {
   std::vector<ReusePool> reuse_pools;
   std::vector<ReuseTag> reuse_tags;
 
+  // Create a new entity by extending the required component vectors by one
+  // element.
+  //
+  // WARNING: invalidates all previous references if storage is reallocated.
   Entity Push();
   Entity Push(Transform &&transform, Mass &&mass, Motion &&motion,
               Collider &&collider, Glue &&glue, Flags &&flags);

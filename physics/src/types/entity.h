@@ -86,6 +86,8 @@ class Entity {
   // Warning: only call this function on the most recently created entity (from
   // Frame::Push), otherwise elements will be inserted in the middle of the
   // vector, resulting in poor performance.
+  //
+  // WARNING: Invalidates existing pointers and references to component_data.
   template <OptionalComponent T>
   T &GetOrInit(std::vector<T> &component_data) const {
     auto it = std::lower_bound(
@@ -151,6 +153,8 @@ class Entity {
   // Sets optional component data for this entity. This is equivalent to calling
   // GetOrInit and overwriting the result. Returns the newly set optional
   // component.
+  //
+  // WARNING: Invalidates existing pointers and references to component_data.
   template <OptionalComponent T>
   T &Set(std::vector<T> &component_data, const T &value) const {
     T &current = GetOrInit(component_data);

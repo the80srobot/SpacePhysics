@@ -115,8 +115,8 @@ void Timeline::Truncate(const int new_head, const Entity user_input_target) {
         continue;
       }
       events_.Delete(kv);
-      if (kv.first.low < new_head) {
-        kv.first.high = new_head;
+      if (kv.first.low <= new_head) {
+        kv.first.high = new_head + 1;
         events_.Insert(kv.first, kv.second);
       }
     }
